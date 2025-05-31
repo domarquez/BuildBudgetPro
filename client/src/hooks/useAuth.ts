@@ -25,9 +25,6 @@ export function useAuth() {
     queryKey: ["/api/auth/me"],
     enabled: !!token,
     retry: false,
-    meta: {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    },
   });
 
   const loginMutation = useMutation({
@@ -49,7 +46,9 @@ export function useAuth() {
       localStorage.setItem('auth_token', data.token);
       queryClient.setQueryData(["/api/auth/me"], data.user);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      window.location.reload(); // Force reload to update authentication state
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     },
   });
 
