@@ -225,9 +225,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/projects", requireAuth, async (req: any, res) => {
     try {
+      const { startDate, ...otherData } = req.body;
       const projectData = insertProjectSchema.parse({
-        ...req.body,
-        userId: req.user.id
+        ...otherData,
+        userId: req.user.id,
+        startDate: startDate ? new Date(startDate) : null
       });
       const project = await storage.createProject(projectData);
       res.status(201).json(project);

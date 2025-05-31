@@ -169,7 +169,7 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   name: z.string().min(1, "El nombre del proyecto es requerido"),
   client: z.string().optional(),
   location: z.string().optional(),
-  startDate: z.string().optional(),
+  startDate: z.union([z.string(), z.date()]).optional().nullable(),
   userId: z.number().optional(),
   status: z.string().optional(),
 });

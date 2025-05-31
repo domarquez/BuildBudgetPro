@@ -280,17 +280,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProject(project: InsertProject): Promise<Project> {
+    const projectData = {
+      ...project,
+      startDate: typeof project.startDate === 'string' ? new Date(project.startDate) : project.startDate
+    };
     const [created] = await db
       .insert(projects)
-      .values(project)
+      .values(projectData)
       .returning();
     return created;
   }
 
   async updateProject(id: number, project: Partial<InsertProject>): Promise<Project> {
+    const updateData = {
+      ...project,
+      updatedAt: new Date(),
+      startDate: typeof project.startDate === 'string' ? new Date(project.startDate) : project.startDate
+    };
     const [updated] = await db
       .update(projects)
-      .set({ ...project, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(projects.id, id))
       .returning();
     return updated;
