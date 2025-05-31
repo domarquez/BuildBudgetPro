@@ -132,17 +132,17 @@ export async function getAPUsByGroup(groupUrl: string): Promise<APUItem[]> {
     const apus: APUItem[] = [];
 
     // Buscar enlaces específicos que sigan el patrón de APUs individuales
-    // Ejemplo: /cerramiento/108/colocacion-de-malla-olimpica-16
+    // Ejemplo: analisis-precio-unitario/hh/cerramiento/108/colocacion-de-malla-olimpica-16
     $('a').each((_, element) => {
       const link = $(element);
       const href = link.attr('href');
       const text = link.text().trim();
       
       if (href && text) {
-        // Verificar si es un enlace a un APU individual
+        // Verificar si es un enlace a un APU individual (tiene patrón: categoria/numero/nombre)
         const apuPattern = /\/[a-z-]+\/\d+\/[a-z0-9-]+$/;
-        if (href.match(apuPattern) && !href.includes('/grupos/')) {
-          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/analisis-precio-unitario${href}`;
+        if (href.match(apuPattern) && !href.includes('/grupos/') && href.includes('analisis-precio-unitario/hh/')) {
+          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/${href}`;
           const pathParts = href.split('/');
           const code = pathParts[pathParts.length - 2] || ''; // El número del APU
           const name = text;
@@ -169,7 +169,7 @@ export async function getAPUsByGroup(groupUrl: string): Promise<APUItem[]> {
         const name = link.text().trim() || cells.eq(1).text().trim();
         
         if (href && name && href.match(/\/\d+\/[a-z0-9-]+$/)) {
-          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/analisis-precio-unitario${href}`;
+          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/${href}`;
           const pathParts = href.split('/');
           const code = pathParts[pathParts.length - 2] || '';
           
