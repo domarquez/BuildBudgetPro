@@ -18,7 +18,7 @@ export default function APUImport() {
     mutationFn: async () => {
       return await apiRequest("/api/import-apu", "POST");
     },
-    onSuccess: (result) => {
+    onSuccess: (result: any) => {
       setImportStatus(result);
       toast({
         title: "Importación completada",
