@@ -16,34 +16,74 @@ export async function importMaterialsFromSQL() {
     // Read the SQL file
     const sqlContent = readFileSync('./attached_assets/datos2.sql', 'utf-8');
     
-    // Extract all INSERT statements for materials
-    const insertRegex = /INSERT INTO `tbl_materiales`[^;]+;/gi;
-    const insertStatements = sqlContent.match(insertRegex) || [];
+    // Find the exact INSERT statements with VALUES
+    const materialsSection = sqlContent.match(/INSERT INTO `tbl_materiales`[\s\S]*?VALUES\s*([\s\S]*?)(?=INSERT INTO|$)/gi);
     
-    console.log(`Found ${insertStatements.length} insert statements`);
+    if (!materialsSection || materialsSection.length === 0) {
+      console.log('No materials section found');
+      return { success: false, error: 'No materials data found in SQL file' };
+    }
+    
+    console.log(`Found ${materialsSection.length} materials sections`);
     
     let totalInserted = 0;
     
-    for (const statement of insertStatements) {
-      // Extract values from each INSERT statement
-      const valuesMatch = statement.match(/VALUES\s*(.*);$/);
+    for (const section of materialsSection) {
+      // Extract just the VALUES part
+      const valuesMatch = section.match(/VALUES\s*([\s\S]*)/i);
       if (!valuesMatch) continue;
       
-      const valuesString = valuesMatch[1];
+      let valuesString = valuesMatch[1];
       
-      // Parse individual value rows by splitting on parentheses
+      // Clean up and split by rows
+      valuesString = valuesString.replace(/;[\s\S]*$/, ''); // Remove everything after semicolon
+      
+      // Split by ),( pattern to get individual rows
       const rows = valuesString.split(/\),\s*\(/);
       
+      console.log(`Processing ${rows.length} rows in this section`);
+      
       for (let i = 0; i < rows.length; i++) {
-        let rowData = rows[i].replace(/^\(|\)$/g, '');
-        const valuesList = rowData.split(',').map(v => v.trim().replace(/^'|'$/g, ''));
+        let rowData = rows[i];
         
-        if (valuesList.length >= 5) {
+        // Clean up the row data
+        rowData = rowData.replace(/^\(/, '').replace(/\)$/, '');
+        
+        // Split by comma, but be careful with quoted strings
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+        let quoteChar = '';
+        
+        for (let j = 0; j < rowData.length; j++) {
+          const char = rowData[j];
+          
+          if ((char === '"' || char === "'") && !inQuotes) {
+            inQuotes = true;
+            quoteChar = char;
+          } else if (char === quoteChar && inQuotes) {
+            inQuotes = false;
+            quoteChar = '';
+          } else if (char === ',' && !inQuotes) {
+            values.push(current.trim().replace(/^['"]|['"]$/g, ''));
+            current = '';
+            continue;
+          }
+          
+          current += char;
+        }
+        
+        // Don't forget the last value
+        if (current) {
+          values.push(current.trim().replace(/^['"]|['"]$/g, ''));
+        }
+        
+        if (values.length >= 5) {
           const materialData: MaterialData = {
-            IdClasMaterial: parseInt(valuesList[1]) || 1,
-            Descripcion: valuesList[2] || 'Material sin descripción',
-            Unidad: valuesList[3] || 'Unidad',
-            LP: parseFloat(valuesList[4]) || 0
+            IdClasMaterial: parseInt(values[1]) || 1,
+            Descripcion: values[2] || 'Material sin descripción',
+            Unidad: values[3] || 'Unidad',
+            LP: parseFloat(values[4]) || 0
           };
           
           // Skip if price is 0 or invalid
@@ -59,16 +99,17 @@ export async function importMaterialsFromSQL() {
               name: materialData.Descripcion.substring(0, 100),
               unit: materialData.Unidad,
               price: materialData.LP.toString(),
-              description: `Material de categoría ${categoryId}`
+              description: `Importado de archivo SQL - Categoría ${categoryId}`
             });
             
             totalInserted++;
             
-            if (totalInserted % 50 === 0) {
+            if (totalInserted % 100 === 0) {
               console.log(`Inserted ${totalInserted} materials...`);
             }
           } catch (error) {
             // Skip duplicates or invalid entries
+            console.log(`Skipped material: ${materialData.Descripcion}`);
             continue;
           }
         }
