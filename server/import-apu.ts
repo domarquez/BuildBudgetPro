@@ -29,7 +29,7 @@ interface APUData {
 // Datos de ejemplo basados en los APUs de insucons.com
 const apuData: APUData[] = [
   {
-    activityName: "EXCAVACION MANUAL",
+    activityName: "EXCAVACION 0-1.5 M. TERR. BLANDO",
     materials: [], // No tiene materiales específicos
     labor: [
       { description: "Ayudante", unit: "hr", quantity: 2.20, unitPrice: 12.50 },
@@ -41,7 +41,7 @@ const apuData: APUData[] = [
     taxPercentage: 3.09
   },
   {
-    activityName: "CIMIENTO DE LADRILLO ADOBITO",
+    activityName: "CIMIENTO DE Ho Co",
     materials: [
       { description: "Cemento portland IP-30", unit: "kg", quantity: 60.00, unitPrice: 1.20 },
       { description: "Arena fina", unit: "m3", quantity: 0.35, unitPrice: 70.00 },
