@@ -210,6 +210,10 @@ export const insertBudgetSchema = createInsertSchema(budgets).omit({
 
 export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({
   id: true,
+}).extend({
+  quantity: z.union([z.string(), z.number()]).transform(val => String(val)),
+  unitPrice: z.union([z.string(), z.number()]).transform(val => String(val)),
+  subtotal: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
 export const insertPriceSettingsSchema = createInsertSchema(priceSettings).omit({
