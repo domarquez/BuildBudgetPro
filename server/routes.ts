@@ -289,6 +289,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Import materials from SQL file
+  app.post("/api/import-materials", async (req, res) => {
+    try {
+      const { importMaterialsFromSQL } = await import("./import-materials");
+      const result = await importMaterialsFromSQL();
+      res.json(result);
+    } catch (error) {
+      console.error("Error importing materials:", error);
+      res.status(500).json({ message: "Failed to import materials" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
