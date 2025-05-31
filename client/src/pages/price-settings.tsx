@@ -21,11 +21,13 @@ export default function PriceSettingsPage() {
   // Get current price settings
   const { data: settings, isLoading } = useQuery<PriceSettings>({
     queryKey: ["/api/price-settings"],
-    onSuccess: (data) => {
-      setUsdRate(data.usdExchangeRate);
-      setInflationFactor(data.inflationFactor);
-    }
   });
+
+  // Update form values when settings load
+  if (settings && !usdRate) {
+    setUsdRate(settings.usdExchangeRate);
+    setInflationFactor(settings.inflationFactor);
+  }
 
   // Update price settings mutation
   const updateSettingsMutation = useMutation({

@@ -19,6 +19,7 @@ import {
   BarChart3,
   Settings,
   Construction,
+  DollarSign,
 } from "lucide-react";
 
 const menuItems = [
@@ -50,6 +51,11 @@ const menuItems = [
 ];
 
 const settingsItems = [
+  {
+    title: "Configuración de Precios",
+    url: "/price-settings",
+    icon: DollarSign,
+  },
   {
     title: "Configuración",
     url: "/settings",
