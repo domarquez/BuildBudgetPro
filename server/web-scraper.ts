@@ -70,14 +70,46 @@ export async function getKnownAPUs(): Promise<APUItem[]> {
   return knownAPUs;
 }
 
-// Función para obtener todos los grupos de APU (mantenida para compatibilidad)
+// Función para obtener todos los grupos de APU
 export async function getAPUGroups(): Promise<APUGroup[]> {
-  // Por ahora devolvemos un grupo ficticio que contiene nuestros APUs conocidos
-  return [{
-    id: 'conocidos',
-    name: 'APUs Conocidos',
-    url: 'known'
-  }];
+  try {
+    console.log('Obteniendo grupos de APU desde insucons.com...');
+    const response = await axios.get('https://www.insucons.com/analisis-precio-unitario/hh/grupos', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
+      }
+    });
+
+    const $ = cheerio.load(response.data);
+    const groups: APUGroup[] = [];
+
+    // Buscar enlaces que sigan el patrón /grupos/[número]/[nombre]
+    $('a[href*="/grupos/"]').each((_, element) => {
+      const link = $(element);
+      const href = link.attr('href');
+      const text = link.text().trim();
+      
+      if (href && text && href.match(/\/grupos\/\d+\//)) {
+        const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com${href}`;
+        const pathParts = href.split('/');
+        const groupId = pathParts[pathParts.length - 2] || '';
+        
+        groups.push({
+          id: groupId,
+          name: text,
+          url: fullUrl
+        });
+      }
+    });
+
+    console.log(`Encontrados ${groups.length} grupos de APU`);
+    return groups;
+  } catch (error) {
+    console.error('Error obteniendo grupos APU:', error);
+    throw new Error('No se pudieron obtener los grupos de APU');
+  }
 }
 
 // Función para obtener APUs de un grupo específico
@@ -90,66 +122,75 @@ export async function getAPUsByGroup(groupUrl: string): Promise<APUItem[]> {
     console.log(`Obteniendo APUs del grupo: ${groupUrl}`);
     const response = await axios.get(groupUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
       }
     });
 
     const $ = cheerio.load(response.data);
     const apus: APUItem[] = [];
 
-    // Buscar tabla de APUs o enlaces a APUs individuales
-    $('tr, .apu-item, a[href*="/analisis-precio-unitario/hh/"]').each((_, element) => {
-      const $el = $(element);
+    // Buscar enlaces específicos que sigan el patrón de APUs individuales
+    // Ejemplo: /cerramiento/108/colocacion-de-malla-olimpica-16
+    $('a').each((_, element) => {
+      const link = $(element);
+      const href = link.attr('href');
+      const text = link.text().trim();
       
-      // Intentar extraer información del APU
-      let code = '';
-      let name = '';
-      let unit = '';
-      let price = 0;
-      let url = '';
-
-      // Si es un enlace directo
-      if ($el.is('a')) {
-        const href = $el.attr('href');
-        const text = $el.text().trim();
-        
-        if (href && text) {
-          url = href.startsWith('http') ? href : `https://www.insucons.com${href}`;
-          name = text;
-          code = href.split('/').pop() || '';
-        }
-      } else {
-        // Si es una fila de tabla
-        const cells = $el.find('td');
-        if (cells.length >= 3) {
-          code = cells.eq(0).text().trim();
-          name = cells.eq(1).text().trim();
-          unit = cells.eq(2).text().trim();
+      if (href && text) {
+        // Verificar si es un enlace a un APU individual
+        const apuPattern = /\/[a-z-]+\/\d+\/[a-z0-9-]+$/;
+        if (href.match(apuPattern) && !href.includes('/grupos/')) {
+          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/analisis-precio-unitario/hh${href}`;
+          const pathParts = href.split('/');
+          const code = pathParts[pathParts.length - 2] || ''; // El número del APU
+          const name = text;
           
-          const priceText = cells.eq(3).text().trim();
-          price = parseFloat(priceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
-          
-          const link = cells.find('a').first();
-          const href = link.attr('href');
-          if (href) {
-            url = href.startsWith('http') ? href : `https://www.insucons.com${href}`;
-          }
+          apus.push({
+            code,
+            name,
+            unit: 'UND',
+            price: 0,
+            url: fullUrl
+          });
         }
-      }
-
-      if (code && name) {
-        apus.push({
-          code,
-          name,
-          unit,
-          price,
-          url
-        });
       }
     });
 
-    console.log(`Encontrados ${apus.length} APUs en el grupo`);
-    return apus;
+    // También buscar en tablas si las hay
+    $('table tr').each((_, row) => {
+      const $row = $(row);
+      const cells = $row.find('td');
+      
+      if (cells.length >= 2) {
+        const link = cells.find('a').first();
+        const href = link.attr('href');
+        const name = link.text().trim() || cells.eq(1).text().trim();
+        
+        if (href && name && href.match(/\/\d+\/[a-z0-9-]+$/)) {
+          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/analisis-precio-unitario/hh${href}`;
+          const pathParts = href.split('/');
+          const code = pathParts[pathParts.length - 2] || '';
+          
+          apus.push({
+            code,
+            name,
+            unit: cells.eq(2)?.text().trim() || 'UND',
+            price: parseFloat(cells.eq(3)?.text().replace(/[^\d.,]/g, '').replace(',', '.')) || 0,
+            url: fullUrl
+          });
+        }
+      }
+    });
+
+    // Eliminar duplicados basándose en la URL
+    const uniqueAPUs = apus.filter((apu, index, self) => 
+      index === self.findIndex(a => a.url === apu.url)
+    );
+
+    console.log(`Encontrados ${uniqueAPUs.length} APUs únicos en el grupo`);
+    return uniqueAPUs;
   } catch (error) {
     console.error('Error obteniendo APUs del grupo:', error);
     return [];
