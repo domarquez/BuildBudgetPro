@@ -52,6 +52,11 @@ const menuItems = [
 
 const settingsItems = [
   {
+    title: "Importar APU",
+    url: "/apu-import",
+    icon: Construction,
+  },
+  {
     title: "Configuración de Precios",
     url: "/price-settings",
     icon: DollarSign,
