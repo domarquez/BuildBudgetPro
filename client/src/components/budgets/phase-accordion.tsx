@@ -121,9 +121,9 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
 
       <Accordion type="single" defaultValue="phase-items" collapsible className="w-full">
         <AccordionItem value="phase-items">
-          <AccordionTrigger className="text-base font-medium">
+          <AccordionTrigger className="text-base font-medium hover:no-underline">
             <div className="flex items-center justify-between w-full mr-4">
-              <span>Elementos del Presupuesto</span>
+              <span>Elementos del Presupuesto ({budgetItems.length} elementos)</span>
               <div className="text-right">
                 <div className="font-semibold text-primary">
                   {formatCurrency(totalBudget)}
@@ -144,7 +144,7 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
                         Actividad
                       </Label>
                       <Select
-                        value={item.activityId.toString()}
+                        value={item.activityId > 0 ? item.activityId.toString() : ""}
                         onValueChange={(value) => 
                           updateBudgetItem(item.id, 'activityId', parseInt(value))
                         }
