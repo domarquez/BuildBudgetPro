@@ -6,7 +6,14 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  role: text("role").notNull().default("user"), // 'admin', 'user'
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastLogin: timestamp("last_login"),
 });
 
 export const constructionPhases = pgTable("construction_phases", {
@@ -44,6 +51,8 @@ export const projects = pgTable("projects", {
   client: text("client"),
   location: text("location"),
   startDate: timestamp("start_date"),
+  userId: integer("user_id").references(() => users.id),
+  status: text("status").notNull().default('planning'), // planning, active, completed, cancelled
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -129,9 +138,10 @@ export const budgetItemsRelations = relations(budgetItems, ({ one }) => ({
 }));
 
 // Schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  lastLogin: true,
 });
 
 export const insertMaterialCategorySchema = createInsertSchema(materialCategories).omit({
