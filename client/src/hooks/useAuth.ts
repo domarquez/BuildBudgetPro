@@ -25,6 +25,7 @@ export function useAuth() {
     queryKey: ["/api/auth/me"],
     enabled: !!token,
     retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const loginMutation = useMutation({
