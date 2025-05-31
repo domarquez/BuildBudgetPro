@@ -26,9 +26,10 @@ interface BudgetItemData {
 interface PhaseAccordionProps {
   phaseId: number;
   projectId: number;
+  onBudgetChange?: (budgetItems: BudgetItemData[], total: number) => void;
 }
 
-export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
+export default function PhaseAccordion({ phaseId, projectId, onBudgetChange }: PhaseAccordionProps) {
   const [budgetItems, setBudgetItems] = useState<BudgetItemData[]>([]);
 
   const { data: activities } = useQuery<ActivityWithPhase[]>({
@@ -91,6 +92,13 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
 
   const totalBudget = budgetItems.reduce((sum, item) => sum + item.subtotal, 0);
   const selectedPhase = activities?.[0]?.phase;
+
+  // Notificar cambios al componente padre
+  useEffect(() => {
+    if (onBudgetChange) {
+      onBudgetChange(budgetItems, totalBudget);
+    }
+  }, [budgetItems, totalBudget, onBudgetChange]);
 
   if (!selectedPhase) {
     return <div className="text-center text-gray-500">Cargando actividades...</div>;

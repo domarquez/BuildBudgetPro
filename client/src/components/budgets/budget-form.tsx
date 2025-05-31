@@ -55,6 +55,8 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
   const { toast } = useToast();
   const [currentProject, setCurrentProject] = useState<Project | null>(budget?.project || null);
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
+  const [budgetItems, setBudgetItems] = useState<any[]>([]);
+  const [budgetTotal, setBudgetTotal] = useState<number>(0);
   const isEditing = !!budget;
 
   const form = useForm<ProjectFormData>({
@@ -116,6 +118,58 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
     });
   };
 
+  const saveBudgetMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentProject || !selectedPhase) {
+        throw new Error("Proyecto y fase requeridos");
+      }
+
+      // Crear el presupuesto
+      const budgetResponse = await apiRequest("POST", "/api/budgets", {
+        projectId: currentProject.id,
+        phaseId: selectedPhase,
+        total: budgetTotal,
+        status: "active"
+      });
+      const newBudget = await budgetResponse.json();
+
+      // Crear los elementos del presupuesto
+      for (const item of budgetItems) {
+        if (item.activityId > 0) {
+          await apiRequest("POST", "/api/budget-items", {
+            budgetId: newBudget.id,
+            activityId: item.activityId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            subtotal: item.subtotal
+          });
+        }
+      }
+
+      return newBudget;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
+      toast({
+        title: "Presupuesto guardado",
+        description: "El presupuesto ha sido creado correctamente.",
+      });
+      onClose();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error al guardar",
+        description: "No se pudo guardar el presupuesto. Intente nuevamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleBudgetChange = (items: any[], total: number) => {
+    setBudgetItems(items);
+    setBudgetTotal(total);
+  };
+
   const handleSaveBudget = () => {
     if (!selectedPhase) {
       toast({
@@ -126,11 +180,16 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
       return;
     }
 
-    toast({
-      title: "Presupuesto guardado",
-      description: "El presupuesto ha sido creado correctamente.",
-    });
-    onClose();
+    if (budgetItems.length === 0 || budgetItems.every(item => item.activityId === 0)) {
+      toast({
+        title: "Agregue elementos",
+        description: "Debe agregar al menos un elemento con actividad seleccionada.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    saveBudgetMutation.mutate();
   };
 
   return (
@@ -275,6 +334,7 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
                       <PhaseAccordion 
                         phaseId={selectedPhase}
                         projectId={currentProject.id}
+                        onBudgetChange={handleBudgetChange}
                       />
                     </div>
                   )}
