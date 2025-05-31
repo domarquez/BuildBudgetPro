@@ -85,14 +85,14 @@ export async function getAPUGroups(): Promise<APUGroup[]> {
     const $ = cheerio.load(response.data);
     const groups: APUGroup[] = [];
 
-    // Buscar enlaces que sigan el patrón /grupos/[número]/[nombre]
-    $('a[href*="/grupos/"]').each((_, element) => {
+    // Buscar enlaces que sigan el patrón grupos/[número]/[nombre]
+    $('a[href*="grupos/"]').each((_, element) => {
       const link = $(element);
       const href = link.attr('href');
       const text = link.text().trim();
       
-      if (href && text && href.match(/\/grupos\/\d+\//)) {
-        const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com${href}`;
+      if (href && text && href.includes('grupos/') && href.match(/grupos\/\d+\//)) {
+        const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/${href}`;
         const pathParts = href.split('/');
         const groupId = pathParts[pathParts.length - 2] || '';
         
@@ -142,7 +142,7 @@ export async function getAPUsByGroup(groupUrl: string): Promise<APUItem[]> {
         // Verificar si es un enlace a un APU individual
         const apuPattern = /\/[a-z-]+\/\d+\/[a-z0-9-]+$/;
         if (href.match(apuPattern) && !href.includes('/grupos/')) {
-          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/analisis-precio-unitario/hh${href}`;
+          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/analisis-precio-unitario${href}`;
           const pathParts = href.split('/');
           const code = pathParts[pathParts.length - 2] || ''; // El número del APU
           const name = text;
@@ -169,7 +169,7 @@ export async function getAPUsByGroup(groupUrl: string): Promise<APUItem[]> {
         const name = link.text().trim() || cells.eq(1).text().trim();
         
         if (href && name && href.match(/\/\d+\/[a-z0-9-]+$/)) {
-          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/analisis-precio-unitario/hh${href}`;
+          const fullUrl = href.startsWith('http') ? href : `https://www.insucons.com/analisis-precio-unitario${href}`;
           const pathParts = href.split('/');
           const code = pathParts[pathParts.length - 2] || '';
           
