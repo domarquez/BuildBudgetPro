@@ -135,8 +135,11 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
         </div>
         
         <div className="p-4">
-          <div className="space-y-4">
-            {budgetItems.map((item) => (
+          {budgetItems.length === 0 ? (
+            <div className="text-center text-gray-500 p-4">No hay elementos</div>
+          ) : (
+            <div className="space-y-4">
+              {budgetItems.map((item) => (
               <Card key={item.id} className="p-4">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
                   <div className="lg:col-span-4">
@@ -223,7 +226,8 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
               <Plus className="w-4 h-4 mr-2" />
               Agregar Elemento
             </Button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
