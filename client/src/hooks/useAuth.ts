@@ -48,6 +48,8 @@ export function useAuth() {
     onSuccess: (data) => {
       localStorage.setItem('auth_token', data.token);
       queryClient.setQueryData(["/api/auth/me"], data.user);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      window.location.reload(); // Force reload to update authentication state
     },
   });
 
