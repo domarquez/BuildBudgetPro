@@ -109,25 +109,42 @@ export default function APUImport() {
           <CardContent>
             <div className="space-y-4">
               <p className="text-gray-700">
-                Haz clic en el botón para importar las composiciones de actividades.
-                Este proceso puede tomar unos momentos.
+                Haz clic en el botón para importar TODAS las composiciones de actividades desde insucons.com.
+                Este proceso importará todos los grupos y todos los APUs disponibles.
               </p>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-yellow-900">Importación Masiva</h4>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      Este proceso puede tomar entre 15-30 minutos dependiendo de la cantidad de APUs.
+                      Se procesarán todos los grupos disponibles en insucons.com.
+                      No cierres esta ventana durante el proceso.
+                    </p>
+                  </div>
+                </div>
+              </div>
               
               <Button 
                 onClick={handleImport} 
                 disabled={importAPU.isPending}
                 className="w-full md:w-auto"
               >
-                {importAPU.isPending ? "Importando..." : "Importar Composiciones APU"}
+                {importAPU.isPending ? "Importando..." : "Importar TODOS los APUs"}
               </Button>
 
               {importAPU.isPending && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                    Procesando análisis de precios unitarios...
+                    Procesando importación masiva desde insucons.com...
                   </div>
                   <Progress value={undefined} className="w-full" />
+                  <p className="text-xs text-gray-500">
+                    Extrayendo todos los grupos, APUs y composiciones. Por favor espera...
+                  </p>
                 </div>
               )}
             </div>

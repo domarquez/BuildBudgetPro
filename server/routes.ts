@@ -479,11 +479,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/import-apu", requireAuth, async (req, res) => {
     try {
       const { importAPUCompositions } = await import("./import-apu");
+      
+      // Configurar timeout extendido para importación masiva
+      req.setTimeout(30 * 60 * 1000); // 30 minutos
+      res.setTimeout(30 * 60 * 1000);
+      
       const result = await importAPUCompositions();
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error importing APU compositions:", error);
-      res.status(500).json({ message: "Failed to import APU compositions" });
+      res.status(500).json({ 
+        message: "Failed to import APU compositions", 
+        error: error?.message || "Error desconocido"
+      });
     }
   });
 

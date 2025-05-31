@@ -2,6 +2,7 @@ import { db } from "./db";
 import { activityCompositions, activities, materials as materialsTable } from "@shared/schema";
 import { eq, ilike } from "drizzle-orm";
 import { importAPUsFromInsucons, getAPUGroups, getAPUsByGroup, getAPUDetail } from "./web-scraper";
+import { storage } from "./storage";
 
 interface APUMaterial {
   description: string;
@@ -82,10 +83,10 @@ async function findActivityByName(activityName: string) {
 
 // Función principal para importar APUs
 export async function importAPUCompositions() {
-  console.log("Iniciando importación de APUs desde insucons.com...");
+  console.log("Iniciando importación COMPLETA de APUs desde insucons.com...");
   
   try {
-    // Obtener algunos grupos para empezar (limitamos a 2 grupos para prueba)
+    // Obtener TODOS los grupos
     const groups = await getAPUGroups();
     console.log(`Encontrados ${groups.length} grupos disponibles`);
     
@@ -93,14 +94,14 @@ export async function importAPUCompositions() {
     let errorCount = 0;
     const details: string[] = [];
 
-    // Procesar los primeros 2 grupos
-    for (const group of groups.slice(0, 2)) {
+    // Procesar TODOS los grupos
+    for (const group of groups) {
       try {
         console.log(`Procesando grupo: ${group.name}`);
         const apus = await getAPUsByGroup(group.url);
         
-        // Procesar los primeros 3 APUs de cada grupo
-        for (const apu of apus.slice(0, 3)) {
+        // Procesar TODOS los APUs del grupo
+        for (const apu of apus) {
           try {
             if (!apu.url) continue;
             
@@ -111,11 +112,23 @@ export async function importAPUCompositions() {
             }
 
             // Buscar actividad similar en la base de datos
-            const activity = await findActivityByName(apuDetail.name);
+            let activity = await findActivityByName(apuDetail.name);
+            
+            // Si no existe la actividad, crearla automáticamente
             if (!activity) {
-              details.push(`Actividad no encontrada para: ${apuDetail.name}`);
-              errorCount++;
-              continue;
+              try {
+                activity = await storage.createActivity({
+                  phaseId: 3, // Obra gruesa por defecto
+                  name: apuDetail.name.toUpperCase(),
+                  unit: apuDetail.unit || 'UND',
+                  description: `Actividad importada desde APU: ${apuDetail.name}`
+                });
+                details.push(`✓ Creada nueva actividad: ${activity.name}`);
+              } catch (error) {
+                details.push(`✗ Error creando actividad: ${apuDetail.name}`);
+                errorCount++;
+                continue;
+              }
             }
 
             console.log(`Importando composiciones para: ${activity.name}`);
@@ -168,8 +181,8 @@ export async function importAPUCompositions() {
             importedCount++;
             details.push(`✓ Importado: ${activity.name}`);
             
-            // Pausa para no sobrecargar el servidor
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Pausa más pequeña para importación masiva
+            await new Promise(resolve => setTimeout(resolve, 200));
 
           } catch (error) {
             console.error(`Error procesando APU ${apu.name}:`, error);
