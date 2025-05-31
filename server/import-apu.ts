@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { activityCompositions, activities, materials as materialsTable } from "@shared/schema";
 import { eq, ilike } from "drizzle-orm";
+import { importAPUsFromInsucons, getAPUGroups, getAPUsByGroup, getAPUDetail } from "./web-scraper";
 
 interface APUMaterial {
   description: string;
@@ -81,7 +82,123 @@ async function findActivityByName(activityName: string) {
 
 // Función principal para importar APUs
 export async function importAPUCompositions() {
-  console.log("Iniciando importación de composiciones APU...");
+  console.log("Iniciando importación de APUs desde insucons.com...");
+  
+  try {
+    // Obtener algunos grupos para empezar (limitamos a 2 grupos para prueba)
+    const groups = await getAPUGroups();
+    console.log(`Encontrados ${groups.length} grupos disponibles`);
+    
+    let importedCount = 0;
+    let errorCount = 0;
+    const details: string[] = [];
+
+    // Procesar los primeros 2 grupos
+    for (const group of groups.slice(0, 2)) {
+      try {
+        console.log(`Procesando grupo: ${group.name}`);
+        const apus = await getAPUsByGroup(group.url);
+        
+        // Procesar los primeros 3 APUs de cada grupo
+        for (const apu of apus.slice(0, 3)) {
+          try {
+            if (!apu.url) continue;
+            
+            const apuDetail = await getAPUDetail(apu.url);
+            if (!apuDetail) {
+              errorCount++;
+              continue;
+            }
+
+            // Buscar actividad similar en la base de datos
+            const activity = await findActivityByName(apuDetail.name);
+            if (!activity) {
+              details.push(`Actividad no encontrada para: ${apuDetail.name}`);
+              errorCount++;
+              continue;
+            }
+
+            console.log(`Importando composiciones para: ${activity.name}`);
+
+            // Limpiar composiciones existentes
+            await db.delete(activityCompositions)
+              .where(eq(activityCompositions.activityId, activity.id));
+
+            // Importar materiales
+            for (const material of apuDetail.materials) {
+              const foundMaterial = await findSimilarMaterial(material.description);
+              
+              await db.insert(activityCompositions).values({
+                activityId: activity.id,
+                materialId: foundMaterial?.id || null,
+                description: material.description,
+                unit: material.unit,
+                quantity: material.quantity.toString(),
+                unitCost: material.unitPrice.toString(),
+                type: 'material'
+              });
+            }
+
+            // Importar mano de obra
+            for (const labor of apuDetail.labor) {
+              await db.insert(activityCompositions).values({
+                activityId: activity.id,
+                materialId: null,
+                description: labor.description,
+                unit: labor.unit,
+                quantity: labor.quantity.toString(),
+                unitCost: labor.unitPrice.toString(),
+                type: 'labor'
+              });
+            }
+
+            // Importar equipos
+            for (const equipment of apuDetail.equipment) {
+              await db.insert(activityCompositions).values({
+                activityId: activity.id,
+                materialId: null,
+                description: equipment.description,
+                unit: equipment.unit,
+                quantity: equipment.quantity.toString(),
+                unitCost: equipment.unitPrice.toString(),
+                type: 'equipment'
+              });
+            }
+
+            importedCount++;
+            details.push(`✓ Importado: ${activity.name}`);
+            
+            // Pausa para no sobrecargar el servidor
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+          } catch (error) {
+            console.error(`Error procesando APU ${apu.name}:`, error);
+            errorCount++;
+            details.push(`✗ Error: ${apu.name}`);
+          }
+        }
+      } catch (error) {
+        console.error(`Error procesando grupo ${group.name}:`, error);
+        errorCount++;
+      }
+    }
+
+    console.log(`Importación completada: ${importedCount} éxito, ${errorCount} errores`);
+    return { 
+      imported: importedCount, 
+      errors: errorCount,
+      details: details.slice(0, 10)
+    };
+
+  } catch (error) {
+    console.error("Error en importación de insucons.com:", error);
+    throw new Error("Error accediendo a insucons.com. Verifica la conexión a internet.");
+  }
+}
+
+// Función anterior para importar datos locales como fallback
+export async function importLocalAPUCompositions() {
+  console.log("Iniciando importación de composiciones APU locales...");
   
   let importedCount = 0;
   let errorCount = 0;

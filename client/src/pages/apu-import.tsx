@@ -60,30 +60,23 @@ export default function APUImport() {
           <CardContent>
             <div className="space-y-4">
               <p className="text-gray-700">
-                Se importarán composiciones para las siguientes actividades basadas en análisis de precios unitarios:
+                El sistema extraerá automáticamente análisis de precios unitarios reales desde insucons.com
+                y los vinculará con las actividades existentes en tu base de datos.
               </p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="border rounded-lg p-4">
-                  <h3 className="font-semibold text-gray-900">Excavación Manual</h3>
+                  <h3 className="font-semibold text-gray-900">Fuente de Datos: insucons.com</h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    Incluye mano de obra (ayudante y maestro albañil) con cargas sociales,
-                    herramientas y gastos indirectos
+                    Se accederá directamente a la base de datos de análisis de precios unitarios
+                    de insucons.com para obtener composiciones actualizadas con:
                   </p>
-                  <div className="mt-2 text-sm">
-                    <span className="text-green-600 font-medium">Precio estimado: Bs 74.85/M³</span>
-                  </div>
-                </div>
-
-                <div className="border rounded-lg p-4">
-                  <h3 className="font-semibold text-gray-900">Cimiento de Ladrillo Adobito</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Incluye cemento, arena, ladrillo adobito, agua, mano de obra 
-                    especializada y gastos indirectos
-                  </p>
-                  <div className="mt-2 text-sm">
-                    <span className="text-green-600 font-medium">Precio estimado: Bs 1,069.46/M³</span>
-                  </div>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                    <li>• Materiales con cantidades y precios específicos</li>
+                    <li>• Mano de obra especializada por actividad</li>
+                    <li>• Equipos y herramientas necesarios</li>
+                    <li>• Costos indirectos y porcentajes aplicables</li>
+                  </ul>
                 </div>
               </div>
 
