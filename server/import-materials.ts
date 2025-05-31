@@ -17,7 +17,7 @@ export async function importMaterialsFromSQL() {
     const sqlContent = readFileSync('./attached_assets/datos2.sql', 'utf-8');
     
     // Extract all INSERT statements for materials
-    const insertRegex = /INSERT INTO `tbl_materiales`[^;]+;/g;
+    const insertRegex = /INSERT INTO `tbl_materiales`[^;]+;/gi;
     const insertStatements = sqlContent.match(insertRegex) || [];
     
     console.log(`Found ${insertStatements.length} insert statements`);
@@ -26,24 +26,24 @@ export async function importMaterialsFromSQL() {
     
     for (const statement of insertStatements) {
       // Extract values from each INSERT statement
-      const valuesMatch = statement.match(/VALUES\s*(.*);$/s);
+      const valuesMatch = statement.match(/VALUES\s*(.*);$/);
       if (!valuesMatch) continue;
       
       const valuesString = valuesMatch[1];
       
-      // Parse individual value rows
-      const rowRegex = /\(([^)]+)\)/g;
-      let match;
+      // Parse individual value rows by splitting on parentheses
+      const rows = valuesString.split(/\),\s*\(/);
       
-      while ((match = rowRegex.exec(valuesString)) !== null) {
-        const values = match[1].split(',').map(v => v.trim().replace(/^'|'$/g, ''));
+      for (let i = 0; i < rows.length; i++) {
+        let rowData = rows[i].replace(/^\(|\)$/g, '');
+        const valuesList = rowData.split(',').map(v => v.trim().replace(/^'|'$/g, ''));
         
-        if (values.length >= 5) {
+        if (valuesList.length >= 5) {
           const materialData: MaterialData = {
-            IdClasMaterial: parseInt(values[1]) || 1,
-            Descripcion: values[2] || 'Material sin descripción',
-            Unidad: values[3] || 'Unidad',
-            LP: parseFloat(values[4]) || 0
+            IdClasMaterial: parseInt(valuesList[1]) || 1,
+            Descripcion: valuesList[2] || 'Material sin descripción',
+            Unidad: valuesList[3] || 'Unidad',
+            LP: parseFloat(valuesList[4]) || 0
           };
           
           // Skip if price is 0 or invalid
@@ -56,7 +56,7 @@ export async function importMaterialsFromSQL() {
           try {
             await db.insert(materials).values({
               categoryId: categoryId,
-              name: materialData.Descripcion.substring(0, 100), // Limit length
+              name: materialData.Descripcion.substring(0, 100),
               unit: materialData.Unidad,
               price: materialData.LP.toString(),
               description: `Material de categoría ${categoryId}`
@@ -80,6 +80,6 @@ export async function importMaterialsFromSQL() {
     
   } catch (error) {
     console.error('Error importing materials:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: String(error) };
   }
 }

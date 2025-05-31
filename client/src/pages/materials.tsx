@@ -118,6 +118,37 @@ export default function Materials() {
     setEditingMaterial(null);
   };
 
+  // Import materials mutation
+  const importMutation = useMutation({
+    mutationFn: async () => {
+      return await fetch('/api/import-materials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).then(res => res.json());
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/statistics"] });
+      toast({
+        title: "Importación completada",
+        description: `Se importaron ${data.totalInserted} materiales correctamente.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error en importación",
+        description: "No se pudieron importar los materiales.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleImport = () => {
+    if (confirm("¿Está seguro de que desea importar todos los materiales del archivo SQL? Esto puede tomar varios minutos.")) {
+      importMutation.mutate();
+    }
+  };
+
   const getIconForCategory = (categoryName: string) => {
     if (categoryName.toLowerCase().includes('pintura')) return Palette;
     if (categoryName.toLowerCase().includes('acero') || categoryName.toLowerCase().includes('hierro')) return Hammer;
@@ -136,10 +167,11 @@ export default function Materials() {
           <Button
             variant="outline"
             className="bg-secondary text-white hover:bg-secondary-variant"
-            disabled
+            onClick={handleImport}
+            disabled={importMutation.isPending}
           >
             <Upload className="w-4 h-4 mr-2" />
-            Importar
+            {importMutation.isPending ? 'Importando...' : 'Importar Archivo SQL'}
           </Button>
           <Button
             onClick={() => setShowForm(true)}
