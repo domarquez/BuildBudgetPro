@@ -66,6 +66,7 @@ export interface IStorage {
 
   // Projects
   getProjects(): Promise<Project[]>;
+  getProjectsByUser(userId: number): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: number, project: Partial<InsertProject>): Promise<Project>;
@@ -74,6 +75,7 @@ export interface IStorage {
   getBudgets(): Promise<BudgetWithProject[]>;
   getBudget(id: number): Promise<BudgetWithProject | undefined>;
   getBudgetsByProject(projectId: number): Promise<BudgetWithProject[]>;
+  getBudgetsByUser(userId: number): Promise<BudgetWithProject[]>;
   createBudget(budget: InsertBudget): Promise<Budget>;
   updateBudget(id: number, budget: Partial<InsertBudget>): Promise<Budget>;
 
@@ -268,6 +270,10 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(projects).orderBy(desc(projects.createdAt));
   }
 
+  async getProjectsByUser(userId: number): Promise<Project[]> {
+    return await db.select().from(projects).where(eq(projects.userId, userId)).orderBy(desc(projects.createdAt));
+  }
+
   async getProject(id: number): Promise<Project | undefined> {
     const [project] = await db.select().from(projects).where(eq(projects.id, id));
     return project || undefined;
@@ -331,6 +337,21 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(constructionPhases, eq(budgets.phaseId, constructionPhases.id))
       .where(eq(budgets.projectId, projectId))
       .orderBy(budgets.phaseId)
+      .then(rows => rows.map(row => ({
+        ...row.budgets,
+        project: row.projects!,
+        phase: row.construction_phases!
+      })));
+  }
+
+  async getBudgetsByUser(userId: number): Promise<BudgetWithProject[]> {
+    return await db
+      .select()
+      .from(budgets)
+      .leftJoin(projects, eq(budgets.projectId, projects.id))
+      .leftJoin(constructionPhases, eq(budgets.phaseId, constructionPhases.id))
+      .where(eq(projects.userId, userId))
+      .orderBy(desc(budgets.createdAt))
       .then(rows => rows.map(row => ({
         ...row.budgets,
         project: row.projects!,

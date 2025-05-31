@@ -199,9 +199,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Projects
-  app.get("/api/projects", async (req, res) => {
+  app.get("/api/projects", requireAuth, async (req: any, res) => {
     try {
-      const projects = await storage.getProjects();
+      const userId = req.user.id;
+      const projects = await storage.getProjectsByUser(userId);
       res.json(projects);
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -251,15 +252,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Budgets
-  app.get("/api/budgets", async (req, res) => {
+  app.get("/api/budgets", requireAuth, async (req: any, res) => {
     try {
       const { projectId } = req.query;
+      const userId = req.user.id;
       let budgets;
       
       if (projectId) {
         budgets = await storage.getBudgetsByProject(Number(projectId));
       } else {
-        budgets = await storage.getBudgets();
+        budgets = await storage.getBudgetsByUser(userId);
       }
       
       res.json(budgets);
