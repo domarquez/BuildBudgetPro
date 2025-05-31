@@ -8,6 +8,7 @@ import {
   budgets,
   budgetItems,
   priceSettings,
+  activityCompositions,
   type User, 
   type InsertUser,
   type MaterialCategory,
@@ -29,7 +30,9 @@ import {
   type InsertBudgetItem,
   type BudgetItemWithActivity,
   type PriceSettings,
-  type InsertPriceSettings
+  type InsertPriceSettings,
+  type ActivityComposition,
+  type InsertActivityComposition
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, like, ilike } from "drizzle-orm";
@@ -500,6 +503,29 @@ export class DatabaseStorage implements IStorage {
     });
 
     return { affectedMaterials: result.length };
+  }
+
+  // Activity Compositions
+  async getActivityCompositions(): Promise<ActivityComposition[]> {
+    return await db.select().from(activityCompositions);
+  }
+
+  async getActivityCompositionsByActivity(activityId: number): Promise<ActivityComposition[]> {
+    return await db.select()
+      .from(activityCompositions)
+      .where(eq(activityCompositions.activityId, activityId));
+  }
+
+  async createActivityComposition(composition: InsertActivityComposition): Promise<ActivityComposition> {
+    const [created] = await db.insert(activityCompositions)
+      .values(composition)
+      .returning();
+    return created;
+  }
+
+  async deleteActivityComposition(id: number): Promise<void> {
+    await db.delete(activityCompositions)
+      .where(eq(activityCompositions.id, id));
   }
 }
 
