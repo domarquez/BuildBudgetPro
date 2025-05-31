@@ -93,6 +93,12 @@ export interface IStorage {
     totalProjectValue: number;
   }>;
 
+  // Activity Compositions
+  getActivityCompositions(): Promise<ActivityComposition[]>;
+  getActivityCompositionsByActivity(activityId: number): Promise<ActivityComposition[]>;
+  createActivityComposition(composition: InsertActivityComposition): Promise<ActivityComposition>;
+  deleteActivityComposition(id: number): Promise<void>;
+
   // Price Settings
   getPriceSettings(): Promise<PriceSettings>;
   updatePriceSettings(settings: Partial<InsertPriceSettings>): Promise<PriceSettings>;

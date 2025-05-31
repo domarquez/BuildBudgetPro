@@ -6,7 +6,8 @@ import {
   insertMaterialSchema,
   insertProjectSchema,
   insertBudgetSchema,
-  insertBudgetItemSchema 
+  insertBudgetItemSchema,
+  insertActivityCompositionSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -392,6 +393,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error importing materials:", error);
       res.status(500).json({ message: "Failed to import materials" });
+    }
+  });
+
+  // Activity Compositions
+  app.get("/api/activity-compositions", requireAuth, async (req, res) => {
+    try {
+      const compositions = await storage.getActivityCompositions();
+      res.json(compositions);
+    } catch (error) {
+      console.error("Error fetching activity compositions:", error);
+      res.status(500).json({ message: "Failed to fetch activity compositions" });
+    }
+  });
+
+  app.get("/api/activities/:activityId/compositions", requireAuth, async (req, res) => {
+    try {
+      const compositions = await storage.getActivityCompositionsByActivity(Number(req.params.activityId));
+      res.json(compositions);
+    } catch (error) {
+      console.error("Error fetching activity compositions:", error);
+      res.status(500).json({ message: "Failed to fetch activity compositions" });
+    }
+  });
+
+  app.post("/api/activity-compositions", requireAuth, async (req, res) => {
+    try {
+      console.log("Creating activity composition with data:", req.body);
+      const compositionData = insertActivityCompositionSchema.parse(req.body);
+      const composition = await storage.createActivityComposition(compositionData);
+      res.status(201).json(composition);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("Activity composition validation error:", error.errors);
+        return res.status(400).json({ message: "Invalid composition data", errors: error.errors });
+      }
+      console.error("Error creating activity composition:", error);
+      res.status(500).json({ message: "Failed to create activity composition" });
+    }
+  });
+
+  app.delete("/api/activity-compositions/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteActivityComposition(Number(req.params.id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting activity composition:", error);
+      res.status(500).json({ message: "Failed to delete activity composition" });
     }
   });
 
