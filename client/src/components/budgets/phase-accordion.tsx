@@ -234,6 +234,7 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
                 <Plus className="w-4 h-4 mr-2" />
                 Agregar Elemento
               </Button>
+              )}
             </div>
           </div>
         </div>

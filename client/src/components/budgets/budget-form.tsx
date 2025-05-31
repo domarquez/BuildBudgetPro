@@ -31,7 +31,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertProjectSchema } from "@shared/schema";
-import PhaseAccordion from "./phase-accordion";
+import PhaseAccordion from "./phase-accordion-new";
 import type { 
   BudgetWithProject, 
   ConstructionPhase, 
