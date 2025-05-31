@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { AuthService, requireAuth, requireAdmin } from "./auth";
 import { 
   insertMaterialSchema,
   insertProjectSchema,
@@ -10,6 +11,45 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication routes
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { user, token } = await AuthService.register(req.body);
+      
+      // Don't send password in response
+      const { password, ...userWithoutPassword } = user;
+      
+      res.json({ user: userWithoutPassword, token });
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { user, token } = await AuthService.login(req.body);
+      
+      // Don't send password in response
+      const { password, ...userWithoutPassword } = user;
+      
+      res.json({ user: userWithoutPassword, token });
+    } catch (error: any) {
+      console.error("Login error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/auth/me", requireAuth, async (req, res) => {
+    try {
+      const { password, ...userWithoutPassword } = req.user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Get user error:", error);
+      res.status(500).json({ message: "Error fetching user data" });
+    }
+  });
+
   // Statistics
   app.get("/api/statistics", async (req, res) => {
     try {
@@ -301,8 +341,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Price settings routes
-  app.get("/api/price-settings", async (req, res) => {
+  // Price settings routes (Admin only)
+  app.get("/api/price-settings", requireAuth, async (req, res) => {
     try {
       const settings = await storage.getPriceSettings();
       res.json(settings);
@@ -312,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/price-settings", async (req, res) => {
+  app.put("/api/price-settings", requireAuth, requireAdmin, async (req, res) => {
     try {
       const settings = await storage.updatePriceSettings(req.body);
       res.json(settings);
@@ -322,7 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/apply-price-adjustment", async (req, res) => {
+  app.post("/api/apply-price-adjustment", requireAuth, requireAdmin, async (req, res) => {
     try {
       const { factor, updatedBy } = req.body;
       const result = await storage.applyGlobalPriceAdjustment(factor, updatedBy);
