@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,20 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
   const { data: activities } = useQuery<ActivityWithPhase[]>({
     queryKey: ["/api/activities", { phaseId }],
   });
+
+  // Agregar automáticamente el primer elemento cuando se cargan las actividades
+  useEffect(() => {
+    if (activities && activities.length > 0 && budgetItems.length === 0) {
+      const newItem: BudgetItemData = {
+        id: Date.now().toString(),
+        activityId: 0,
+        quantity: 1,
+        unitPrice: 0,
+        subtotal: 0,
+      };
+      setBudgetItems([newItem]);
+    }
+  }, [activities, budgetItems.length]);
 
   const addBudgetItem = () => {
     const newItem: BudgetItemData = {
@@ -105,7 +119,7 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
         </Badge>
       </div>
 
-      <Accordion type="single" defaultValue="phase-items" collapsible>
+      <Accordion type="single" defaultValue="phase-items" collapsible className="w-full">
         <AccordionItem value="phase-items">
           <AccordionTrigger className="text-base font-medium">
             <div className="flex items-center justify-between w-full mr-4">
