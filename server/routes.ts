@@ -291,11 +291,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/budgets", async (req, res) => {
     try {
+      console.log("Creating budget with data:", req.body);
       const budgetData = insertBudgetSchema.parse(req.body);
       const budget = await storage.createBudget(budgetData);
       res.status(201).json(budget);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Budget validation error:", error.errors);
         return res.status(400).json({ message: "Invalid budget data", errors: error.errors });
       }
       console.error("Error creating budget:", error);
@@ -321,6 +323,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching budget items:", error);
       res.status(500).json({ message: "Failed to fetch budget items" });
+    }
+  });
+
+  app.post("/api/budget-items", async (req, res) => {
+    try {
+      console.log("Creating budget item with data:", req.body);
+      const itemData = insertBudgetItemSchema.parse(req.body);
+      const item = await storage.createBudgetItem(itemData);
+      res.status(201).json(item);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("Budget item validation error:", error.errors);
+        return res.status(400).json({ message: "Invalid budget item data", errors: error.errors });
+      }
+      console.error("Error creating budget item:", error);
+      res.status(500).json({ message: "Failed to create budget item" });
     }
   });
 
