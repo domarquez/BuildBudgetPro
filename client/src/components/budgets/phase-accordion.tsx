@@ -120,23 +120,20 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
         </Badge>
       </div>
 
-      <Accordion type="single" value="phase-items" className="w-full">
-        <AccordionItem value="phase-items">
-          <AccordionTrigger className="text-base font-medium hover:no-underline">
-            <div className="flex items-center justify-between w-full mr-4">
-              <span>Elementos del Presupuesto ({budgetItems.length} elementos)</span>
-              <div className="text-right">
-                <div className="font-semibold text-primary">
-                  {formatCurrency(totalBudget)}
-                </div>
-                <div className="text-sm text-gray-600">
-                  Total estimado
-                </div>
-              </div>
+      <div className="border rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-50 border-b">
+          <span className="text-base font-medium">Elementos del Presupuesto ({budgetItems.length} elementos)</span>
+          <div className="text-right">
+            <div className="font-semibold text-primary">
+              {formatCurrency(totalBudget)}
             </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-4 pt-4">
+            <div className="text-sm text-gray-600">
+              Total estimado
+            </div>
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="space-y-4">
               {budgetItems.map((item) => (
                 <Card key={item.id} className="p-4">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
@@ -238,9 +235,8 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
                 Agregar Elemento
               </Button>
             </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+          </div>
+        </div>
 
       {budgetItems.length > 0 && (
         <>
@@ -249,7 +245,7 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
             <div>
               <h4 className="font-semibold text-on-surface">Total de la Fase</h4>
               <p className="text-sm text-gray-600">
-                {budgetItems.length} elemento{budgetItems.length !== 1 ? 's' : ''} • {selectedPhase.name}
+                {budgetItems.length} elemento{budgetItems.length !== 1 ? 's' : ''} • {selectedPhase?.name}
               </p>
             </div>
             <div className="text-right">
