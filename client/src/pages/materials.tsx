@@ -46,9 +46,7 @@ export default function Materials() {
 
   // Debounced search
   const debouncedSearch = debounce((query: string) => {
-    if (query.length > 0) {
-      refetchMaterials();
-    }
+    refetchMaterials();
   }, 300);
 
   const { data: categories, isLoading: categoriesLoading } = useQuery<MaterialCategory[]>({
@@ -97,6 +95,11 @@ export default function Materials() {
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     debouncedSearch(value);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+    refetchMaterials();
   };
 
   const handleEdit = (material: MaterialWithCategory) => {
@@ -172,7 +175,7 @@ export default function Materials() {
               <Label className="block text-sm font-medium text-gray-700 mb-2">
                 Categoría
               </Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todas las categorías" />
                 </SelectTrigger>
