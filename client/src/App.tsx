@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import Dashboard from "@/pages/dashboard";
 import Materials from "@/pages/materials";
+import Activities from "@/pages/activities";
 import Budgets from "@/pages/budgets";
 import BudgetDetails from "@/pages/budget-details";
 import PriceSettings from "@/pages/price-settings";
@@ -55,6 +56,7 @@ function AuthenticatedLayout() {
               <Route path="/" component={Dashboard} />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/materials" component={Materials} />
+              <Route path="/activities" component={Activities} />
               <Route path="/budgets" component={Budgets} />
               <Route path="/budgets/:id" component={BudgetDetails} />
               <Route path="/price-settings" component={PriceSettings} />
