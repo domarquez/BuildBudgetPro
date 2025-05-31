@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Upload, CheckCircle, AlertCircle } from "lucide-react";
+import { Download, Upload, CheckCircle, AlertCircle, FolderOpen } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function APUImport() {
@@ -35,9 +35,33 @@ export default function APUImport() {
     },
   });
 
+  const reorganizeActivities = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/reorganize-activities", {});
+      return await response.json();
+    },
+    onSuccess: (result: any) => {
+      toast({
+        title: "Reorganización completada",
+        description: `Se reclasificaron ${result.reclassified} actividades de ${result.analyzed} analizadas.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error en la reorganización",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleImport = () => {
     setImportStatus(null);
     importAPU.mutate();
+  };
+
+  const handleReorganize = () => {
+    reorganizeActivities.mutate();
   };
 
   return (
@@ -127,13 +151,28 @@ export default function APUImport() {
                 </div>
               </div>
               
-              <Button 
-                onClick={handleImport} 
-                disabled={importAPU.isPending}
-                className="w-full md:w-auto"
-              >
-                {importAPU.isPending ? "Importando..." : "Importar TODOS los APUs"}
-              </Button>
+              <div className="flex flex-col gap-3">
+                <Button 
+                  onClick={handleImport} 
+                  disabled={importAPU.isPending}
+                  className="w-full md:w-auto"
+                >
+                  {importAPU.isPending ? "Importando..." : "Importar TODOS los APUs"}
+                </Button>
+                
+                <Button 
+                  onClick={handleReorganize}
+                  disabled={reorganizeActivities.isPending}
+                  variant="outline"
+                  className="w-full md:w-auto border-orange-300 text-orange-700 hover:bg-orange-50"
+                >
+                  {reorganizeActivities.isPending ? "Reorganizando..." : "Reorganizar Actividades por Fases"}
+                </Button>
+                
+                <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
+                  <p><strong>Reorganizar:</strong> Distribuye las actividades importadas en las fases correctas según su tipo (demolición → preliminares, vidrios → acabados, etc.)</p>
+                </div>
+              </div>
 
               {importAPU.isPending && (
                 <div className="space-y-2">
