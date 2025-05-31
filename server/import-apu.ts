@@ -117,13 +117,24 @@ export async function importAPUCompositions() {
             // Si no existe la actividad, crearla automáticamente
             if (!activity) {
               try {
+                // Determinar la fase según el grupo de insucons.com
+                let phaseId = 3; // Obra gruesa por defecto
+                const groupName = group.name.toLowerCase();
+                
+                if (groupName.includes('demolicion')) phaseId = 1; // Trabajos preliminares
+                else if (groupName.includes('excavacion') || groupName.includes('movimiento')) phaseId = 2; // Movimientos de tierras
+                else if (groupName.includes('acabado') || groupName.includes('pintura') || groupName.includes('revoque')) phaseId = 4; // Acabados
+                else if (groupName.includes('instalacion') || groupName.includes('electrica') || groupName.includes('sanitaria')) phaseId = 5; // Instalaciones
+                else if (groupName.includes('vidrio') || groupName.includes('carpinteria') || groupName.includes('cerrajeria')) phaseId = 4; // Acabados
+                else if (groupName.includes('cubierta') || groupName.includes('techo')) phaseId = 3; // Obra gruesa
+                
                 activity = await storage.createActivity({
-                  phaseId: 3, // Obra gruesa por defecto
+                  phaseId: phaseId,
                   name: apuDetail.name.toUpperCase(),
                   unit: apuDetail.unit || 'UND',
-                  description: `Actividad importada desde APU: ${apuDetail.name}`
+                  description: `Actividad importada desde APU (${group.name}): ${apuDetail.name}`
                 });
-                details.push(`✓ Creada nueva actividad: ${activity.name}`);
+                details.push(`✓ Creada nueva actividad en ${phaseId === 1 ? 'Preliminares' : phaseId === 2 ? 'Mov. Tierras' : phaseId === 3 ? 'Obra Gruesa' : phaseId === 4 ? 'Acabados' : 'Instalaciones'}: ${activity.name}`);
               } catch (error) {
                 details.push(`✗ Error creando actividad: ${apuDetail.name}`);
                 errorCount++;
