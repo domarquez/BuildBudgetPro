@@ -135,8 +135,8 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             {isEditing ? "Editar Presupuesto" : "Crear Nuevo Presupuesto"}
           </DialogTitle>
@@ -148,7 +148,7 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="overflow-y-auto space-y-6">
+        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
           {/* Project Information */}
           <Card>
             <CardHeader>
