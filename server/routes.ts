@@ -475,6 +475,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // APU Import and Calculation
+  app.post("/api/import-apu", requireAuth, async (req, res) => {
+    try {
+      const { importAPUCompositions } = await import("./import-apu");
+      const result = await importAPUCompositions();
+      res.json(result);
+    } catch (error) {
+      console.error("Error importing APU compositions:", error);
+      res.status(500).json({ message: "Failed to import APU compositions" });
+    }
+  });
+
+  app.get("/api/activities/:activityId/calculate-price", requireAuth, async (req, res) => {
+    try {
+      const { calculateActivityPrice } = await import("./import-apu");
+      const price = await calculateActivityPrice(Number(req.params.activityId));
+      res.json({ price });
+    } catch (error) {
+      console.error("Error calculating activity price:", error);
+      res.status(500).json({ message: "Failed to calculate activity price" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
