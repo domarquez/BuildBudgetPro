@@ -39,7 +39,7 @@ import type { MaterialWithCategory, MaterialCategory } from "@shared/schema";
 
 export default function Materials() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<MaterialWithCategory | null>(null);
   const { toast } = useToast();
@@ -64,7 +64,7 @@ export default function Materials() {
       "/api/materials", 
       { 
         search: searchQuery.length > 0 ? searchQuery : undefined,
-        categoryId: selectedCategory || undefined 
+        categoryId: selectedCategory && selectedCategory !== "all" ? selectedCategory : undefined 
       }
     ],
   });
@@ -177,7 +177,7 @@ export default function Materials() {
                   <SelectValue placeholder="Todas las categorías" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las categorías</SelectItem>
+                  <SelectItem value="all">Todas las categorías</SelectItem>
                   {categories?.map((category) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name}
