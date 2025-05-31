@@ -26,6 +26,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin registration route
+  app.post("/api/auth/register-admin", async (req, res) => {
+    try {
+      const userData = {
+        ...req.body,
+        role: 'admin'
+      };
+      const { user, token } = await AuthService.register(userData);
+      
+      // Don't send password in response
+      const { password, ...userWithoutPassword } = user;
+      
+      res.json({ user: userWithoutPassword, token });
+    } catch (error: any) {
+      console.error("Admin registration error:", error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { user, token } = await AuthService.login(req.body);
