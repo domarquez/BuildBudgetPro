@@ -165,6 +165,13 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  name: z.string().min(1, "El nombre del proyecto es requerido"),
+  client: z.string().optional(),
+  location: z.string().optional(),
+  startDate: z.string().optional(),
+  userId: z.number().optional(),
+  status: z.string().optional(),
 });
 
 export const insertBudgetSchema = createInsertSchema(budgets).omit({

@@ -223,9 +223,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects", async (req, res) => {
+  app.post("/api/projects", requireAuth, async (req: any, res) => {
     try {
-      const projectData = insertProjectSchema.parse(req.body);
+      const projectData = insertProjectSchema.parse({
+        ...req.body,
+        userId: req.user.id
+      });
       const project = await storage.createProject(projectData);
       res.status(201).json(project);
     } catch (error) {
