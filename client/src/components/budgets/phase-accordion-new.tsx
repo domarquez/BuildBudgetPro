@@ -35,7 +35,12 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
   const [budgetItems, setBudgetItems] = useState<BudgetItemData[]>([]);
 
   const { data: activities } = useQuery<ActivityWithPhase[]>({
-    queryKey: ["/api/activities", { phaseId }],
+    queryKey: ["/api/activities", phaseId],
+    queryFn: async () => {
+      const response = await fetch(`/api/activities?phaseId=${phaseId}`);
+      if (!response.ok) throw new Error('Failed to fetch activities');
+      return response.json();
+    }
   });
 
   // Agregar automáticamente el primer elemento cuando se cargan las actividades
