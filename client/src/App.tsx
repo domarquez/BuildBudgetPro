@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import Dashboard from "@/pages/dashboard";
 import Materials from "@/pages/materials";
 import Budgets from "@/pages/budgets";
+import BudgetDetails from "@/pages/budget-details";
 import PriceSettings from "@/pages/price-settings";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -55,6 +56,7 @@ function AuthenticatedLayout() {
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/materials" component={Materials} />
               <Route path="/budgets" component={Budgets} />
+              <Route path="/budgets/:id" component={BudgetDetails} />
               <Route path="/price-settings" component={PriceSettings} />
               <Route component={NotFound} />
             </Switch>

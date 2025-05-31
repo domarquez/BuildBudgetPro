@@ -1,0 +1,227 @@
+import { useParams } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Calendar, MapPin, User, FileText, Calculator } from "lucide-react";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import type { BudgetWithProject, BudgetItemWithActivity } from "@shared/schema";
+
+export default function BudgetDetails() {
+  const { id } = useParams();
+  const budgetId = Number(id);
+
+  const { data: budget, isLoading: budgetLoading } = useQuery<BudgetWithProject>({
+    queryKey: ["/api/budgets", budgetId],
+    enabled: !!budgetId,
+  });
+
+  const { data: budgetItems, isLoading: itemsLoading } = useQuery<BudgetItemWithActivity[]>({
+    queryKey: ["/api/budget-items", budgetId],
+    enabled: !!budgetId,
+  });
+
+  if (budgetLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-8 w-64" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-32 lg:col-span-2" />
+          <Skeleton className="h-32" />
+        </div>
+        <Skeleton className="h-64" />
+      </div>
+    );
+  }
+
+  if (!budget) {
+    return (
+      <div className="text-center py-12">
+        <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+          Presupuesto no encontrado
+        </h2>
+        <p className="text-gray-600 mb-6">
+          El presupuesto que buscas no existe o no tienes permisos para verlo.
+        </p>
+        <Button onClick={() => window.history.back()}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver
+        </Button>
+      </div>
+    );
+  }
+
+  const totalItems = budgetItems?.reduce((sum, item) => sum + Number(item.subtotal), 0) || 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            onClick={() => window.history.back()}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Volver</span>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-on-surface">
+              {budget.project.name}
+            </h1>
+            <p className="text-gray-600">
+              {budget.phase.name} • Presupuesto #{budget.id}
+            </p>
+          </div>
+        </div>
+        <Badge
+          variant={budget.status === 'active' ? 'default' : 
+                  budget.status === 'completed' ? 'secondary' : 'outline'}
+          className="text-sm"
+        >
+          {budget.status === 'active' ? 'Activo' : 
+           budget.status === 'completed' ? 'Completado' : 'Borrador'}
+        </Badge>
+      </div>
+
+      {/* Project Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 shadow-material">
+          <CardHeader>
+            <CardTitle className="text-lg">Información del Proyecto</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-3">
+                <User className="w-5 h-5 text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-600">Cliente</p>
+                  <p className="font-medium">{budget.project.client || "No especificado"}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <MapPin className="w-5 h-5 text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-600">Ubicación</p>
+                  <p className="font-medium">{budget.project.location || "No especificado"}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Calendar className="w-5 h-5 text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-600">Fecha de Inicio</p>
+                  <p className="font-medium">
+                    {budget.project.startDate ? formatDate(budget.project.startDate) : "No definida"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <FileText className="w-5 h-5 text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-600">Estado</p>
+                  <p className="font-medium capitalize">{budget.project.status}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-material">
+          <CardHeader>
+            <CardTitle className="text-lg">Resumen Financiero</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-600">Total del Presupuesto</p>
+              <p className="text-2xl font-bold text-primary">
+                {formatCurrency(budget.total)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Items Calculados</p>
+              <p className="text-xl font-semibold text-on-surface">
+                {formatCurrency(totalItems)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Fase de Construcción</p>
+              <p className="font-medium">{budget.phase.name}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Budget Items */}
+      <Card className="shadow-material">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center space-x-2">
+            <Calculator className="w-5 h-5" />
+            <span>Detalles del Presupuesto</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {itemsLoading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                  <div className="text-right space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : budgetItems && budgetItems.length > 0 ? (
+            <div className="space-y-4">
+              {budgetItems.map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                  <div>
+                    <p className="font-medium text-on-surface">
+                      {item.activity.name}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {item.activity.phase.name} • Cantidad: {item.quantity} {item.activity.unit}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-on-surface">
+                      {formatCurrency(Number(item.subtotal))}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {formatCurrency(Number(item.unitPrice))} por {item.activity.unit}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <p className="text-lg font-semibold">Total:</p>
+                  <p className="text-xl font-bold text-primary">
+                    {formatCurrency(totalItems)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Calculator className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">
+                Este presupuesto aún no tiene items calculados.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

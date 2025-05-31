@@ -309,6 +309,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/budget-items/:budgetId", async (req, res) => {
+    try {
+      const items = await storage.getBudgetItems(Number(req.params.budgetId));
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching budget items:", error);
+      res.status(500).json({ message: "Failed to fetch budget items" });
+    }
+  });
+
   app.post("/api/budgets/:budgetId/items", async (req, res) => {
     try {
       const itemData = insertBudgetItemSchema.parse({

@@ -186,6 +186,7 @@ export default function Dashboard() {
                 <div
                   key={budget.id}
                   className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg cursor-pointer"
+                  onClick={() => window.location.href = `/budgets/${budget.id}`}
                 >
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
