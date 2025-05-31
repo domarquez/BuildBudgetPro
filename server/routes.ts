@@ -301,6 +301,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Price settings routes
+  app.get("/api/price-settings", async (req, res) => {
+    try {
+      const settings = await storage.getPriceSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error getting price settings:", error);
+      res.status(500).json({ message: "Failed to get price settings" });
+    }
+  });
+
+  app.put("/api/price-settings", async (req, res) => {
+    try {
+      const settings = await storage.updatePriceSettings(req.body);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating price settings:", error);
+      res.status(500).json({ message: "Failed to update price settings" });
+    }
+  });
+
+  app.post("/api/apply-price-adjustment", async (req, res) => {
+    try {
+      const { factor, updatedBy } = req.body;
+      const result = await storage.applyGlobalPriceAdjustment(factor, updatedBy);
+      res.json(result);
+    } catch (error) {
+      console.error("Error applying price adjustment:", error);
+      res.status(500).json({ message: "Failed to apply price adjustment" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

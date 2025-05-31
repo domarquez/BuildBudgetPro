@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import Dashboard from "@/pages/dashboard";
 import Materials from "@/pages/materials";
 import Budgets from "@/pages/budgets";
+import PriceSettings from "@/pages/price-settings";
 import NotFound from "@/pages/not-found";
 import AppSidebar from "@/components/layout/sidebar";
 import AppHeader from "@/components/layout/header";
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/materials" component={Materials} />
       <Route path="/budgets" component={Budgets} />
+      <Route path="/price-settings" component={PriceSettings} />
       <Route component={NotFound} />
     </Switch>
   );

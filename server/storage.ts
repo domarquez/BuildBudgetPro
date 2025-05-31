@@ -7,6 +7,7 @@ import {
   projects,
   budgets,
   budgetItems,
+  priceSettings,
   type User, 
   type InsertUser,
   type MaterialCategory,
@@ -26,7 +27,9 @@ import {
   type BudgetWithProject,
   type BudgetItem,
   type InsertBudgetItem,
-  type BudgetItemWithActivity
+  type BudgetItemWithActivity,
+  type PriceSettings,
+  type InsertPriceSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, like, ilike } from "drizzle-orm";
@@ -407,6 +410,46 @@ export class DatabaseStorage implements IStorage {
       activeBudgets: budgetCount.count,
       totalProjectValue: Number(projectValue.total)
     };
+  }
+
+  // Price Settings
+  async getPriceSettings(): Promise<PriceSettings> {
+    const [settings] = await db.select().from(priceSettings).limit(1);
+    return settings;
+  }
+
+  async updatePriceSettings(updates: Partial<InsertPriceSettings>): Promise<PriceSettings> {
+    const [settings] = await db.select().from(priceSettings).limit(1);
+    
+    const [updated] = await db
+      .update(priceSettings)
+      .set({
+        ...updates,
+        lastUpdated: new Date(),
+      })
+      .where(eq(priceSettings.id, settings.id))
+      .returning();
+    
+    return updated;
+  }
+
+  async applyGlobalPriceAdjustment(factor: number, updatedBy: string): Promise<{ affectedMaterials: number }> {
+    // Update all material prices by the factor
+    const result = await db
+      .update(materials)
+      .set({
+        price: sql`CAST((CAST(price AS DECIMAL) * ${factor}) AS TEXT)`,
+        lastUpdated: new Date(),
+      })
+      .returning({ id: materials.id });
+
+    // Update the global adjustment factor in settings
+    await this.updatePriceSettings({
+      globalAdjustmentFactor: factor.toString(),
+      updatedBy,
+    });
+
+    return { affectedMaterials: result.length };
   }
 }
 
