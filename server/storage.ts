@@ -102,6 +102,9 @@ export interface IStorage {
   createActivityComposition(composition: InsertActivityComposition): Promise<ActivityComposition>;
   deleteActivityComposition(id: number): Promise<void>;
 
+  // Activity Updates
+  updateActivity(id: number, activity: Partial<InsertActivity>): Promise<Activity>;
+
   // Price Settings
   getPriceSettings(): Promise<PriceSettings>;
   updatePriceSettings(settings: Partial<InsertPriceSettings>): Promise<PriceSettings>;
@@ -526,6 +529,15 @@ export class DatabaseStorage implements IStorage {
   async deleteActivityComposition(id: number): Promise<void> {
     await db.delete(activityCompositions)
       .where(eq(activityCompositions.id, id));
+  }
+
+  async updateActivity(id: number, updates: Partial<InsertActivity>): Promise<Activity> {
+    const [activity] = await db
+      .update(activities)
+      .set(updates)
+      .where(eq(activities.id, id))
+      .returning();
+    return activity;
   }
 }
 

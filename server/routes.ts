@@ -495,6 +495,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reorganize existing activities by phase
+  app.post("/api/reorganize-activities", requireAuth, async (req, res) => {
+    try {
+      const { reorganizeExistingActivities } = await import("./reorganize-activities");
+      const result = await reorganizeExistingActivities();
+      res.json(result);
+    } catch (error) {
+      console.error("Error reorganizing activities:", error);
+      res.status(500).json({ 
+        message: "Error reorganizing activities",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   app.get("/api/activities/:activityId/calculate-price", requireAuth, async (req, res) => {
     try {
       const { calculateActivityPrice } = await import("./import-apu");
