@@ -80,9 +80,8 @@ export default function PhaseAccordion({ phaseId, projectId, onBudgetChange }: P
           updatedItem.activity = activities?.find(a => a.id === value);
         }
         
-        if (field === 'quantity' || field === 'unitPrice') {
-          updatedItem.subtotal = calculateSubtotal(updatedItem.quantity, updatedItem.unitPrice);
-        }
+        // Siempre recalcular subtotal cuando cambien cantidad o precio
+        updatedItem.subtotal = calculateSubtotal(updatedItem.quantity, updatedItem.unitPrice);
         
         return updatedItem;
       }
