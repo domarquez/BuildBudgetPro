@@ -57,7 +57,14 @@ export const getQueryFn: <T>(options: {
       }
     }
     
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const res = await fetch(url, {
+      headers,
       credentials: "include",
     });
 
