@@ -16,7 +16,8 @@ export default function APUImport() {
 
   const importAPU = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/import-apu", "POST", {});
+      const response = await apiRequest("POST", "/api/import-apu", {});
+      return await response.json();
     },
     onSuccess: (result: any) => {
       setImportStatus(result);
