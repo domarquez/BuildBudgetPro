@@ -47,6 +47,7 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
   // Agregar automáticamente el primer elemento cuando se cargan las actividades
   useEffect(() => {
     if (activities && activities.length > 0 && budgetItems.length === 0) {
+      console.log('Agregando elemento inicial para fase:', phaseId, 'con', activities.length, 'actividades');
       const newItem: BudgetItemData = {
         id: Date.now().toString(),
         activityId: 0,
@@ -56,7 +57,7 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
       };
       setBudgetItems([newItem]);
     }
-  }, [activities, budgetItems.length]);
+  }, [activities, budgetItems.length, phaseId]);
 
   const addBudgetItem = () => {
     const newItem: BudgetItemData = {
@@ -119,7 +120,7 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
         </Badge>
       </div>
 
-      <Accordion type="single" defaultValue="phase-items" collapsible className="w-full">
+      <Accordion type="single" value="phase-items" className="w-full">
         <AccordionItem value="phase-items">
           <AccordionTrigger className="text-base font-medium hover:no-underline">
             <div className="flex items-center justify-between w-full mr-4">
