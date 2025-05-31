@@ -40,7 +40,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/auth/me", requireAuth, async (req, res) => {
+  app.get("/api/auth/me", requireAuth, async (req: any, res) => {
     try {
       const { password, ...userWithoutPassword } = req.user;
       res.json(userWithoutPassword);
