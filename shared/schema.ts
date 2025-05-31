@@ -67,6 +67,15 @@ export const budgetItems = pgTable("budget_items", {
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
 });
 
+export const priceSettings = pgTable("price_settings", {
+  id: serial("id").primaryKey(),
+  usdExchangeRate: decimal("usd_exchange_rate", { precision: 10, scale: 4 }).notNull().default("6.96"),
+  inflationFactor: decimal("inflation_factor", { precision: 10, scale: 4 }).notNull().default("1.0000"),
+  globalAdjustmentFactor: decimal("global_adjustment_factor", { precision: 10, scale: 4 }).notNull().default("1.0000"),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  updatedBy: text("updated_by"),
+});
+
 // Relations
 export const constructionPhasesRelations = relations(constructionPhases, ({ many }) => ({
   activities: many(activities),
@@ -158,6 +167,11 @@ export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({
   id: true,
 });
 
+export const insertPriceSettingsSchema = createInsertSchema(priceSettings).omit({
+  id: true,
+  lastUpdated: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -175,6 +189,8 @@ export type Budget = typeof budgets.$inferSelect;
 export type InsertBudget = z.infer<typeof insertBudgetSchema>;
 export type BudgetItem = typeof budgetItems.$inferSelect;
 export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
+export type PriceSettings = typeof priceSettings.$inferSelect;
+export type InsertPriceSettings = z.infer<typeof insertPriceSettingsSchema>;
 
 // Extended types for queries with relations
 export type MaterialWithCategory = Material & {

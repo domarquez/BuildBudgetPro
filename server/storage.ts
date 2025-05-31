@@ -85,6 +85,11 @@ export interface IStorage {
     activeBudgets: number;
     totalProjectValue: number;
   }>;
+
+  // Price Settings
+  getPriceSettings(): Promise<PriceSettings>;
+  updatePriceSettings(settings: Partial<InsertPriceSettings>): Promise<PriceSettings>;
+  applyGlobalPriceAdjustment(factor: number, updatedBy: string): Promise<{ affectedMaterials: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
