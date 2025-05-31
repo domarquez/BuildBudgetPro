@@ -40,44 +40,52 @@ interface APUDetail {
   };
 }
 
-// Función para obtener todos los grupos de APU
+// Función para obtener APUs específicos usando URLs conocidas
+export async function getKnownAPUs(): Promise<APUItem[]> {
+  const knownAPUs = [
+    {
+      code: 'JABON001',
+      name: 'JABONERO',
+      unit: 'PZA',
+      price: 0,
+      url: 'https://www.insucons.com/analisis-precio-unitario/hh/artefactos-sanitarios/5/jabonero'
+    },
+    {
+      code: 'HO193',
+      name: 'CIMIENTO DE HO AO',
+      unit: 'M3',
+      price: 0,
+      url: 'https://www.insucons.com/analisis-precio-unitario/hh/hormigones/193/cimiento-de-ho-ao'
+    },
+    {
+      code: 'ACCES001',
+      name: 'ACCESORIOS DE BAÑO',
+      unit: 'JGO',
+      price: 525.41,
+      url: 'https://www.insucons.com/analisis-precio-unitario/hh/artefactos-sanitarios/1/accesorios-de-bano'
+    }
+  ];
+
+  console.log(`Usando ${knownAPUs.length} APUs conocidos de insucons.com`);
+  return knownAPUs;
+}
+
+// Función para obtener todos los grupos de APU (mantenida para compatibilidad)
 export async function getAPUGroups(): Promise<APUGroup[]> {
-  try {
-    console.log('Obteniendo grupos de APU desde insucons.com...');
-    const response = await axios.get('https://www.insucons.com/analisis-precio-unitario/hh/grupos', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
-
-    const $ = cheerio.load(response.data);
-    const groups: APUGroup[] = [];
-
-    // Buscar enlaces a grupos de APU
-    $('a[href*="/analisis-precio-unitario/hh/"]').each((_, element) => {
-      const link = $(element);
-      const href = link.attr('href');
-      const text = link.text().trim();
-      
-      if (href && text && href.includes('/grupos/')) {
-        groups.push({
-          id: href.split('/').pop() || '',
-          name: text,
-          url: href.startsWith('http') ? href : `https://www.insucons.com${href}`
-        });
-      }
-    });
-
-    console.log(`Encontrados ${groups.length} grupos de APU`);
-    return groups;
-  } catch (error) {
-    console.error('Error obteniendo grupos APU:', error);
-    throw new Error('No se pudieron obtener los grupos de APU');
-  }
+  // Por ahora devolvemos un grupo ficticio que contiene nuestros APUs conocidos
+  return [{
+    id: 'conocidos',
+    name: 'APUs Conocidos',
+    url: 'known'
+  }];
 }
 
 // Función para obtener APUs de un grupo específico
 export async function getAPUsByGroup(groupUrl: string): Promise<APUItem[]> {
+  if (groupUrl === 'known') {
+    return await getKnownAPUs();
+  }
+  
   try {
     console.log(`Obteniendo APUs del grupo: ${groupUrl}`);
     const response = await axios.get(groupUrl, {
@@ -90,7 +98,7 @@ export async function getAPUsByGroup(groupUrl: string): Promise<APUItem[]> {
     const apus: APUItem[] = [];
 
     // Buscar tabla de APUs o enlaces a APUs individuales
-    $('tr, .apu-item, a[href*="/analisis-precio-unitario/hh/item/"]').each((_, element) => {
+    $('tr, .apu-item, a[href*="/analisis-precio-unitario/hh/"]').each((_, element) => {
       const $el = $(element);
       
       // Intentar extraer información del APU
@@ -154,58 +162,87 @@ export async function getAPUDetail(apuUrl: string): Promise<APUDetail | null> {
     console.log(`Obteniendo detalle del APU: ${apuUrl}`);
     const response = await axios.get(apuUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
       }
     });
 
     const $ = cheerio.load(response.data);
     
-    // Extraer información básica
-    const code = $('h1, .apu-code').first().text().trim();
-    const name = $('h2, .apu-name').first().text().trim();
-    const unit = $('.unit, .unidad').first().text().trim();
+    // Extraer información básica del título de la página
+    const pageTitle = $('title').text() || '';
+    const h2Title = $('h2').first().text().trim();
     
-    const priceText = $('.total-price, .precio-total').first().text().trim();
-    const totalPrice = parseFloat(priceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+    const name = h2Title || pageTitle.split(' - ')[0] || 'APU';
+    const code = apuUrl.split('/').pop() || '';
+    
+    // Buscar el precio total al final de la página
+    let totalPrice = 0;
+    $('td, th, span, div').each((_, element) => {
+      const text = $(element).text().trim();
+      if (text.includes('Total') && text.includes('Precio') && text.includes('Unitario')) {
+        const nextElement = $(element).next();
+        const priceText = nextElement.text() || $(element).text();
+        const match = priceText.match(/(\d+(?:\.\d+)?)/);
+        if (match) {
+          totalPrice = parseFloat(match[1]);
+        }
+      }
+    });
 
     const materials: APUComposition[] = [];
     const labor: APUComposition[] = [];
     const equipment: APUComposition[] = [];
 
-    // Buscar tablas de composición
-    $('table').each((_, table) => {
-      const $table = $(table);
-      const tableText = $table.text().toLowerCase();
+    // Buscar secciones específicas por encabezados
+    let currentSection = '';
+    
+    $('*').each((_, element) => {
+      const $el = $(element);
+      const text = $el.text().trim();
       
-      let type: 'material' | 'labor' | 'equipment' = 'material';
-      
-      if (tableText.includes('mano de obra') || tableText.includes('labor')) {
-        type = 'labor';
-      } else if (tableText.includes('equipo') || tableText.includes('maquinaria')) {
-        type = 'equipment';
+      // Identificar secciones
+      if (text.includes('1. MATERIALES')) {
+        currentSection = 'materials';
+        return;
+      } else if (text.includes('2. MANO DE OBRA')) {
+        currentSection = 'labor';
+        return;
+      } else if (text.includes('3. EQUIPO')) {
+        currentSection = 'equipment';
+        return;
+      } else if (text.includes('4. GASTOS GENERALES') || text.includes('5. UTILIDAD') || text.includes('6. IMPUESTOS')) {
+        currentSection = 'indirect';
+        return;
       }
+      
+      // Extraer datos de filas de tabla
+      if ($el.is('tr') && currentSection && currentSection !== 'indirect') {
+        const cells = $el.find('td');
+        if (cells.length >= 5) {
+          const description = cells.eq(1).text().trim();
+          const unit = cells.eq(2).text().trim();
+          const quantity = parseFloat(cells.eq(3).text().trim()) || 0;
+          const unitPrice = parseFloat(cells.eq(4).text().trim()) || 0;
+          const totalCost = parseFloat(cells.eq(5).text().trim()) || (quantity * unitPrice);
 
-      $table.find('tr').each((_, row) => {
-        const cells = $(row).find('td');
-        if (cells.length >= 4) {
-          const description = cells.eq(0).text().trim();
-          const unit = cells.eq(1).text().trim();
-          const quantity = parseFloat(cells.eq(2).text().trim()) || 0;
-          const unitPrice = parseFloat(cells.eq(3).text().replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
-          const totalPrice = quantity * unitPrice;
-
-          if (description && quantity > 0) {
+          if (description && quantity > 0 && description !== 'Descripción') {
             const composition: APUComposition = {
               description,
               unit,
               quantity,
               unitPrice,
-              totalPrice,
-              type
+              totalPrice: totalCost,
+              type: currentSection as 'material' | 'labor' | 'equipment'
             };
 
-            switch (type) {
-              case 'material':
+            switch (currentSection) {
+              case 'materials':
                 materials.push(composition);
                 break;
               case 'labor':
@@ -217,10 +254,10 @@ export async function getAPUDetail(apuUrl: string): Promise<APUDetail | null> {
             }
           }
         }
-      });
+      }
     });
 
-    // Buscar costos indirectos
+    // Buscar costos indirectos basándose en patrones de texto específicos
     const indirectCosts = {
       equipment: 0,
       administrative: 0,
@@ -228,34 +265,37 @@ export async function getAPUDetail(apuUrl: string): Promise<APUDetail | null> {
       tax: 0
     };
 
-    $('.indirect-costs, .costos-indirectos').each((_, element) => {
+    $('*').each((_, element) => {
       const text = $(element).text();
       
-      const equipmentMatch = text.match(/equipo[:\s]*(\d+(?:\.\d+)?)/i);
-      if (equipmentMatch) {
-        indirectCosts.equipment = parseFloat(equipmentMatch[1]);
+      // Buscar porcentajes específicos
+      if (text.includes('Herramientas') && text.includes('%')) {
+        const match = text.match(/(\d+(?:\.\d+)?)%/);
+        if (match) indirectCosts.equipment = parseFloat(match[1]);
       }
       
-      const adminMatch = text.match(/administrativo[:\s]*(\d+(?:\.\d+)?)/i);
-      if (adminMatch) {
-        indirectCosts.administrative = parseFloat(adminMatch[1]);
+      if (text.includes('Gastos generales') && text.includes('%')) {
+        const match = text.match(/(\d+(?:\.\d+)?)%/);
+        if (match) indirectCosts.administrative = parseFloat(match[1]);
       }
       
-      const utilityMatch = text.match(/utilidad[:\s]*(\d+(?:\.\d+)?)/i);
-      if (utilityMatch) {
-        indirectCosts.utility = parseFloat(utilityMatch[1]);
+      if (text.includes('Utilidad') && text.includes('%')) {
+        const match = text.match(/(\d+(?:\.\d+)?)%/);
+        if (match) indirectCosts.utility = parseFloat(match[1]);
       }
       
-      const taxMatch = text.match(/impuesto[:\s]*(\d+(?:\.\d+)?)/i);
-      if (taxMatch) {
-        indirectCosts.tax = parseFloat(taxMatch[1]);
+      if (text.includes('IT') && text.includes('%')) {
+        const match = text.match(/(\d+(?:\.\d+)?)%/);
+        if (match) indirectCosts.tax = parseFloat(match[1]);
       }
     });
+
+    console.log(`Extraído APU: ${name}, Materiales: ${materials.length}, Mano de obra: ${labor.length}, Equipos: ${equipment.length}`);
 
     return {
       code,
       name,
-      unit,
+      unit: 'UND',
       totalPrice,
       materials,
       labor,
