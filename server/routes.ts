@@ -66,16 +66,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/materials", async (req, res) => {
     try {
       const { categoryId, search } = req.query;
+      console.log("Materials query params:", { categoryId, search });
       let materials;
       
       if (search) {
+        console.log("Searching materials with:", search);
         materials = await storage.searchMaterials(String(search));
       } else if (categoryId) {
+        console.log("Filtering by category:", categoryId);
         materials = await storage.getMaterialsByCategory(Number(categoryId));
       } else {
+        console.log("Getting all materials");
         materials = await storage.getMaterials();
       }
       
+      console.log("Returning", materials.length, "materials");
       res.json(materials);
     } catch (error) {
       console.error("Error fetching materials:", error);
