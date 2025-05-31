@@ -76,6 +76,20 @@ export const budgetItems = pgTable("budget_items", {
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
 });
 
+// Composiciones de actividades - materiales y mano de obra que conforman cada actividad
+export const activityCompositions = pgTable("activity_compositions", {
+  id: serial("id").primaryKey(),
+  activityId: integer("activity_id").notNull().references(() => activities.id),
+  materialId: integer("material_id").references(() => materials.id), // null para mano de obra
+  description: text("description").notNull(), // ej: "Mano de obra especializada", "Cemento Portland"
+  unit: text("unit").notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 4 }).notNull(), // rendimiento por unidad de actividad
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }).notNull(),
+  type: text("type").notNull(), // 'material' o 'labor'
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const priceSettings = pgTable("price_settings", {
   id: serial("id").primaryKey(),
   usdExchangeRate: decimal("usd_exchange_rate", { precision: 10, scale: 4 }).notNull().default("6.96"),
@@ -101,6 +115,18 @@ export const activitiesRelations = relations(activities, ({ one, many }) => ({
     references: [constructionPhases.id],
   }),
   budgetItems: many(budgetItems),
+  compositions: many(activityCompositions),
+}));
+
+export const activityCompositionsRelations = relations(activityCompositions, ({ one }) => ({
+  activity: one(activities, {
+    fields: [activityCompositions.activityId],
+    references: [activities.id],
+  }),
+  material: one(materials, {
+    fields: [activityCompositions.materialId],
+    references: [materials.id],
+  }),
 }));
 
 export const materialsRelations = relations(materials, ({ one }) => ({
@@ -178,6 +204,8 @@ export const insertBudgetSchema = createInsertSchema(budgets).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  total: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
 export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({
@@ -187,6 +215,12 @@ export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({
 export const insertPriceSettingsSchema = createInsertSchema(priceSettings).omit({
   id: true,
   lastUpdated: true,
+});
+
+export const insertActivityCompositionSchema = createInsertSchema(activityCompositions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Types
@@ -223,6 +257,16 @@ export type BudgetWithProject = Budget & {
   phase: ConstructionPhase;
 };
 
+export type ActivityComposition = typeof activityCompositions.$inferSelect;
+export type InsertActivityComposition = z.infer<typeof insertActivityCompositionSchema>;
+
 export type BudgetItemWithActivity = BudgetItem & {
   activity: ActivityWithPhase;
+};
+
+export type ActivityWithCompositions = Activity & {
+  phase: ConstructionPhase;
+  compositions: (ActivityComposition & {
+    material?: Material;
+  })[];
 };
