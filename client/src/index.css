@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --muted: 210 40% 98%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 45 100% 51%;
+  --secondary-foreground: 240 5.9% 10%;
+  --accent: 210 40% 98%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 207 90% 54%;
+  --radius: 0.5rem;
+  
+  /* Custom ConstructPro colors */
+  --surface: 210 11% 98%; /* #FAFAFA */
+  --on-surface: 220 13% 13%; /* #212121 */
+  --primary-variant: 210 89% 43%; /* #1565C0 */
+  --secondary-variant: 39 100% 50%; /* #FF8F00 */
+  
+  /* Sidebar colors */
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 207 90% 54%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 210 40% 98%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 214.3 31.8% 91.4%;
+  --sidebar-ring: 207 90% 54%;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 45 100% 51%;
+  --secondary-foreground: 240 5.9% 10%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+  
+  /* Dark mode custom colors */
+  --surface: 240 10% 3.9%;
+  --on-surface: 0 0% 98%;
+  --primary-variant: 210 89% 43%;
+  --secondary-variant: 39 100% 50%;
+  
+  /* Dark sidebar colors */
+  --sidebar-background: 240 10% 3.9%;
+  --sidebar-foreground: 240 5% 64.9%;
+  --sidebar-primary: 207 90% 54%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 240 4.9% 83.9%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-surface text-on-surface;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  
+  .material-shadow {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
+  }
+  
+  .material-shadow-lg {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 16px 32px rgba(0,0,0,0.12);
+  }
+}
+
+@layer utilities {
+  .bg-surface {
+    background-color: hsl(var(--surface));
+  }
+  
+  .text-on-surface {
+    color: hsl(var(--on-surface));
+  }
+  
+  .bg-primary-variant {
+    background-color: hsl(var(--primary-variant));
+  }
+  
+  .text-primary-variant {
+    color: hsl(var(--primary-variant));
+  }
+  
+  .bg-secondary-variant {
+    background-color: hsl(var(--secondary-variant));
+  }
+  
+  .text-secondary-variant {
+    color: hsl(var(--secondary-variant));
+  }
+  
+  .hover\:bg-primary-variant:hover {
+    background-color: hsl(var(--primary-variant));
+  }
+  
+  .hover\:bg-secondary-variant:hover {
+    background-color: hsl(var(--secondary-variant));
+  }
+  
+  .hover\:text-primary-variant:hover {
+    color: hsl(var(--primary-variant));
+  }
+}
