@@ -99,6 +99,14 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
     return <div className="text-center text-gray-500">Cargando actividades...</div>;
   }
 
+  // Debug logs
+  console.log('Rendering PhaseAccordion:', { 
+    phaseId, 
+    activitiesCount: activities?.length || 0, 
+    budgetItemsCount: budgetItems.length,
+    budgetItems 
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
