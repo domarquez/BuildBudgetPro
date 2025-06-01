@@ -37,7 +37,8 @@ import {
   Edit, 
   Package,
   TrendingUp,
-  Calendar
+  Calendar,
+  AlertTriangle
 } from "lucide-react";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
