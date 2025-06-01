@@ -41,9 +41,9 @@ import type { Project, ConstructionPhase, ActivityWithPhase, BudgetWithProject }
 
 const projectFormSchema = z.object({
   name: z.string().min(1, "El nombre del proyecto es requerido"),
-  client: z.string().min(1, "El cliente es requerido"),
-  location: z.string().min(1, "La ubicación es requerida"),
-  city: z.string().min(1, "La ciudad es requerida"),
+  client: z.string().optional(),
+  location: z.string().optional(),
+  city: z.string().optional(),
   country: z.string().default("Bolivia"),
   startDate: z.string().optional(),
   equipmentPercentage: z.string().default("5.00"),
@@ -83,8 +83,8 @@ const cityFactors: Record<string, number> = {
   "Cobija": 1.15,
 };
 
-const applyGeographicFactor = (basePrice: number, city: string): number => {
-  const factor = cityFactors[city] || 1.0;
+const applyGeographicFactor = (basePrice: number, city: string | null | undefined): number => {
+  const factor = cityFactors[city || 'Santa Cruz'] || 1.0;
   return basePrice * factor;
 };
 
@@ -291,9 +291,10 @@ export default function MultiphaseBudgetForm({ budget, onClose }: MultiphaseBudg
             if (field === 'activityId') {
               updatedItem.activity = allActivities?.find(a => a.id === value);
               if (updatedItem.activity) {
+                const cityValue = form.watch('city');
                 const adjustedPrice = applyGeographicFactor(
-                  updatedItem.activity.unitPrice, 
-                  form.watch('city') || 'Santa Cruz'
+                  Number(updatedItem.activity.unitPrice), 
+                  cityValue
                 );
                 updatedItem.unitPrice = adjustedPrice;
               }
@@ -390,7 +391,21 @@ export default function MultiphaseBudgetForm({ budget, onClose }: MultiphaseBudg
                           <FormItem>
                             <FormLabel>Ciudad</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ciudad" {...field} />
+                              <select
+                                {...field}
+                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                              >
+                                <option value="">Seleccionar ciudad...</option>
+                                <option value="La Paz">La Paz (+17.5%)</option>
+                                <option value="Santa Cruz">Santa Cruz (Base)</option>
+                                <option value="Cochabamba">Cochabamba (-4.5%)</option>
+                                <option value="Potosí">Potosí (+24.25%)</option>
+                                <option value="Oruro">Oruro (+10%)</option>
+                                <option value="Sucre">Sucre (+5%)</option>
+                                <option value="Tarija">Tarija (-2%)</option>
+                                <option value="Trinidad">Trinidad (+8%)</option>
+                                <option value="Cobija">Cobija (+15%)</option>
+                              </select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
