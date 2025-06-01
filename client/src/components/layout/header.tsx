@@ -35,7 +35,7 @@ export default function AppHeader() {
               <Construction className="w-4 h-4 text-white" />
             </div>
             <h1 className="text-xl font-semibold text-on-surface hidden sm:block">
-              ConstructPro
+              MICA
             </h1>
           </div>
         </div>

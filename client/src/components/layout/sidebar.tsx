@@ -31,7 +31,7 @@ import {
 
 const menuItems = [
   {
-    title: "PanelsTopLeft",
+    title: "Panel Principal",
     url: "/dashboard",
     icon: PanelsTopLeft,
   },
@@ -129,7 +129,7 @@ export default function AppSidebar() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <Construction className="w-4 h-4 text-white" />
           </div>
-          <span className="text-lg font-semibold text-on-surface">ConstructPro</span>
+          <span className="text-lg font-semibold text-on-surface">MICA</span>
         </div>
       </SidebarHeader>
       
@@ -227,7 +227,7 @@ export default function AppSidebar() {
       
       <SidebarFooter className="p-4 border-t">
         <div className="text-xs text-muted-foreground text-center">
-          ConstructPro v1.0.0
+          MICA v1.0.0
         </div>
       </SidebarFooter>
     </Sidebar>
