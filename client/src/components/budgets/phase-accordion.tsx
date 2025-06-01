@@ -83,6 +83,10 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
         if (field === 'activityId') {
           const activity = activities?.find(a => a.id === value);
           updatedItem.activity = activity;
+          // Auto-fill unit price from activity's calculated price
+          if (activity && activity.unitPrice) {
+            updatedItem.unitPrice = parseFloat(activity.unitPrice);
+          }
         }
         
         // Recalculate subtotal when quantity or unitPrice changes

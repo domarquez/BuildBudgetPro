@@ -257,6 +257,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/projects/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteProject(Number(req.params.id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      res.status(500).json({ message: "Failed to delete project" });
+    }
+  });
+
   // Budgets
   app.get("/api/budgets", requireAuth, async (req: any, res) => {
     try {
