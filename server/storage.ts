@@ -52,6 +52,11 @@ import {
   type MaterialWithSupplierPrices,
   type UserMaterialPrice,
   type InsertUserMaterialPrice,
+  type CompanyAdvertisement,
+  type InsertCompanyAdvertisement,
+  type AdvertisementWithSupplier,
+  type SystemSetting,
+  type InsertSystemSetting,
   type Tool,
   type InsertTool,
   type LaborCategory,
@@ -158,6 +163,23 @@ export interface IStorage {
   createMaterialSupplierPrice(price: InsertMaterialSupplierPrice): Promise<MaterialSupplierPrice>;
   updateMaterialSupplierPrice(id: number, price: Partial<InsertMaterialSupplierPrice>): Promise<MaterialSupplierPrice>;
   deleteMaterialSupplierPrice(id: number): Promise<void>;
+
+  // Sistema de publicidad
+  getActiveAdvertisements(): Promise<AdvertisementWithSupplier[]>;
+  getRandomAdvertisement(): Promise<AdvertisementWithSupplier | null>;
+  createAdvertisement(data: InsertCompanyAdvertisement): Promise<CompanyAdvertisement>;
+  updateAdvertisementViews(adId: number): Promise<void>;
+  updateAdvertisementClicks(adId: number): Promise<void>;
+  getAdvertisementsBySupplier(supplierId: number): Promise<CompanyAdvertisement[]>;
+
+  // Configuración del sistema
+  getSystemSetting(key: string): Promise<string | null>;
+  setSystemSetting(key: string, value: string, description?: string): Promise<void>;
+
+  // Acceso público (sin autenticación)
+  getMaterialsPublic(): Promise<Material[]>;
+  getMaterialCategoriesPublic(): Promise<MaterialCategory[]>;
+  getSupplierCompaniesPublic(): Promise<SupplierCompany[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -924,6 +946,139 @@ export class DatabaseStorage implements IStorage {
 
   async deleteLaborCategory(id: number): Promise<void> {
     await db.update(laborCategories).set({ isActive: false }).where(eq(laborCategories.id, id));
+  }
+
+  // Sistema de publicidad
+  async getActiveAdvertisements(): Promise<AdvertisementWithSupplier[]> {
+    const results = await db
+      .select()
+      .from(companyAdvertisements)
+      .leftJoin(supplierCompanies, eq(companyAdvertisements.supplierId, supplierCompanies.id))
+      .where(
+        and(
+          eq(companyAdvertisements.isActive, true),
+          eq(supplierCompanies.isActive, true)
+        )
+      )
+      .orderBy(desc(companyAdvertisements.createdAt));
+
+    return results.map(result => ({
+      ...result.company_advertisements,
+      supplier: result.supplier_companies!
+    }));
+  }
+
+  async getRandomAdvertisement(): Promise<AdvertisementWithSupplier | null> {
+    const activeAds = await this.getActiveAdvertisements();
+    if (activeAds.length === 0) return null;
+    
+    const randomIndex = Math.floor(Math.random() * activeAds.length);
+    const selectedAd = activeAds[randomIndex];
+    
+    // Incrementar contador de vistas
+    await this.updateAdvertisementViews(selectedAd.id);
+    
+    return selectedAd;
+  }
+
+  async createAdvertisement(data: InsertCompanyAdvertisement): Promise<CompanyAdvertisement> {
+    const [advertisement] = await db
+      .insert(companyAdvertisements)
+      .values(data)
+      .returning();
+    return advertisement;
+  }
+
+  async updateAdvertisementViews(adId: number): Promise<void> {
+    await db
+      .update(companyAdvertisements)
+      .set({ 
+        viewCount: sql`${companyAdvertisements.viewCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(companyAdvertisements.id, adId));
+  }
+
+  async updateAdvertisementClicks(adId: number): Promise<void> {
+    await db
+      .update(companyAdvertisements)
+      .set({ 
+        clickCount: sql`${companyAdvertisements.clickCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(companyAdvertisements.id, adId));
+  }
+
+  async getAdvertisementsBySupplier(supplierId: number): Promise<CompanyAdvertisement[]> {
+    return await db
+      .select()
+      .from(companyAdvertisements)
+      .where(eq(companyAdvertisements.supplierId, supplierId))
+      .orderBy(desc(companyAdvertisements.createdAt));
+  }
+
+  // Configuración del sistema
+  async getSystemSetting(key: string): Promise<string | null> {
+    const [setting] = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.settingKey, key));
+    return setting?.settingValue || null;
+  }
+
+  async setSystemSetting(key: string, value: string, description?: string): Promise<void> {
+    const existing = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.settingKey, key));
+
+    if (existing.length > 0) {
+      await db
+        .update(systemSettings)
+        .set({ 
+          settingValue: value, 
+          description,
+          updatedAt: new Date() 
+        })
+        .where(eq(systemSettings.settingKey, key));
+    } else {
+      await db
+        .insert(systemSettings)
+        .values({ settingKey: key, settingValue: value, description });
+    }
+  }
+
+  // Acceso público (sin autenticación)
+  async getMaterialsPublic(): Promise<Material[]> {
+    return await db
+      .select()
+      .from(materials)
+      .orderBy(materials.name)
+      .limit(100); // Limitar para acceso público
+  }
+
+  async getMaterialCategoriesPublic(): Promise<MaterialCategory[]> {
+    return await db
+      .select()
+      .from(materialCategories)
+      .orderBy(materialCategories.name);
+  }
+
+  async getSupplierCompaniesPublic(): Promise<SupplierCompany[]> {
+    return await db
+      .select()
+      .from(supplierCompanies)
+      .where(
+        and(
+          eq(supplierCompanies.isActive, true),
+          eq(supplierCompanies.isVerified, true)
+        )
+      )
+      .orderBy(
+        desc(supplierCompanies.membershipType), // Premium primero
+        desc(supplierCompanies.rating)
+      )
+      .limit(50); // Limitar para acceso público
   }
 
   // Additional activity management methods

@@ -5,7 +5,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import express from "express";
-import { AuthService, requireAuth, requireAdmin } from "./auth";
+import { AuthService, requireAuth, requireAdmin, requireSupplier } from "./auth";
 import { 
   insertMaterialSchema,
   insertProjectSchema,
@@ -16,6 +16,7 @@ import {
   insertSupplierCompanySchema,
   insertMaterialSupplierPriceSchema,
   insertUserMaterialPriceSchema,
+  insertCompanyAdvertisementSchema,
   insertToolSchema,
   insertLaborCategorySchema,
   insertActivitySchema
@@ -378,6 +379,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting custom price:", error);
       res.status(500).json({ message: "Failed to delete custom price" });
+    }
+  });
+
+  // Endpoints públicos (sin autenticación requerida)
+  app.get("/api/public/materials", async (req, res) => {
+    try {
+      const materials = await storage.getMaterialsPublic();
+      res.json(materials);
+    } catch (error) {
+      console.error("Error fetching public materials:", error);
+      res.status(500).json({ message: "Failed to fetch materials" });
+    }
+  });
+
+  app.get("/api/public/material-categories", async (req, res) => {
+    try {
+      const categories = await storage.getMaterialCategoriesPublic();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching public categories:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+
+  app.get("/api/public/suppliers", async (req, res) => {
+    try {
+      const suppliers = await storage.getSupplierCompaniesPublic();
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching public suppliers:", error);
+      res.status(500).json({ message: "Failed to fetch suppliers" });
+    }
+  });
+
+  // Sistema de publicidad
+  app.get("/api/public/advertisement", async (req, res) => {
+    try {
+      const advertisement = await storage.getRandomAdvertisement();
+      res.json(advertisement);
+    } catch (error) {
+      console.error("Error fetching advertisement:", error);
+      res.status(500).json({ message: "Failed to fetch advertisement" });
+    }
+  });
+
+  app.post("/api/public/advertisement/:id/click", async (req, res) => {
+    try {
+      const adId = Number(req.params.id);
+      await storage.updateAdvertisementClicks(adId);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Error updating advertisement clicks:", error);
+      res.status(500).json({ message: "Failed to update clicks" });
+    }
+  });
+
+  // Gestión de publicidad para proveedores
+  app.get("/api/advertisements", requireAuth, requireSupplier, async (req: any, res) => {
+    try {
+      const supplier = await storage.getSupplierCompanyByUser(req.user.id);
+      if (!supplier) {
+        return res.status(404).json({ message: "Supplier company not found" });
+      }
+      
+      const advertisements = await storage.getAdvertisementsBySupplier(supplier.id);
+      res.json(advertisements);
+    } catch (error) {
+      console.error("Error fetching advertisements:", error);
+      res.status(500).json({ message: "Failed to fetch advertisements" });
+    }
+  });
+
+  app.post("/api/advertisements", requireAuth, requireSupplier, async (req: any, res) => {
+    try {
+      const supplier = await storage.getSupplierCompanyByUser(req.user.id);
+      if (!supplier) {
+        return res.status(404).json({ message: "Supplier company not found" });
+      }
+
+      const data = insertCompanyAdvertisementSchema.parse({
+        ...req.body,
+        supplierId: supplier.id
+      });
+      
+      const advertisement = await storage.createAdvertisement(data);
+      res.status(201).json(advertisement);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Error creating advertisement:", error);
+      res.status(500).json({ message: "Failed to create advertisement" });
     }
   });
 
