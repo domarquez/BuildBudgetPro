@@ -593,7 +593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Price settings routes (Admin only)
-  app.get("/api/price-settings", requireAuth, async (req, res) => {
+  app.get("/api/price-settings", requireAdmin, async (req, res) => {
     try {
       const settings = await storage.getPriceSettings();
       res.json(settings);
@@ -671,7 +671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Calculate and update all activity prices
-  app.post("/api/calculate-all-prices", requireAuth, async (req, res) => {
+  app.post("/api/calculate-all-prices", requireAdmin, async (req, res) => {
     try {
       const { updateActivityPricesFromCompositions } = await import("./price-calculator");
       const result = await updateActivityPricesFromCompositions();
@@ -711,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/city-price-factors", requireAuth, async (req, res) => {
+  app.post("/api/city-price-factors", requireAdmin, async (req, res) => {
     try {
       const factorData = insertCityPriceFactorSchema.parse(req.body);
       const factor = await storage.createCityPriceFactor(factorData);
@@ -725,7 +725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/city-price-factors/:id", requireAuth, async (req, res) => {
+  app.patch("/api/city-price-factors/:id", requireAdmin, async (req, res) => {
     try {
       const factorData = insertCityPriceFactorSchema.partial().parse(req.body);
       const factor = await storage.updateCityPriceFactor(Number(req.params.id), factorData);
@@ -739,7 +739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/city-price-factors/:id", requireAuth, async (req, res) => {
+  app.delete("/api/city-price-factors/:id", requireAdmin, async (req, res) => {
     try {
       await storage.deleteCityPriceFactor(Number(req.params.id));
       res.status(204).send();
