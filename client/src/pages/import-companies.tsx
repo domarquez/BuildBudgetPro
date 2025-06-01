@@ -80,6 +80,20 @@ export default function ImportCompanies() {
     }
   };
 
+  const capitalizeCompanyName = (domain: string): string => {
+    // Remover extensiones comunes y caracteres especiales
+    const cleaned = domain
+      .replace(/\.(com|net|org|bo|gov|edu)$/, '')
+      .replace(/[^a-zA-Z0-9]/g, ' ')
+      .trim();
+    
+    // Capitalizar palabras
+    return cleaned
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   const parseCompanies = () => {
     if (!extractedText) return;
 
@@ -110,10 +124,17 @@ export default function ImportCompanies() {
           currentCompany.phone = phoneMatch[0];
         }
 
-        // Detectar emails
+        // Detectar emails y extraer nombre de empresa si no existe
         const emailMatch = line.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
         if (emailMatch) {
           currentCompany.email = emailMatch[0];
+          
+          // Si no hay nombre de empresa, extraerlo del email
+          if (!currentCompany.name || currentCompany.name.length < 3) {
+            const emailDomain = emailMatch[0].split('@')[1];
+            const domainName = emailDomain.split('.')[0];
+            currentCompany.name = capitalizeCompanyName(domainName);
+          }
         }
 
         // Detectar websites
