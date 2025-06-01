@@ -430,7 +430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/activities/:activityId/compositions", requireAuth, async (req, res) => {
+  app.get("/api/activities/:activityId/compositions", async (req, res) => {
     try {
       const compositions = await storage.getActivityCompositionsByActivity(Number(req.params.activityId));
       res.json(compositions);
