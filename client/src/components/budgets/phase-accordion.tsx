@@ -87,12 +87,17 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
             activityId: value, 
             activity: activity?.name, 
             unitPriceString: activity?.unitPrice,
-            unitPriceFloat: activity?.unitPrice ? parseFloat(activity.unitPrice) : 0
+            unitPriceFloat: activity?.unitPrice ? parseFloat(activity.unitPrice) : 0,
+            hasUnitPrice: !!activity?.unitPrice,
+            isGreaterThanZero: activity?.unitPrice ? parseFloat(activity.unitPrice) > 0 : false
           });
           // Auto-fill unit price from activity's calculated price
-          if (activity && activity.unitPrice && parseFloat(activity.unitPrice) > 0) {
-            updatedItem.unitPrice = parseFloat(activity.unitPrice);
-            console.log('Price auto-filled:', updatedItem.unitPrice);
+          if (activity?.unitPrice) {
+            const priceValue = parseFloat(activity.unitPrice);
+            if (priceValue > 0) {
+              updatedItem.unitPrice = priceValue;
+              console.log('Price auto-filled:', updatedItem.unitPrice);
+            }
           }
         }
         
