@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -39,7 +40,12 @@ export default function ActivityDetailDialog({
   const [open, setOpen] = useState(false);
 
   const { data: compositions, isLoading } = useQuery<ActivityComposition[]>({
-    queryKey: ["/api/activity-compositions", activityId],
+    queryKey: ["/api/activities", activityId, "compositions"],
+    queryFn: async () => {
+      const response = await fetch(`/api/activities/${activityId}/compositions`);
+      if (!response.ok) throw new Error('Failed to fetch compositions');
+      return response.json();
+    },
     enabled: open && activityId > 0,
   });
 
@@ -65,9 +71,9 @@ export default function ActivityDetailDialog({
           <DialogTitle className="text-lg font-semibold">
             Análisis de Precios Unitarios (APU)
           </DialogTitle>
-          <div className="text-sm text-gray-600">
-            {activityName}
-          </div>
+          <DialogDescription className="text-sm text-gray-600">
+            Desglose detallado de materiales, mano de obra y costos para: {activityName}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

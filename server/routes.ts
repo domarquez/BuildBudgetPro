@@ -466,6 +466,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get compositions for a specific activity
+  app.get("/api/activities/:id/compositions", async (req, res) => {
+    try {
+      const activityId = Number(req.params.id);
+      const compositions = await storage.getActivityCompositionsByActivity(activityId);
+      res.json(compositions);
+    } catch (error) {
+      console.error("Error fetching activity compositions:", error);
+      res.status(500).json({ message: "Failed to fetch activity compositions" });
+    }
+  });
+
   // Price settings routes (Admin only)
   app.get("/api/price-settings", requireAuth, async (req, res) => {
     try {
