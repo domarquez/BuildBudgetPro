@@ -1067,6 +1067,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============== MARKETPLACE ROUTES ===============
+  
+  // Get materials with supplier offers
+  app.get("/api/marketplace/materials", async (req, res) => {
+    try {
+      const { category, search } = req.query;
+      
+      // Get materials with their supplier prices using storage
+      const allMaterials = await storage.getMaterials();
+      const allCategories = await storage.getMaterialCategories();
+      const allCompanies = await storage.getSupplierCompanies();
+      
+      // Get all active supplier prices
+      const allSupplierPrices = await Promise.all(
+        allCompanies.map(async (company) => {
+          const prices = await storage.getSupplierPrices(company.id);
+          return prices.map(price => ({
+            ...price,
+            supplier: company
+          }));
+        })
+      );
+      
+      const flatPrices = allSupplierPrices.flat();
+
+      // Filter materials based on category and search
+      let filteredMaterials = allMaterials;
+      
+      if (category && category !== 'all') {
+        filteredMaterials = filteredMaterials.filter(m => m.categoryId === Number(category));
+      }
+      
+      if (search) {
+        filteredMaterials = filteredMaterials.filter(m => 
+          m.name.toLowerCase().includes(search.toString().toLowerCase())
+        );
+      }
+
+      // Group materials with their offers
+      const materialsWithOffers = filteredMaterials.map(material => {
+        const category = allCategories.find(c => c.id === material.categoryId);
+        const materialOffers = flatPrices.filter(price => price.materialId === material.id);
+        
+        return {
+          id: material.id,
+          name: material.name,
+          category: category,
+          price: material.price,
+          unit: material.unit,
+          offers: materialOffers.map(offer => ({
+            id: offer.id,
+            price: offer.price,
+            supplier: {
+              id: offer.supplier.id,
+              companyName: offer.supplier.companyName,
+              city: offer.supplier.city,
+              membershipType: offer.supplier.membershipType,
+              rating: offer.supplier.rating ? parseFloat(offer.supplier.rating.toString()) : 0,
+              phone: offer.supplier.phone,
+              website: offer.supplier.website
+            },
+            validUntil: offer.validUntil,
+            leadTimeDays: offer.leadTimeDays || 0,
+            minimumQuantity: offer.minimumQuantity || "1.00"
+          })).sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
+        };
+      });
+
+      res.json(materialsWithOffers);
+    } catch (error) {
+      console.error("Error fetching marketplace materials:", error);
+      res.status(500).json({ message: "Failed to fetch marketplace materials" });
+    }
+  });
+
   // =============== TOOLS ROUTES ===============
   
   app.get("/api/tools", async (req, res) => {

@@ -69,6 +69,11 @@ const menuItems = [
 
 const marketplaceItems = [
   {
+    title: "Marketplace",
+    url: "/marketplace",
+    icon: Store,
+  },
+  {
     title: "Empresas Proveedoras",
     url: "/suppliers",
     icon: Building2,
@@ -76,7 +81,7 @@ const marketplaceItems = [
   {
     title: "Mi Empresa",
     url: "/supplier-registration",
-    icon: Store,
+    icon: Users,
   },
 ];
 
