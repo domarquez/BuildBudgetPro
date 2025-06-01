@@ -165,6 +165,29 @@ export const materialSupplierPrices = pgTable("material_supplier_prices", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const tools = pgTable("tools", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  unit: text("unit").notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const laborCategories = pgTable("labor_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  unit: text("unit").notNull(),
+  hourlyRate: decimal("hourly_rate", { precision: 10, scale: 2 }).notNull(),
+  skillLevel: text("skill_level"), // 'basic', 'skilled', 'specialist'
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const constructionPhasesRelations = relations(constructionPhases, ({ many }) => ({
   activities: many(activities),
