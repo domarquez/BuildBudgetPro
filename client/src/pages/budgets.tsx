@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,14 +12,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, 
   Calculator, 
   FileText,
   Home,
   Building2,
-  FolderRoot
+  FolderRoot,
+  Trash2
 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 import BudgetForm from "@/components/budgets/budget-form";
 import type { BudgetWithProject } from "@shared/schema";
@@ -27,9 +41,32 @@ import type { BudgetWithProject } from "@shared/schema";
 export default function Budgets() {
   const [showForm, setShowForm] = useState(false);
   const [editingBudget, setEditingBudget] = useState<BudgetWithProject | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: budgets, isLoading: budgetsLoading } = useQuery<BudgetWithProject[]>({
     queryKey: ["/api/budgets"],
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: async (projectId: number) => {
+      await apiRequest(`/api/projects/${projectId}`, "DELETE");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
+      toast({
+        title: "Proyecto eliminado",
+        description: "El proyecto y todos sus presupuestos han sido eliminados correctamente.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting project:', error);
+      toast({
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el proyecto. Inténtelo nuevamente.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleEdit = (budget: BudgetWithProject) => {
@@ -40,6 +77,10 @@ export default function Budgets() {
   const handleFormClose = () => {
     setShowForm(false);
     setEditingBudget(null);
+  };
+
+  const handleDeleteProject = (projectId: number) => {
+    deleteProjectMutation.mutate(projectId);
   };
 
   const getProjectIcon = (projectName: string) => {
@@ -175,6 +216,34 @@ export default function Budgets() {
                             >
                               <Calculator className="w-4 h-4" />
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Eliminar proyecto?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Se eliminará permanentemente el proyecto "{budget.project.name}" y todos sus presupuestos asociados.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteProject(budget.project.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Eliminar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
