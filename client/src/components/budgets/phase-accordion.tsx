@@ -196,11 +196,11 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
                             ))}
                           </SelectContent>
                         </Select>
-                        {item.activity && item.activity.name.includes("ANÁLISIS DE PRECIOS UNITARIOS") && (
+                        {item.activityId > 0 && item.activity && (
                           <ActivityDetailDialog
                             activityId={item.activityId}
                             activityName={item.activity.name}
-                            unitPrice={item.activity.unitPrice}
+                            unitPrice={item.activity.unitPrice ?? "0"}
                           >
                             <Button
                               variant="outline"
