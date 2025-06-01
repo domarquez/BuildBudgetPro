@@ -142,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Create activity
-  app.post("/api/activities", requireAdmin, async (req, res) => {
+  app.post("/api/activities", requireAuth, requireAdmin, async (req, res) => {
     try {
       const activityData = insertActivitySchema.parse(req.body);
       const activity = await storage.createActivity(activityData);
@@ -157,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Update activity
-  app.put("/api/activities/:id", requireAdmin, async (req, res) => {
+  app.put("/api/activities/:id", requireAuth, requireAdmin, async (req, res) => {
     try {
       const activityData = insertActivitySchema.partial().parse(req.body);
       const activity = await storage.updateActivity(Number(req.params.id), activityData);
@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Delete activity
-  app.delete("/api/activities/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/activities/:id", requireAuth, requireAdmin, async (req, res) => {
     try {
       const activityId = Number(req.params.id);
       
