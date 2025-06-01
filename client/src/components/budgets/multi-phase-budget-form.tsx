@@ -166,43 +166,40 @@ export default function MultiphaseBudgetForm({ budget, onClose }: MultiphaseBudg
         throw new Error("Proyecto y al menos una fase son requeridos");
       }
 
-      const results = [];
+      // Crear UN solo presupuesto para el proyecto
+      const totalGeneral = phases.reduce((sum, phase) => sum + phase.total, 0);
       
-      // Crear un presupuesto por cada fase con elementos
-      for (const phaseData of phases) {
-        if (phaseData.items.length > 0) {
-          const budgetResponse = await apiRequest("POST", "/api/budgets", {
-            projectId: currentProject.id,
-            phaseId: phaseData.phaseId,
-            total: phaseData.total,
-            status: "active"
-          });
-          const newBudget = await budgetResponse.json();
+      const budgetResponse = await apiRequest("POST", "/api/budgets", {
+        projectId: currentProject.id,
+        phaseId: null, // Sin fase específica - presupuesto general
+        total: totalGeneral,
+        status: "active"
+      });
+      const newBudget = await budgetResponse.json();
 
-          // Crear elementos del presupuesto para esta fase
-          for (const item of phaseData.items) {
-            if (item.activityId > 0) {
-              await apiRequest("POST", "/api/budget-items", {
-                budgetId: newBudget.id,
-                activityId: item.activityId,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                subtotal: item.subtotal
-              });
-            }
+      // Crear elementos del presupuesto organizados por fases
+      for (const phaseData of phases) {
+        for (const item of phaseData.items) {
+          if (item.activityId > 0) {
+            await apiRequest("POST", "/api/budget-items", {
+              budgetId: newBudget.id,
+              activityId: item.activityId,
+              phaseId: phaseData.phaseId, // Fase del elemento
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              subtotal: item.subtotal
+            });
           }
-          
-          results.push(newBudget);
         }
       }
 
-      return results;
+      return newBudget;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
       toast({
         title: "Presupuesto guardado",
-        description: `Se crearon ${phases.filter(p => p.items.length > 0).length} fases del presupuesto correctamente.`,
+        description: `Se creó el presupuesto con ${phases.filter(p => p.items.length > 0).length} fases correctamente.`,
       });
       onClose();
     },

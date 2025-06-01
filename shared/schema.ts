@@ -72,7 +72,7 @@ export const projects = pgTable("projects", {
 export const budgets = pgTable("budgets", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id),
-  phaseId: integer("phase_id").notNull().references(() => constructionPhases.id),
+  phaseId: integer("phase_id"), // Opcional - para compatibilidad hacia atrás
   total: decimal("total", { precision: 12, scale: 2 }).notNull().default('0'),
   status: text("status").notNull().default('draft'), // draft, active, completed
   createdAt: timestamp("created_at").defaultNow(),
@@ -83,6 +83,7 @@ export const budgetItems = pgTable("budget_items", {
   id: serial("id").primaryKey(),
   budgetId: integer("budget_id").notNull().references(() => budgets.id),
   activityId: integer("activity_id").notNull().references(() => activities.id),
+  phaseId: integer("phase_id").references(() => constructionPhases.id), // Nueva columna para organizar por fases
   quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
   unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
@@ -347,6 +348,7 @@ export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({
   quantity: z.union([z.string(), z.number()]).transform(val => String(val)),
   unitPrice: z.union([z.string(), z.number()]).transform(val => String(val)),
   subtotal: z.union([z.string(), z.number()]).transform(val => String(val)),
+  phaseId: z.number().optional(),
 });
 
 export const insertPriceSettingsSchema = createInsertSchema(priceSettings).omit({
