@@ -1755,6 +1755,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes for supplier companies management
+  app.get("/api/admin/supplier-companies", requireAuth, async (req, res) => {
+    try {
+      const companies = await storage.getAllSupplierCompanies();
+      res.json(companies);
+    } catch (error) {
+      console.error("Error fetching supplier companies:", error);
+      res.status(500).json({ message: "Failed to fetch supplier companies" });
+    }
+  });
+
+  app.patch("/api/admin/supplier-companies/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const updatedCompany = await storage.updateSupplierCompany(parseInt(id), updates);
+      res.json(updatedCompany);
+    } catch (error) {
+      console.error("Error updating supplier company:", error);
+      res.status(500).json({ message: "Failed to update supplier company" });
+    }
+  });
+
+  app.delete("/api/admin/supplier-companies/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      await storage.deleteSupplierCompany(parseInt(id));
+      res.json({ message: "Supplier company deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting supplier company:", error);
+      res.status(500).json({ message: "Failed to delete supplier company" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
