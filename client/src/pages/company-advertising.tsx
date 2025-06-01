@@ -402,7 +402,7 @@ export default function CompanyAdvertising() {
 
       {/* Create/Edit Advertisement Modal */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingAd ? "Editar Publicidad" : "Crear Nueva Publicidad"}
