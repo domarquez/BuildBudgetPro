@@ -19,94 +19,81 @@ export default function BudgetDetails() {
     }
 
     try {
-      // Importar jsPDF y autoTable
-      const [{ default: jsPDF }, autoTable] = await Promise.all([
-        import('jspdf'),
-        import('jspdf-autotable')
-      ]);
-
+      const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
-      // Configuración
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 20;
       let yPosition = 20;
 
       // Título
-      doc.setFontSize(18);
+      doc.setFontSize(16);
       doc.text('PRESUPUESTO DE CONSTRUCCION', pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 20;
 
       // Información del proyecto
-      doc.setFontSize(12);
-      const projectName = budget.project?.name || 'Sin nombre';
-      const clientName = budget.project?.client || 'No especificado';
-      const location = budget.project?.location || 'No especificada';
-      
-      doc.text(`Proyecto: ${projectName}`, margin, yPosition);
+      doc.setFontSize(10);
+      doc.text(`Proyecto: ${budget.project?.name || 'Sin nombre'}`, margin, yPosition);
       yPosition += 8;
-      doc.text(`Cliente: ${clientName}`, margin, yPosition);
+      doc.text(`Cliente: ${budget.project?.client || 'No especificado'}`, margin, yPosition);
       yPosition += 8;
-      doc.text(`Ubicacion: ${location}`, margin, yPosition);
+      doc.text(`Ubicacion: ${budget.project?.location || 'No especificada'}`, margin, yPosition);
       yPosition += 8;
       doc.text(`Fecha: ${new Date().toLocaleDateString()}`, margin, yPosition);
       yPosition += 15;
 
-      // Crear datos para la tabla
-      const tableData = budgetItems.map((item, index) => {
+      // Encabezado de tabla
+      doc.setFontSize(8);
+      doc.text('#', margin, yPosition);
+      doc.text('Descripcion', margin + 15, yPosition);
+      doc.text('Unidad', margin + 80, yPosition);
+      doc.text('Cantidad', margin + 105, yPosition);
+      doc.text('P. Unit.', margin + 130, yPosition);
+      doc.text('Subtotal', margin + 155, yPosition);
+      yPosition += 8;
+
+      // Línea separadora
+      doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+      yPosition += 5;
+
+      // Items del presupuesto
+      budgetItems.forEach((item, index) => {
+        if (yPosition > 260) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
         const quantity = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity;
         const unitPrice = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice;
         const subtotal = typeof item.subtotal === 'string' ? parseFloat(item.subtotal) : item.subtotal;
-        
-        return [
-          (index + 1).toString(),
-          item.activity?.name?.substring(0, 50) || 'Sin descripcion',
-          item.activity?.unit || 'und',
-          quantity.toString(),
-          `Bs ${unitPrice.toFixed(2)}`,
-          `Bs ${subtotal.toFixed(2)}`
-        ];
-      });
 
-      // Usar autoTable para crear la tabla
-      (doc as any).autoTable({
-        head: [['#', 'Descripción', 'Unidad', 'Cantidad', 'P. Unitario', 'Subtotal']],
-        body: tableData,
-        startY: yPosition,
-        margin: { left: margin, right: margin },
-        styles: {
-          fontSize: 9,
-          cellPadding: 3
-        },
-        headStyles: {
-          fillColor: [66, 139, 202],
-          textColor: 255,
-          fontStyle: 'bold'
-        },
-        alternateRowStyles: {
-          fillColor: [245, 245, 245]
-        }
+        doc.text((index + 1).toString(), margin, yPosition);
+        doc.text(item.activity?.name?.substring(0, 35) || 'Sin descripcion', margin + 15, yPosition);
+        doc.text(item.activity?.unit || 'und', margin + 80, yPosition);
+        doc.text(quantity.toString(), margin + 105, yPosition);
+        doc.text(`${unitPrice.toFixed(2)}`, margin + 130, yPosition);
+        doc.text(`${subtotal.toFixed(2)}`, margin + 155, yPosition);
+        yPosition += 6;
       });
-
-      // Obtener la posición Y después de la tabla
-      const finalY = (doc as any).lastAutoTable.finalY + 10;
 
       // Total
+      yPosition += 10;
+      doc.line(margin + 130, yPosition - 5, pageWidth - margin, yPosition - 5);
+      doc.setFontSize(12);
       const totalAmount = typeof budget.total === 'string' ? parseFloat(budget.total) : budget.total;
-      doc.setFontSize(14);
-      doc.text(`TOTAL GENERAL: Bs ${totalAmount.toFixed(2)}`, pageWidth - margin, finalY, { align: 'right' });
+      doc.text(`TOTAL: Bs ${totalAmount.toFixed(2)}`, margin + 130, yPosition);
 
       // Pie de página
-      doc.setFontSize(8);
-      doc.text('Generado por MICA - Sistema de Gestion de Presupuestos', pageWidth / 2, finalY + 20, { align: 'center' });
+      doc.setFontSize(6);
+      doc.text('Generado por MICA - Sistema de Gestion de Presupuestos', pageWidth / 2, yPosition + 15, { align: 'center' });
 
       // Descargar
-      const filename = `Presupuesto_${budget.project?.name?.replace(/[^a-zA-Z0-9]/g, '_') || 'proyecto'}_${budget.id}.pdf`;
-      doc.save(filename);
+      const projectName = budget.project?.name?.replace(/[^a-zA-Z0-9\s]/g, '') || 'proyecto';
+      doc.save(`Presupuesto_${projectName}_${budget.id}.pdf`);
       
     } catch (error) {
       console.error('Error generando PDF:', error);
-      alert('Error al generar el PDF. Verifica que todos los datos estén disponibles.');
+      alert('Error al generar el PDF. Intenta de nuevo.');
     }
   };
 
