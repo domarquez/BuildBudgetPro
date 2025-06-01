@@ -107,13 +107,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Activities
   app.get("/api/activities", async (req, res) => {
     try {
-      const { phaseId } = req.query;
+      const { phaseId, withCompositions } = req.query;
       let activities;
       
       if (phaseId) {
         activities = await storage.getActivitiesByPhase(Number(phaseId));
       } else {
         activities = await storage.getActivities();
+      }
+
+      // Filter only activities with compositions if requested
+      if (withCompositions === 'true') {
+        const { db } = await import("./db");
+        const { activityCompositions } = await import("@shared/schema");
+        
+        const activitiesWithCompositions = await db
+          .selectDistinct({ activityId: activityCompositions.activityId })
+          .from(activityCompositions);
+        
+        const compositionActivityIds = new Set(activitiesWithCompositions.map(a => a.activityId));
+        activities = activities.filter(activity => compositionActivityIds.has(activity.id));
       }
       
       res.json(activities);

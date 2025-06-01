@@ -14,7 +14,12 @@ export default function Activities() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: activities, isLoading } = useQuery<ActivityWithPhase[]>({
-    queryKey: ["/api/activities"],
+    queryKey: ["/api/activities", { withCompositions: true }],
+    queryFn: async () => {
+      const response = await fetch("/api/activities?withCompositions=true");
+      if (!response.ok) throw new Error('Failed to fetch activities');
+      return response.json();
+    },
   });
 
   const filteredActivities = activities?.filter(activity =>
@@ -36,8 +41,8 @@ export default function Activities() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Actividades de Construcción</h1>
-          <p className="text-gray-600 mt-2">Gestiona las actividades disponibles por fase constructiva</p>
+          <h1 className="text-3xl font-bold text-gray-900">Actividades de Construcción con APU</h1>
+          <p className="text-gray-600 mt-2">Actividades con análisis de precios unitarios importados desde insucons.com</p>
         </div>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
@@ -115,19 +120,17 @@ export default function Activities() {
                         </div>
                       </div>
                       
-                      {/* Botón Ver APU para actividades con composiciones */}
-                      {activity.name.includes("ANÁLISIS DE PRECIOS UNITARIOS") && (
-                        <ActivityDetailDialog
-                          activityId={activity.id}
-                          activityName={activity.name}
-                          unitPrice={activity.unitPrice || "0"}
-                        >
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver APU
-                          </Button>
-                        </ActivityDetailDialog>
-                      )}
+                      {/* Botón Ver APU - ahora todas las actividades mostradas tienen composiciones */}
+                      <ActivityDetailDialog
+                        activityId={activity.id}
+                        activityName={activity.name}
+                        unitPrice={activity.unitPrice || "0"}
+                      >
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver APU
+                        </Button>
+                      </ActivityDetailDialog>
                     </div>
                   ))}
                 </div>
