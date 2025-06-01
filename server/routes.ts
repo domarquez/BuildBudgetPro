@@ -1650,57 +1650,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PDF text extraction route usando pdf-poppler
+  // PDF upload route - stores PDF for manual text extraction
   app.post("/api/extract-pdf-text", requireAuth, uploadPDF.single('pdf'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No se proporcionó archivo PDF" });
       }
 
-      const pdf = await import('pdf-poppler');
+      // Guardar PDF en directorio uploads para acceso posterior
       const fs = await import('fs');
       const path = await import('path');
       
-      // Crear directorio temporal si no existe
-      const tempDir = path.join(process.cwd(), 'temp');
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
       }
       
-      // Guardar PDF temporalmente
-      const tempPdfPath = path.join(tempDir, `temp_${Date.now()}.pdf`);
-      fs.writeFileSync(tempPdfPath, req.file.buffer);
+      const fileName = `pdf_${Date.now()}_${req.file.originalname}`;
+      const filePath = path.join(uploadsDir, fileName);
+      fs.writeFileSync(filePath, req.file.buffer);
       
-      // Configurar opciones de conversión
-      const options = {
-        format: 'jpeg',
-        out_dir: tempDir,
-        out_prefix: `page_${Date.now()}`,
-        page: null // todas las páginas
-      };
-      
-      // Convertir PDF a imágenes (esto ayuda con la extracción de texto)
-      const pages = await pdf.convert(tempPdfPath, options);
-      
-      // Por ahora, devolvemos información del PDF
       res.json({ 
-        text: "Conversión exitosa. Funcionalidad de extracción de texto en desarrollo.",
-        pages: pages.length,
-        info: { title: req.file.originalname }
+        text: `PDF "${req.file.originalname}" cargado exitosamente.\n\nPara continuar:\n1. Abre el PDF en tu computadora\n2. Selecciona todo el texto (Ctrl+A)\n3. Copia el texto (Ctrl+C)\n4. Pega el texto en el área de texto manual\n\nEsto garantiza la mejor extracción de texto del documento.`,
+        pages: "Desconocido",
+        info: { 
+          title: req.file.originalname,
+          size: req.file.size,
+          uploadPath: fileName
+        }
       });
       
-      // Limpiar archivos temporales
-      fs.unlinkSync(tempPdfPath);
-      if (pages && Array.isArray(pages)) {
-        pages.forEach((page: any) => {
-          if (fs.existsSync(page)) {
-            fs.unlinkSync(page);
-          }
-        });
-      }
-      
     } catch (error) {
-      console.error("Error extracting PDF text:", error);
+      console.error("Error processing PDF:", error);
       res.status(500).json({ message: "Error al procesar PDF: " + (error as Error).message });
     }
   });
