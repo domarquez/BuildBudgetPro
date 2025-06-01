@@ -1,8 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, Star, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Users, Star, Clock, Pencil, Check, X } from "lucide-react";
 
 interface LaborCategory {
   id: number;
@@ -17,9 +23,53 @@ interface LaborCategory {
 }
 
 export default function Labor() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingRate, setEditingRate] = useState("");
+
   const { data: laborCategories = [], isLoading } = useQuery<LaborCategory[]>({
     queryKey: ["/api/labor-categories"],
   });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, hourlyRate }: { id: number; hourlyRate: string }) => {
+      return await apiRequest("PUT", `/api/labor-categories/${id}`, { hourlyRate });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/labor-categories"] });
+      setEditingId(null);
+      setEditingRate("");
+      toast({
+        title: "Tarifa actualizada",
+        description: "La tarifa horaria se ha actualizado correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Error al actualizar la tarifa",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = (labor: LaborCategory) => {
+    setEditingId(labor.id);
+    setEditingRate(labor.hourlyRate);
+  };
+
+  const handleSave = () => {
+    if (editingId && editingRate) {
+      updateMutation.mutate({ id: editingId, hourlyRate: editingRate });
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditingRate("");
+  };
 
   if (isLoading) {
     return (
@@ -170,6 +220,7 @@ export default function Labor() {
                     <TableHead>Nivel</TableHead>
                     <TableHead>Unidad</TableHead>
                     <TableHead className="text-right">Tarifa Horaria</TableHead>
+                    {user?.role === "admin" && <TableHead className="text-right">Acciones</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -191,8 +242,48 @@ export default function Labor() {
                         <Badge variant="outline">{labor.unit}</Badge>
                       </TableCell>
                       <TableCell className="text-right font-semibold text-red-600">
-                        {formatPrice(labor.hourlyRate)}
+                        {editingId === labor.id ? (
+                          <div className="flex items-center gap-2 justify-end">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingRate}
+                              onChange={(e) => setEditingRate(e.target.value)}
+                              className="w-24 h-8"
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleSave}
+                              disabled={updateMutation.isPending}
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleCancel}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          formatPrice(labor.hourlyRate)
+                        )}
                       </TableCell>
+                      {user?.role === "admin" && (
+                        <TableCell className="text-right">
+                          {editingId !== labor.id && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEdit(labor)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -222,6 +313,7 @@ export default function Labor() {
                     <TableHead>Nivel</TableHead>
                     <TableHead>Unidad</TableHead>
                     <TableHead className="text-right">Tarifa Horaria</TableHead>
+                    {user?.role === "admin" && <TableHead className="text-right">Acciones</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -243,8 +335,48 @@ export default function Labor() {
                         <Badge variant="outline">{labor.unit}</Badge>
                       </TableCell>
                       <TableCell className="text-right font-semibold text-orange-600">
-                        {formatPrice(labor.hourlyRate)}
+                        {editingId === labor.id ? (
+                          <div className="flex items-center gap-2 justify-end">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingRate}
+                              onChange={(e) => setEditingRate(e.target.value)}
+                              className="w-24 h-8"
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleSave}
+                              disabled={updateMutation.isPending}
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleCancel}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          formatPrice(labor.hourlyRate)
+                        )}
                       </TableCell>
+                      {user?.role === "admin" && (
+                        <TableCell className="text-right">
+                          {editingId !== labor.id && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEdit(labor)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -274,6 +406,7 @@ export default function Labor() {
                     <TableHead>Nivel</TableHead>
                     <TableHead>Unidad</TableHead>
                     <TableHead className="text-right">Tarifa Horaria</TableHead>
+                    {user?.role === "admin" && <TableHead className="text-right">Acciones</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -295,8 +428,48 @@ export default function Labor() {
                         <Badge variant="outline">{labor.unit}</Badge>
                       </TableCell>
                       <TableCell className="text-right font-semibold text-green-600">
-                        {formatPrice(labor.hourlyRate)}
+                        {editingId === labor.id ? (
+                          <div className="flex items-center gap-2 justify-end">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingRate}
+                              onChange={(e) => setEditingRate(e.target.value)}
+                              className="w-24 h-8"
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleSave}
+                              disabled={updateMutation.isPending}
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleCancel}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          formatPrice(labor.hourlyRate)
+                        )}
                       </TableCell>
+                      {user?.role === "admin" && (
+                        <TableCell className="text-right">
+                          {editingId !== labor.id && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEdit(labor)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
