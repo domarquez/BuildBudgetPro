@@ -1006,6 +1006,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============== SUPPLIER QUOTES ROUTES ===============
+  
+  // Get supplier's quotes
+  app.get("/api/supplier/quotes", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(403).json({ message: "Access denied - Not a supplier" });
+      }
+
+      const quotes = await storage.getSupplierPrices(company.id);
+      res.json(quotes);
+    } catch (error) {
+      console.error("Error fetching supplier quotes:", error);
+      res.status(500).json({ message: "Failed to fetch quotes" });
+    }
+  });
+
+  // Create supplier quote
+  app.post("/api/supplier/quotes", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(403).json({ message: "Access denied - Not a supplier" });
+      }
+
+      const quoteData = insertMaterialSupplierPriceSchema.parse({
+        ...req.body,
+        supplierId: company.id
+      });
+      
+      const quote = await storage.createMaterialSupplierPrice(quoteData);
+      res.status(201).json(quote);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid quote data", errors: error.errors });
+      }
+      console.error("Error creating supplier quote:", error);
+      res.status(500).json({ message: "Failed to create quote" });
+    }
+  });
+
   // =============== TOOLS ROUTES ===============
   
   app.get("/api/tools", async (req, res) => {
