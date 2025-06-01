@@ -159,15 +159,7 @@ export const requireAdmin = async (req: any, res: any, next: any) => {
 
 export const requireSupplier = async (req: any, res: any, next: any) => {
   await requireAuth(req, res, () => {
-    console.log('requireSupplier check:', {
-      userId: req.user.id,
-      username: req.user.username,
-      userType: req.user.userType,
-      role: req.user.role
-    });
-    
-    if (req.user.userType !== 'supplier') {
-      console.log('Access denied - User type is:', req.user.userType, 'but expected: supplier');
+    if (req.user.user_type !== 'supplier') {
       return res.status(403).json({ message: 'Access denied - Not a supplier' });
     }
     next();

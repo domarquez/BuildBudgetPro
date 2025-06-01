@@ -140,14 +140,14 @@ export default function AppSidebar() {
             <SidebarMenu>
               {menuItems.filter((item) => {
                 // Empresas proveedoras solo ven dashboard, materiales y herramientas
-                if ((user as any)?.userType === "supplier") {
+                if ((user as any)?.user_type === "supplier") {
                   return ["Panel Principal", "Materiales", "Herramientas"].includes(item.title);
                 }
                 // Usuarios normales y admin ven todo excepto reportes
                 return item.title !== "Reportes";
               }).map((item) => {
                 // Redirect supplier companies to their specific dashboard
-                const url = (user as any)?.userType === "supplier" && item.title === "Panel Principal" 
+                const url = (user as any)?.user_type === "supplier" && item.title === "Panel Principal" 
                   ? "/supplier-dashboard" 
                   : item.url;
                 
@@ -192,7 +192,7 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {(user as any)?.userType === "supplier" && (
+        {(user as any)?.user_type === "supplier" && (
           <SidebarGroup>
             <SidebarGroupLabel>Mi Empresa</SidebarGroupLabel>
             <SidebarGroupContent>
