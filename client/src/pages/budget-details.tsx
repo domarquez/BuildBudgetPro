@@ -12,8 +12,92 @@ export default function BudgetDetails() {
   const { id } = useParams();
   const budgetId = Number(id);
 
-  const handleGeneratePDF = () => {
-    alert('Funcionalidad de PDF próximamente disponible. Por ahora es gratuita, pero en el futuro será premium.');
+  const handleGeneratePDF = async () => {
+    if (!budget || !budgetItems) {
+      alert('No hay datos disponibles para generar el PDF');
+      return;
+    }
+
+    try {
+      const jsPDF = (await import('jspdf')).default;
+      const doc = new jsPDF();
+
+      // Configuración inicial
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      let yPosition = 20;
+
+      // Título principal
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text('PRESUPUESTO DE CONSTRUCCIÓN', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
+
+      // Información del proyecto
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Proyecto: ${budget.project.name}`, margin, yPosition);
+      yPosition += 8;
+      doc.text(`Cliente: ${budget.project.client || 'No especificado'}`, margin, yPosition);
+      yPosition += 8;
+      doc.text(`Ubicación: ${budget.project.location || 'No especificada'}`, margin, yPosition);
+      yPosition += 8;
+      doc.text(`Fecha: ${new Date().toLocaleDateString('es-BO')}`, margin, yPosition);
+      yPosition += 15;
+
+      // Tabla de presupuesto
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text('ÍTEM', margin, yPosition);
+      doc.text('DESCRIPCIÓN', margin + 20, yPosition);
+      doc.text('UNIDAD', margin + 100, yPosition);
+      doc.text('CANTIDAD', margin + 125, yPosition);
+      doc.text('PRECIO UNIT.', margin + 150, yPosition);
+      doc.text('TOTAL', margin + 175, yPosition);
+      yPosition += 8;
+
+      // Línea separadora
+      doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+      yPosition += 5;
+
+      // Items del presupuesto
+      doc.setFont(undefined, 'normal');
+      budgetItems.forEach((item, index) => {
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        doc.text((index + 1).toString(), margin, yPosition);
+        doc.text(item.activity?.name?.substring(0, 40) || 'Sin nombre', margin + 20, yPosition);
+        doc.text(item.activity?.unit || 'und', margin + 100, yPosition);
+        doc.text(item.quantity.toString(), margin + 125, yPosition);
+        doc.text(`Bs ${item.unitPrice.toFixed(2)}`, margin + 150, yPosition);
+        doc.text(`Bs ${item.subtotal.toFixed(2)}`, margin + 175, yPosition);
+        yPosition += 6;
+      });
+
+      // Total
+      yPosition += 10;
+      doc.line(margin + 150, yPosition - 5, pageWidth - margin, yPosition - 5);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(12);
+      doc.text(`TOTAL GENERAL: Bs ${budget.total.toFixed(2)}`, margin + 120, yPosition);
+
+      // Pie de página
+      yPosition += 20;
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.text('Generado por MICA - Sistema de Gestión de Presupuestos', pageWidth / 2, yPosition, { align: 'center' });
+      doc.text('Para más información: contacto@mica.bo', pageWidth / 2, yPosition + 5, { align: 'center' });
+
+      // Descargar PDF
+      doc.save(`Presupuesto_${budget.project.name}_${budget.id}.pdf`);
+      
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      alert('Error al generar el PDF. Por favor intenta de nuevo.');
+    }
   };
 
   const { data: budget, isLoading: budgetLoading } = useQuery<BudgetWithProject>({
