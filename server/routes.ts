@@ -55,6 +55,21 @@ const upload = multer({
   }
 });
 
+// Configuración específica para PDFs (usando memoria)
+const uploadPDF = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max para PDFs
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos PDF'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Servir archivos estáticos (uploads)
   app.use('/uploads', (req, res, next) => {
@@ -1636,7 +1651,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PDF text extraction route
-  app.post("/api/extract-pdf-text", requireAuth, upload.single('pdf'), async (req, res) => {
+  app.post("/api/extract-pdf-text", requireAuth, uploadPDF.single('pdf'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No se proporcionó archivo PDF" });
