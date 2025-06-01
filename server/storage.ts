@@ -131,6 +131,21 @@ export interface IStorage {
 
   // User location
   updateUserLocation(userId: number, city: string, country?: string): Promise<User>;
+
+  // Supplier Companies
+  getSupplierCompanies(): Promise<SupplierCompanyWithUser[]>;
+  getSupplierCompany(id: number): Promise<SupplierCompanyWithUser | undefined>;
+  getSupplierCompanyByUser(userId: number): Promise<SupplierCompany | undefined>;
+  createSupplierCompany(company: InsertSupplierCompany): Promise<SupplierCompany>;
+  updateSupplierCompany(id: number, company: Partial<InsertSupplierCompany>): Promise<SupplierCompany>;
+  deleteSupplierCompany(id: number): Promise<void>;
+
+  // Material Supplier Prices
+  getMaterialSupplierPrices(materialId: number): Promise<(MaterialSupplierPrice & { supplier: SupplierCompany })[]>;
+  getSupplierPrices(supplierId: number): Promise<(MaterialSupplierPrice & { material: Material })[]>;
+  createMaterialSupplierPrice(price: InsertMaterialSupplierPrice): Promise<MaterialSupplierPrice>;
+  updateMaterialSupplierPrice(id: number, price: Partial<InsertMaterialSupplierPrice>): Promise<MaterialSupplierPrice>;
+  deleteMaterialSupplierPrice(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -631,6 +646,135 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return updated;
+  }
+
+  // Supplier Companies
+  async getSupplierCompanies(): Promise<SupplierCompanyWithUser[]> {
+    const results = await db
+      .select()
+      .from(supplierCompanies)
+      .leftJoin(users, eq(supplierCompanies.userId, users.id))
+      .where(eq(supplierCompanies.isActive, true))
+      .orderBy(desc(supplierCompanies.membershipType), desc(supplierCompanies.rating));
+
+    return results.map(result => ({
+      ...result.supplier_companies!,
+      user: result.users!
+    }));
+  }
+
+  async getSupplierCompany(id: number): Promise<SupplierCompanyWithUser | undefined> {
+    const [result] = await db
+      .select()
+      .from(supplierCompanies)
+      .leftJoin(users, eq(supplierCompanies.userId, users.id))
+      .where(eq(supplierCompanies.id, id));
+    
+    if (!result) return undefined;
+    
+    return {
+      ...result.supplier_companies!,
+      user: result.users!
+    };
+  }
+
+  async getSupplierCompanyByUser(userId: number): Promise<SupplierCompany | undefined> {
+    const [company] = await db
+      .select()
+      .from(supplierCompanies)
+      .where(eq(supplierCompanies.userId, userId));
+    return company;
+  }
+
+  async createSupplierCompany(company: InsertSupplierCompany): Promise<SupplierCompany> {
+    const [created] = await db
+      .insert(supplierCompanies)
+      .values(company)
+      .returning();
+    return created;
+  }
+
+  async updateSupplierCompany(id: number, company: Partial<InsertSupplierCompany>): Promise<SupplierCompany> {
+    const [updated] = await db
+      .update(supplierCompanies)
+      .set({ ...company, updatedAt: new Date() })
+      .where(eq(supplierCompanies.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteSupplierCompany(id: number): Promise<void> {
+    await db
+      .update(supplierCompanies)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(supplierCompanies.id, id));
+  }
+
+  // Material Supplier Prices
+  async getMaterialSupplierPrices(materialId: number): Promise<(MaterialSupplierPrice & { supplier: SupplierCompany })[]> {
+    const results = await db
+      .select()
+      .from(materialSupplierPrices)
+      .leftJoin(supplierCompanies, eq(materialSupplierPrices.supplierId, supplierCompanies.id))
+      .where(
+        and(
+          eq(materialSupplierPrices.materialId, materialId),
+          eq(materialSupplierPrices.isActive, true),
+          eq(supplierCompanies.isActive, true)
+        )
+      )
+      .orderBy(
+        desc(supplierCompanies.membershipType), // Premium first
+        materialSupplierPrices.price // Then by price ascending
+      );
+
+    return results.map(result => ({
+      ...result.material_supplier_prices,
+      supplier: result.supplier_companies!
+    }));
+  }
+
+  async getSupplierPrices(supplierId: number): Promise<(MaterialSupplierPrice & { material: Material })[]> {
+    const results = await db
+      .select()
+      .from(materialSupplierPrices)
+      .leftJoin(materials, eq(materialSupplierPrices.materialId, materials.id))
+      .where(
+        and(
+          eq(materialSupplierPrices.supplierId, supplierId),
+          eq(materialSupplierPrices.isActive, true)
+        )
+      )
+      .orderBy(materials.description);
+
+    return results.map(result => ({
+      ...result.material_supplier_prices,
+      material: result.materials!
+    }));
+  }
+
+  async createMaterialSupplierPrice(price: InsertMaterialSupplierPrice): Promise<MaterialSupplierPrice> {
+    const [created] = await db
+      .insert(materialSupplierPrices)
+      .values(price)
+      .returning();
+    return created;
+  }
+
+  async updateMaterialSupplierPrice(id: number, price: Partial<InsertMaterialSupplierPrice>): Promise<MaterialSupplierPrice> {
+    const [updated] = await db
+      .update(materialSupplierPrices)
+      .set({ ...price, lastUpdated: new Date() })
+      .where(eq(materialSupplierPrices.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteMaterialSupplierPrice(id: number): Promise<void> {
+    await db
+      .update(materialSupplierPrices)
+      .set({ isActive: false })
+      .where(eq(materialSupplierPrices.id, id));
   }
 }
 

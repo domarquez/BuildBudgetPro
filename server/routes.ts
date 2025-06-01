@@ -8,7 +8,9 @@ import {
   insertBudgetSchema,
   insertBudgetItemSchema,
   insertActivityCompositionSchema,
-  insertCityPriceFactorSchema
+  insertCityPriceFactorSchema,
+  insertSupplierCompanySchema,
+  insertMaterialSupplierPriceSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -717,6 +719,207 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching city price info:", error);
       res.status(500).json({ message: "Failed to fetch city price info" });
+    }
+  });
+
+  // =============== SUPPLIER COMPANIES ROUTES ===============
+
+  // Get all supplier companies
+  app.get("/api/supplier-companies", async (req, res) => {
+    try {
+      const companies = await storage.getSupplierCompanies();
+      res.json(companies);
+    } catch (error) {
+      console.error("Error fetching supplier companies:", error);
+      res.status(500).json({ message: "Failed to fetch supplier companies" });
+    }
+  });
+
+  // Get supplier company by ID
+  app.get("/api/supplier-companies/:id", async (req, res) => {
+    try {
+      const company = await storage.getSupplierCompany(Number(req.params.id));
+      if (!company) {
+        return res.status(404).json({ message: "Supplier company not found" });
+      }
+      res.json(company);
+    } catch (error) {
+      console.error("Error fetching supplier company:", error);
+      res.status(500).json({ message: "Failed to fetch supplier company" });
+    }
+  });
+
+  // Get current user's supplier company
+  app.get("/api/my-supplier-company", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const company = await storage.getSupplierCompanyByUser(userId);
+      res.json(company || null);
+    } catch (error) {
+      console.error("Error fetching user's supplier company:", error);
+      res.status(500).json({ message: "Failed to fetch supplier company" });
+    }
+  });
+
+  // Create supplier company
+  app.post("/api/supplier-companies", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Check if user already has a supplier company
+      const existingCompany = await storage.getSupplierCompanyByUser(userId);
+      if (existingCompany) {
+        return res.status(400).json({ message: "User already has a supplier company" });
+      }
+
+      const companyData = insertSupplierCompanySchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const company = await storage.createSupplierCompany(companyData);
+      res.status(201).json(company);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid company data", errors: error.errors });
+      }
+      console.error("Error creating supplier company:", error);
+      res.status(500).json({ message: "Failed to create supplier company" });
+    }
+  });
+
+  // Update supplier company
+  app.put("/api/supplier-companies/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const companyId = Number(req.params.id);
+      
+      // Check if user owns this company
+      const existingCompany = await storage.getSupplierCompany(companyId);
+      if (!existingCompany || existingCompany.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const companyData = insertSupplierCompanySchema.partial().parse(req.body);
+      const company = await storage.updateSupplierCompany(companyId, companyData);
+      res.json(company);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid company data", errors: error.errors });
+      }
+      console.error("Error updating supplier company:", error);
+      res.status(500).json({ message: "Failed to update supplier company" });
+    }
+  });
+
+  // =============== MATERIAL SUPPLIER PRICES ROUTES ===============
+
+  // Get supplier prices for a material
+  app.get("/api/materials/:materialId/supplier-prices", async (req, res) => {
+    try {
+      const materialId = Number(req.params.materialId);
+      const prices = await storage.getMaterialSupplierPrices(materialId);
+      res.json(prices);
+    } catch (error) {
+      console.error("Error fetching material supplier prices:", error);
+      res.status(500).json({ message: "Failed to fetch supplier prices" });
+    }
+  });
+
+  // Get supplier's material prices
+  app.get("/api/supplier-companies/:supplierId/prices", async (req, res) => {
+    try {
+      const supplierId = Number(req.params.supplierId);
+      const prices = await storage.getSupplierPrices(supplierId);
+      res.json(prices);
+    } catch (error) {
+      console.error("Error fetching supplier prices:", error);
+      res.status(500).json({ message: "Failed to fetch supplier prices" });
+    }
+  });
+
+  // Create material supplier price
+  app.post("/api/material-supplier-prices", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(403).json({ message: "User must have a supplier company to add prices" });
+      }
+
+      const priceData = insertMaterialSupplierPriceSchema.parse({
+        ...req.body,
+        supplierId: company.id
+      });
+      
+      const price = await storage.createMaterialSupplierPrice(priceData);
+      res.status(201).json(price);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid price data", errors: error.errors });
+      }
+      console.error("Error creating material supplier price:", error);
+      res.status(500).json({ message: "Failed to create supplier price" });
+    }
+  });
+
+  // Update material supplier price
+  app.put("/api/material-supplier-prices/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const priceId = Number(req.params.id);
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Verify this price belongs to the user's company
+      const supplierPrices = await storage.getSupplierPrices(company.id);
+      const existingPrice = supplierPrices.find(p => p.id === priceId);
+      if (!existingPrice) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const priceData = insertMaterialSupplierPriceSchema.partial().parse(req.body);
+      const price = await storage.updateMaterialSupplierPrice(priceId, priceData);
+      res.json(price);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid price data", errors: error.errors });
+      }
+      console.error("Error updating material supplier price:", error);
+      res.status(500).json({ message: "Failed to update supplier price" });
+    }
+  });
+
+  // Delete material supplier price
+  app.delete("/api/material-supplier-prices/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const priceId = Number(req.params.id);
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Verify this price belongs to the user's company
+      const supplierPrices = await storage.getSupplierPrices(company.id);
+      const existingPrice = supplierPrices.find(p => p.id === priceId);
+      if (!existingPrice) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteMaterialSupplierPrice(priceId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting material supplier price:", error);
+      res.status(500).json({ message: "Failed to delete supplier price" });
     }
   });
 
