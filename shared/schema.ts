@@ -60,6 +60,33 @@ export const userMaterialPrices = pgTable("user_material_prices", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Sistema de publicidad para empresas
+export const companyAdvertisements = pgTable("company_advertisements", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").notNull().references(() => supplierCompanies.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url").notNull(),
+  linkUrl: text("link_url"), // URL externa o página de la empresa
+  adType: text("ad_type").notNull().default("banner"), // 'banner', 'featured', 'popup'
+  isActive: boolean("is_active").notNull().default(true),
+  startDate: timestamp("start_date").defaultNow(),
+  endDate: timestamp("end_date"),
+  viewCount: integer("view_count").notNull().default(0),
+  clickCount: integer("click_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Configuración del sistema público/premium
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  settingKey: text("setting_key").notNull().unique(),
+  settingValue: text("setting_value").notNull(),
+  description: text("description"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -296,6 +323,14 @@ export const supplierCompaniesRelations = relations(supplierCompanies, ({ one, m
     references: [users.id],
   }),
   materialPrices: many(materialSupplierPrices),
+  advertisements: many(companyAdvertisements),
+}));
+
+export const companyAdvertisementsRelations = relations(companyAdvertisements, ({ one }) => ({
+  supplier: one(supplierCompanies, {
+    fields: [companyAdvertisements.supplierId],
+    references: [supplierCompanies.id],
+  }),
 }));
 
 export const materialSupplierPricesRelations = relations(materialSupplierPrices, ({ one }) => ({
@@ -427,6 +462,27 @@ export const insertUserMaterialPriceSchema = createInsertSchema(userMaterialPric
   updatedAt: true,
 });
 
+export const insertCompanyAdvertisementSchema = createInsertSchema(companyAdvertisements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  viewCount: true,
+  clickCount: true,
+}).extend({
+  title: z.string().min(1, "El título es requerido"),
+  imageUrl: z.string().url("Debe ser una URL válida"),
+  description: z.string().optional(),
+  linkUrl: z.string().url().optional(),
+  adType: z.string().optional(),
+  startDate: z.union([z.string(), z.date()]).optional(),
+  endDate: z.union([z.string(), z.date()]).optional(),
+});
+
+export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -507,6 +563,16 @@ export type MaterialWithCustomPrice = Material & {
   category: MaterialCategory;
   customPrice?: UserMaterialPrice;
   hasCustomPrice: boolean;
+};
+
+export type CompanyAdvertisement = typeof companyAdvertisements.$inferSelect;
+export type InsertCompanyAdvertisement = z.infer<typeof insertCompanyAdvertisementSchema>;
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
+
+export type AdvertisementWithSupplier = CompanyAdvertisement & {
+  supplier: SupplierCompany;
 };
 
 export type ActivityCompositionWithDetails = ActivityComposition & {
