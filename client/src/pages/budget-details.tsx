@@ -19,84 +19,94 @@ export default function BudgetDetails() {
     }
 
     try {
-      const jsPDF = (await import('jspdf')).default;
-      const doc = new jsPDF();
+      // Importar jsPDF y autoTable
+      const [{ default: jsPDF }, autoTable] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable')
+      ]);
 
-      // Configuración inicial
+      const doc = new jsPDF();
+      
+      // Configuración
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 20;
       let yPosition = 20;
 
-      // Título principal
-      doc.setFontSize(20);
-      doc.setFont(undefined, 'bold');
-      doc.text('PRESUPUESTO DE CONSTRUCCIÓN', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 15;
+      // Título
+      doc.setFontSize(18);
+      doc.text('PRESUPUESTO DE CONSTRUCCION', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 20;
 
       // Información del proyecto
       doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
-      doc.text(`Proyecto: ${budget.project.name}`, margin, yPosition);
+      const projectName = budget.project?.name || 'Sin nombre';
+      const clientName = budget.project?.client || 'No especificado';
+      const location = budget.project?.location || 'No especificada';
+      
+      doc.text(`Proyecto: ${projectName}`, margin, yPosition);
       yPosition += 8;
-      doc.text(`Cliente: ${budget.project.client || 'No especificado'}`, margin, yPosition);
+      doc.text(`Cliente: ${clientName}`, margin, yPosition);
       yPosition += 8;
-      doc.text(`Ubicación: ${budget.project.location || 'No especificada'}`, margin, yPosition);
+      doc.text(`Ubicacion: ${location}`, margin, yPosition);
       yPosition += 8;
-      doc.text(`Fecha: ${new Date().toLocaleDateString('es-BO')}`, margin, yPosition);
+      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, margin, yPosition);
       yPosition += 15;
 
-      // Tabla de presupuesto
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'bold');
-      doc.text('ÍTEM', margin, yPosition);
-      doc.text('DESCRIPCIÓN', margin + 20, yPosition);
-      doc.text('UNIDAD', margin + 100, yPosition);
-      doc.text('CANTIDAD', margin + 125, yPosition);
-      doc.text('PRECIO UNIT.', margin + 150, yPosition);
-      doc.text('TOTAL', margin + 175, yPosition);
-      yPosition += 8;
-
-      // Línea separadora
-      doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
-      yPosition += 5;
-
-      // Items del presupuesto
-      doc.setFont(undefined, 'normal');
-      budgetItems.forEach((item, index) => {
-        if (yPosition > 250) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        doc.text((index + 1).toString(), margin, yPosition);
-        doc.text(item.activity?.name?.substring(0, 40) || 'Sin nombre', margin + 20, yPosition);
-        doc.text(item.activity?.unit || 'und', margin + 100, yPosition);
-        doc.text(item.quantity.toString(), margin + 125, yPosition);
-        doc.text(`Bs ${item.unitPrice.toFixed(2)}`, margin + 150, yPosition);
-        doc.text(`Bs ${item.subtotal.toFixed(2)}`, margin + 175, yPosition);
-        yPosition += 6;
+      // Crear datos para la tabla
+      const tableData = budgetItems.map((item, index) => {
+        const quantity = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity;
+        const unitPrice = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice;
+        const subtotal = typeof item.subtotal === 'string' ? parseFloat(item.subtotal) : item.subtotal;
+        
+        return [
+          (index + 1).toString(),
+          item.activity?.name?.substring(0, 50) || 'Sin descripcion',
+          item.activity?.unit || 'und',
+          quantity.toString(),
+          `Bs ${unitPrice.toFixed(2)}`,
+          `Bs ${subtotal.toFixed(2)}`
+        ];
       });
 
+      // Usar autoTable para crear la tabla
+      (doc as any).autoTable({
+        head: [['#', 'Descripción', 'Unidad', 'Cantidad', 'P. Unitario', 'Subtotal']],
+        body: tableData,
+        startY: yPosition,
+        margin: { left: margin, right: margin },
+        styles: {
+          fontSize: 9,
+          cellPadding: 3
+        },
+        headStyles: {
+          fillColor: [66, 139, 202],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        }
+      });
+
+      // Obtener la posición Y después de la tabla
+      const finalY = (doc as any).lastAutoTable.finalY + 10;
+
       // Total
-      yPosition += 10;
-      doc.line(margin + 150, yPosition - 5, pageWidth - margin, yPosition - 5);
-      doc.setFont(undefined, 'bold');
-      doc.setFontSize(12);
-      doc.text(`TOTAL GENERAL: Bs ${budget.total.toFixed(2)}`, margin + 120, yPosition);
+      const totalAmount = typeof budget.total === 'string' ? parseFloat(budget.total) : budget.total;
+      doc.setFontSize(14);
+      doc.text(`TOTAL GENERAL: Bs ${totalAmount.toFixed(2)}`, pageWidth - margin, finalY, { align: 'right' });
 
       // Pie de página
-      yPosition += 20;
       doc.setFontSize(8);
-      doc.setFont(undefined, 'normal');
-      doc.text('Generado por MICA - Sistema de Gestión de Presupuestos', pageWidth / 2, yPosition, { align: 'center' });
-      doc.text('Para más información: contacto@mica.bo', pageWidth / 2, yPosition + 5, { align: 'center' });
+      doc.text('Generado por MICA - Sistema de Gestion de Presupuestos', pageWidth / 2, finalY + 20, { align: 'center' });
 
-      // Descargar PDF
-      doc.save(`Presupuesto_${budget.project.name}_${budget.id}.pdf`);
+      // Descargar
+      const filename = `Presupuesto_${budget.project?.name?.replace(/[^a-zA-Z0-9]/g, '_') || 'proyecto'}_${budget.id}.pdf`;
+      doc.save(filename);
       
     } catch (error) {
       console.error('Error generando PDF:', error);
-      alert('Error al generar el PDF. Por favor intenta de nuevo.');
+      alert('Error al generar el PDF. Verifica que todos los datos estén disponibles.');
     }
   };
 
