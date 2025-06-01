@@ -223,73 +223,105 @@ export default function ImportCompanies() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Panel de carga */}
+        {/* Panel de entrada de datos */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Upload className="w-5 h-5" />
-              <span>1. Seleccionar PDF</span>
+              <FileText className="w-5 h-5" />
+              <span>1. Ingresar Datos</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="pdf-file">Archivo PDF</Label>
+              <Label htmlFor="pdf-file">Opción A: Archivo PDF (temporal)</Label>
               <Input
                 id="pdf-file"
                 type="file"
                 accept=".pdf"
                 onChange={handleFileSelect}
                 className="mt-1"
+                disabled
               />
+              <p className="text-xs text-amber-600 mt-1">
+                Funcionalidad en desarrollo. Usa la opción B por ahora.
+              </p>
             </div>
             
-            {selectedFile && (
-              <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                    {selectedFile.name}
-                  </span>
-                </div>
-                <p className="text-xs text-green-600 mt-1">
-                  Tamaño: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              </div>
-            )}
+            <div className="border-t pt-4">
+              <Label htmlFor="manual-text">Opción B: Copiar y pegar texto del PDF</Label>
+              <p className="text-xs text-gray-600 mb-2">
+                Abre tu PDF, selecciona todo el texto (Ctrl+A) y pégalo aquí
+              </p>
+              <Textarea
+                id="manual-text"
+                value={extractedText}
+                onChange={(e) => setExtractedText(e.target.value)}
+                placeholder="Pega aquí el texto del catálogo de empresas..."
+                className="min-h-[200px] text-sm"
+              />
+            </div>
 
             <Button 
-              onClick={extractTextFromPDF}
-              disabled={!selectedFile || isProcessing}
+              onClick={() => {
+                if (extractedText.trim()) {
+                  toast({
+                    title: "Texto ingresado",
+                    description: "Ahora puedes analizar las empresas",
+                  });
+                } else {
+                  toast({
+                    title: "Falta texto",
+                    description: "Por favor ingresa el texto del catálogo",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              disabled={!extractedText.trim()}
               className="w-full"
             >
-              {isProcessing ? "Extrayendo texto..." : "2. Extraer Texto"}
+              2. Confirmar Texto
             </Button>
           </CardContent>
         </Card>
 
-        {/* Panel de texto extraído */}
+        {/* Panel de análisis */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <FileText className="w-5 h-5" />
-              <span>Texto Extraído</span>
+              <span>Análisis de Empresas</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={extractedText}
-              onChange={(e) => setExtractedText(e.target.value)}
-              placeholder="El texto extraído del PDF aparecerá aquí..."
-              className="min-h-[300px] text-sm"
-            />
-            
-            <Button 
-              onClick={parseCompanies}
-              disabled={!extractedText}
-              className="w-full mt-4"
-            >
-              3. Analizar Empresas
-            </Button>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  Estadísticas del texto:
+                </p>
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg text-xs">
+                  <p>Caracteres: {extractedText.length}</p>
+                  <p>Líneas: {extractedText.split('\n').length}</p>
+                  <p>Palabras aproximadas: {extractedText.split(' ').length}</p>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={parseCompanies}
+                disabled={!extractedText.trim()}
+                className="w-full"
+                size="lg"
+              >
+                3. Analizar y Extraer Empresas
+              </Button>
+              
+              {parsedCompanies.length > 0 && (
+                <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                    ✅ {parsedCompanies.length} empresas encontradas
+                  </p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
