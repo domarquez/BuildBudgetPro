@@ -367,6 +367,8 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
                       <PhaseAccordion 
                         phaseId={selectedPhase}
                         projectId={currentProject.id}
+                        projectCity={form.watch('city')}
+                        projectCountry={form.watch('country')}
                         onBudgetChange={handleBudgetChange}
                       />
                     </div>

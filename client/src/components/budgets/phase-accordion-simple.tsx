@@ -26,10 +26,30 @@ interface BudgetItemData {
 interface PhaseAccordionProps {
   phaseId: number;
   projectId: number;
+  projectCity?: string;
+  projectCountry?: string;
   onBudgetChange?: (budgetItems: BudgetItemData[], total: number) => void;
 }
 
-export default function PhaseAccordion({ phaseId, projectId, onBudgetChange }: PhaseAccordionProps) {
+// Factores de precios por ciudad basados en los datos de la base de datos
+const cityFactors: Record<string, number> = {
+  "La Paz": 1.175,     // Promedio ponderado: (1.15*0.4 + 1.20*0.35 + 1.10*0.15 + 1.25*0.1)
+  "Santa Cruz": 1.0,   // Ciudad base
+  "Cochabamba": 0.955, // Promedio ponderado
+  "Sucre": 1.0575,     // Promedio ponderado
+  "Potosí": 1.2425,    // Promedio ponderado
+  "Oruro": 1.1375,     // Promedio ponderado
+  "Tarija": 0.9125,    // Promedio ponderado
+  "Trinidad": 1.315,   // Promedio ponderado
+  "Cobija": 1.3725     // Promedio ponderado
+};
+
+const applyGeographicFactor = (basePrice: number, city: string): number => {
+  const factor = cityFactors[city] || 1.0;
+  return basePrice * factor;
+};
+
+export default function PhaseAccordion({ phaseId, projectId, projectCity, projectCountry, onBudgetChange }: PhaseAccordionProps) {
   const [budgetItems, setBudgetItems] = useState<BudgetItemData[]>([]);
 
   const { data: activities } = useQuery<ActivityWithPhase[]>({
@@ -82,8 +102,15 @@ export default function PhaseAccordion({ phaseId, projectId, onBudgetChange }: P
           
           // Auto-aplicar el precio unitario de la actividad seleccionada
           if (selectedActivity && selectedActivity.unitPrice) {
-            updatedItem.unitPrice = parseFloat(selectedActivity.unitPrice);
-            console.log('Auto-aplicando precio unitario:', selectedActivity.unitPrice, 'para actividad:', selectedActivity.name);
+            let basePrice = parseFloat(selectedActivity.unitPrice);
+            
+            // Aplicar factor geográfico si se ha seleccionado una ciudad
+            if (projectCity && projectCity !== 'Santa Cruz') {
+              basePrice = applyGeographicFactor(basePrice, projectCity);
+            }
+            
+            updatedItem.unitPrice = basePrice;
+            console.log('Auto-aplicando precio unitario:', basePrice, 'para actividad:', selectedActivity.name, 'en ciudad:', projectCity || 'Santa Cruz (base)');
           }
         }
         
