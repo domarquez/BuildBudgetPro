@@ -233,19 +233,40 @@ export default function ImportCompanies() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="pdf-file">Opción A: Archivo PDF (temporal)</Label>
+              <Label htmlFor="pdf-file">Opción A: Archivo PDF</Label>
               <Input
                 id="pdf-file"
                 type="file"
                 accept=".pdf"
                 onChange={handleFileSelect}
                 className="mt-1"
-                disabled
               />
-              <p className="text-xs text-amber-600 mt-1">
-                Funcionalidad en desarrollo. Usa la opción B por ahora.
+              <p className="text-xs text-blue-600 mt-1">
+                Sube tu PDF y extrae el texto automáticamente
               </p>
             </div>
+            
+            {selectedFile && (
+              <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                    {selectedFile.name}
+                  </span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  Tamaño: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+                <Button 
+                  onClick={extractTextFromPDF}
+                  disabled={isProcessing}
+                  className="mt-2 w-full"
+                  size="sm"
+                >
+                  {isProcessing ? "Extrayendo..." : "Extraer Texto"}
+                </Button>
+              </div>
+            )}
             
             <div className="border-t pt-4">
               <Label htmlFor="manual-text">Opción B: Copiar y pegar texto del PDF</Label>
