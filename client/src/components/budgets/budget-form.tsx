@@ -44,6 +44,11 @@ const projectFormSchema = insertProjectSchema.extend({
   startDate: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
+  equipmentPercentage: z.string().optional(),
+  administrativePercentage: z.string().optional(),
+  utilityPercentage: z.string().optional(),
+  taxPercentage: z.string().optional(),
+  socialChargesPercentage: z.string().optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectFormSchema>;
@@ -72,6 +77,11 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
       startDate: budget?.project.startDate 
         ? new Date(budget.project.startDate).toISOString().split('T')[0]
         : "",
+      equipmentPercentage: budget?.project.equipmentPercentage || "5.00",
+      administrativePercentage: budget?.project.administrativePercentage || "8.00",
+      utilityPercentage: budget?.project.utilityPercentage || "15.00",
+      taxPercentage: budget?.project.taxPercentage || "3.09",
+      socialChargesPercentage: budget?.project.socialChargesPercentage || "71.18",
     },
   });
 
@@ -317,6 +327,109 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
                         </FormItem>
                       )}
                     />
+                  </div>
+
+                  {/* Configuración de Porcentajes de Costos */}
+                  <div className="space-y-4">
+                    <div className="border-t pt-4">
+                      <h4 className="font-medium text-gray-900 mb-3">Configuración de Costos</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="equipmentPercentage"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Herramientas (%)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="5.00"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="administrativePercentage"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gastos Generales (%)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="8.00"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="utilityPercentage"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Utilidad (%)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="15.00"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="taxPercentage"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Impuesto IT (%)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="3.09"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="socialChargesPercentage"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cargas Sociales (%)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="71.18"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex justify-end">

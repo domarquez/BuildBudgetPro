@@ -58,6 +58,12 @@ export const projects = pgTable("projects", {
   startDate: timestamp("start_date"),
   userId: integer("user_id").references(() => users.id),
   status: text("status").notNull().default('planning'), // planning, active, completed, cancelled
+  // Porcentajes configurables para cálculos de costos
+  equipmentPercentage: decimal("equipment_percentage", { precision: 5, scale: 2 }).notNull().default("5.00"),
+  administrativePercentage: decimal("administrative_percentage", { precision: 5, scale: 2 }).notNull().default("8.00"),
+  utilityPercentage: decimal("utility_percentage", { precision: 5, scale: 2 }).notNull().default("15.00"),
+  taxPercentage: decimal("tax_percentage", { precision: 5, scale: 2 }).notNull().default("3.09"),
+  socialChargesPercentage: decimal("social_charges_percentage", { precision: 5, scale: 2 }).notNull().default("71.18"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
