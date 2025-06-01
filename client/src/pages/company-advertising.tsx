@@ -115,18 +115,7 @@ export default function CompanyAdvertising() {
       const formData = new FormData();
       formData.append('image', file);
       
-      const response = await fetch('/api/upload-advertisement-image', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error uploading image');
-      }
-      
-      return response.json();
+      return await apiRequest("POST", "/api/upload-advertisement-image", formData);
     },
     onSuccess: (data) => {
       setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
