@@ -4,13 +4,54 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, MapPin, User, FileText, Calculator } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, User, FileText, Calculator, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { generateBudgetPDF, type BudgetPDFData } from "@/lib/pdfGenerator";
 import type { BudgetWithProject, BudgetItemWithActivity } from "@shared/schema";
 
 export default function BudgetDetails() {
   const { id } = useParams();
   const budgetId = Number(id);
+
+  const handleGeneratePDF = () => {
+    if (!budget || !budgetItems) return;
+
+    const pdfData: BudgetPDFData = {
+      budget: {
+        id: budget.id,
+        total: parseFloat(budget.total.toString()),
+        status: budget.status,
+        createdAt: budget.createdAt?.toISOString() || new Date().toISOString(),
+        project: {
+          name: budget.project.name,
+          description: budget.project.client || undefined,
+          location: budget.project.location || undefined,
+          clientName: budget.project.client || undefined
+        }
+      },
+      items: budgetItems.map(item => ({
+        id: item.id,
+        quantity: parseFloat(item.quantity.toString()),
+        unitPrice: parseFloat(item.unitPrice.toString()),
+        subtotal: parseFloat(item.subtotal.toString()),
+        activity: {
+          name: item.activity.name,
+          unit: item.activity.unit,
+          phase: {
+            name: item.activity.phase?.name || 'Sin fase'
+          }
+        }
+      })),
+      creator: {
+        name: 'Arquitecto/Ingeniero',
+        company: 'MICA - Construcciones',
+        email: 'contacto@mica.bo',
+        phone: '+591 70000000'
+      }
+    };
+
+    generateBudgetPDF(pdfData);
+  };
 
   const { data: budget, isLoading: budgetLoading } = useQuery<BudgetWithProject>({
     queryKey: ["/api/budgets", budgetId],
@@ -79,6 +120,15 @@ export default function BudgetDetails() {
               {budget.phase ? budget.phase.name : "Multifase"} • Presupuesto #{budget.id}
             </p>
           </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={handleGeneratePDF}
+            className="flex items-center space-x-2 bg-red-600 hover:bg-red-700"
+          >
+            <Download className="w-4 h-4" />
+            <span>Descargar PDF</span>
+          </Button>
         </div>
         <Badge
           variant={budget.status === 'active' ? 'default' : 
