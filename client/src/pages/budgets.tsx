@@ -204,7 +204,7 @@ export default function Budgets() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => window.location.href = `/budget-details/${budget.id}`}
+                              onClick={() => window.location.href = `/budgets/${budget.id}`}
                               className="text-blue-600 hover:text-blue-800"
                               title="Ver detalles del presupuesto"
                             >
