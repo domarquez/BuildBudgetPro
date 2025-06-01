@@ -83,9 +83,16 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
         if (field === 'activityId') {
           const activity = activities?.find(a => a.id === value);
           updatedItem.activity = activity;
+          console.log('Auto-price debug:', { 
+            activityId: value, 
+            activity: activity?.name, 
+            unitPriceString: activity?.unitPrice,
+            unitPriceFloat: activity?.unitPrice ? parseFloat(activity.unitPrice) : 0
+          });
           // Auto-fill unit price from activity's calculated price
           if (activity && activity.unitPrice && parseFloat(activity.unitPrice) > 0) {
             updatedItem.unitPrice = parseFloat(activity.unitPrice);
+            console.log('Price auto-filled:', updatedItem.unitPrice);
           }
         }
         
