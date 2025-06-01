@@ -470,7 +470,7 @@ export const insertCompanyAdvertisementSchema = createInsertSchema(companyAdvert
   clickCount: true,
 }).extend({
   title: z.string().min(1, "El título es requerido"),
-  imageUrl: z.string().url("Debe ser una URL válida"),
+  imageUrl: z.string().min(1, "La imagen es requerida"),
   description: z.string().optional(),
   linkUrl: z.string().url().optional().or(z.literal("")),
   adType: z.string().optional(),
