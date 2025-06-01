@@ -114,6 +114,9 @@ const adminItems = [
 export default function AppSidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
+  
+  // Debug log to see user data
+  console.log('Sidebar user data:', user);
 
   const isActive = (url: string) => {
     if (url === "/dashboard" && (location === "/" || location === "/dashboard")) {
