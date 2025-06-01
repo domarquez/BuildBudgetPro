@@ -121,6 +121,11 @@ const adminItems = [
     url: "/import-companies",
     icon: Upload,
   },
+  {
+    title: "Importación Simple",
+    url: "/simple-import",
+    icon: Building2,
+  },
 ];
 
 export default function AppSidebar() {
