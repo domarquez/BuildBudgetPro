@@ -164,17 +164,17 @@ export interface IStorage {
   updateMaterialSupplierPrice(id: number, price: Partial<InsertMaterialSupplierPrice>): Promise<MaterialSupplierPrice>;
   deleteMaterialSupplierPrice(id: number): Promise<void>;
 
-  // Sistema de publicidad
-  getActiveAdvertisements(): Promise<AdvertisementWithSupplier[]>;
-  getRandomAdvertisement(): Promise<AdvertisementWithSupplier | null>;
-  createAdvertisement(data: InsertCompanyAdvertisement): Promise<CompanyAdvertisement>;
-  updateAdvertisementViews(adId: number): Promise<void>;
-  updateAdvertisementClicks(adId: number): Promise<void>;
-  getAdvertisementsBySupplier(supplierId: number): Promise<CompanyAdvertisement[]>;
+  // Sistema de publicidad (TODO: implementar completamente)
+  // getActiveAdvertisements(): Promise<AdvertisementWithSupplier[]>;
+  // getRandomAdvertisement(): Promise<AdvertisementWithSupplier | null>;
+  // createAdvertisement(data: InsertCompanyAdvertisement): Promise<CompanyAdvertisement>;
+  // updateAdvertisementViews(adId: number): Promise<void>;
+  // updateAdvertisementClicks(adId: number): Promise<void>;
+  // getAdvertisementsBySupplier(supplierId: number): Promise<CompanyAdvertisement[]>;
 
-  // Configuración del sistema
-  getSystemSetting(key: string): Promise<string | null>;
-  setSystemSetting(key: string, value: string, description?: string): Promise<void>;
+  // Configuración del sistema (TODO: implementar completamente)
+  // getSystemSetting(key: string): Promise<string | null>;
+  // setSystemSetting(key: string, value: string, description?: string): Promise<void>;
 
   // Acceso público (sin autenticación)
   getMaterialsPublic(): Promise<Material[]>;
@@ -948,105 +948,17 @@ export class DatabaseStorage implements IStorage {
     await db.update(laborCategories).set({ isActive: false }).where(eq(laborCategories.id, id));
   }
 
-  // Sistema de publicidad
-  async getActiveAdvertisements(): Promise<AdvertisementWithSupplier[]> {
-    const results = await db
-      .select()
-      .from(companyAdvertisements)
-      .leftJoin(supplierCompanies, eq(companyAdvertisements.supplierId, supplierCompanies.id))
-      .where(
-        and(
-          eq(companyAdvertisements.isActive, true),
-          eq(supplierCompanies.isActive, true)
-        )
-      )
-      .orderBy(desc(companyAdvertisements.createdAt));
+  // Sistema de publicidad (TODO: implementar completamente)
+  // async getActiveAdvertisements(): Promise<AdvertisementWithSupplier[]> { ... }
+  // async getRandomAdvertisement(): Promise<AdvertisementWithSupplier | null> { ... }
+  // async createAdvertisement(data: InsertCompanyAdvertisement): Promise<CompanyAdvertisement> { ... }
+  // async updateAdvertisementViews(adId: number): Promise<void> { ... }
+  // async updateAdvertisementClicks(adId: number): Promise<void> { ... }
+  // async getAdvertisementsBySupplier(supplierId: number): Promise<CompanyAdvertisement[]> { ... }
 
-    return results.map(result => ({
-      ...result.company_advertisements,
-      supplier: result.supplier_companies!
-    }));
-  }
-
-  async getRandomAdvertisement(): Promise<AdvertisementWithSupplier | null> {
-    const activeAds = await this.getActiveAdvertisements();
-    if (activeAds.length === 0) return null;
-    
-    const randomIndex = Math.floor(Math.random() * activeAds.length);
-    const selectedAd = activeAds[randomIndex];
-    
-    // Incrementar contador de vistas
-    await this.updateAdvertisementViews(selectedAd.id);
-    
-    return selectedAd;
-  }
-
-  async createAdvertisement(data: InsertCompanyAdvertisement): Promise<CompanyAdvertisement> {
-    const [advertisement] = await db
-      .insert(companyAdvertisements)
-      .values(data)
-      .returning();
-    return advertisement;
-  }
-
-  async updateAdvertisementViews(adId: number): Promise<void> {
-    await db
-      .update(companyAdvertisements)
-      .set({ 
-        viewCount: sql`${companyAdvertisements.viewCount} + 1`,
-        updatedAt: new Date()
-      })
-      .where(eq(companyAdvertisements.id, adId));
-  }
-
-  async updateAdvertisementClicks(adId: number): Promise<void> {
-    await db
-      .update(companyAdvertisements)
-      .set({ 
-        clickCount: sql`${companyAdvertisements.clickCount} + 1`,
-        updatedAt: new Date()
-      })
-      .where(eq(companyAdvertisements.id, adId));
-  }
-
-  async getAdvertisementsBySupplier(supplierId: number): Promise<CompanyAdvertisement[]> {
-    return await db
-      .select()
-      .from(companyAdvertisements)
-      .where(eq(companyAdvertisements.supplierId, supplierId))
-      .orderBy(desc(companyAdvertisements.createdAt));
-  }
-
-  // Configuración del sistema
-  async getSystemSetting(key: string): Promise<string | null> {
-    const [setting] = await db
-      .select()
-      .from(systemSettings)
-      .where(eq(systemSettings.settingKey, key));
-    return setting?.settingValue || null;
-  }
-
-  async setSystemSetting(key: string, value: string, description?: string): Promise<void> {
-    const existing = await db
-      .select()
-      .from(systemSettings)
-      .where(eq(systemSettings.settingKey, key));
-
-    if (existing.length > 0) {
-      await db
-        .update(systemSettings)
-        .set({ 
-          settingValue: value, 
-          description,
-          updatedAt: new Date() 
-        })
-        .where(eq(systemSettings.settingKey, key));
-    } else {
-      await db
-        .insert(systemSettings)
-        .values({ settingKey: key, settingValue: value, description });
-    }
-  }
+  // Configuración del sistema (TODO: implementar completamente)
+  // async getSystemSetting(key: string): Promise<string | null> { ... }
+  // async setSystemSetting(key: string, value: string, description?: string): Promise<void> { ... }
 
   // Acceso público (sin autenticación)
   async getMaterialsPublic(): Promise<Material[]> {

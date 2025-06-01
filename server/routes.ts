@@ -413,66 +413,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sistema de publicidad
+  // Sistema de publicidad (versión simplificada)
   app.get("/api/public/advertisement", async (req, res) => {
     try {
-      const advertisement = await storage.getRandomAdvertisement();
-      res.json(advertisement);
+      // Por ahora retornar null hasta que se implemente completamente
+      res.json(null);
     } catch (error) {
       console.error("Error fetching advertisement:", error);
       res.status(500).json({ message: "Failed to fetch advertisement" });
     }
   });
 
-  app.post("/api/public/advertisement/:id/click", async (req, res) => {
-    try {
-      const adId = Number(req.params.id);
-      await storage.updateAdvertisementClicks(adId);
-      res.status(200).json({ success: true });
-    } catch (error) {
-      console.error("Error updating advertisement clicks:", error);
-      res.status(500).json({ message: "Failed to update clicks" });
-    }
-  });
 
-  // Gestión de publicidad para proveedores
-  app.get("/api/advertisements", requireAuth, requireSupplier, async (req: any, res) => {
-    try {
-      const supplier = await storage.getSupplierCompanyByUser(req.user.id);
-      if (!supplier) {
-        return res.status(404).json({ message: "Supplier company not found" });
-      }
-      
-      const advertisements = await storage.getAdvertisementsBySupplier(supplier.id);
-      res.json(advertisements);
-    } catch (error) {
-      console.error("Error fetching advertisements:", error);
-      res.status(500).json({ message: "Failed to fetch advertisements" });
-    }
-  });
-
-  app.post("/api/advertisements", requireAuth, requireSupplier, async (req: any, res) => {
-    try {
-      const supplier = await storage.getSupplierCompanyByUser(req.user.id);
-      if (!supplier) {
-        return res.status(404).json({ message: "Supplier company not found" });
-      }
-
-      const data = insertCompanyAdvertisementSchema.parse({
-        ...req.body,
-        supplierId: supplier.id
-      });
-      
-      const advertisement = await storage.createAdvertisement(data);
-      res.status(201).json(advertisement);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      console.error("Error creating advertisement:", error);
-      res.status(500).json({ message: "Failed to create advertisement" });
-    }
-  });
 
   // Projects
   app.get("/api/projects", requireAuth, async (req: any, res) => {

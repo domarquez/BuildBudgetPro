@@ -22,6 +22,7 @@ import SupplierDashboard from "@/pages/supplier-dashboard";
 import Marketplace from "@/pages/marketplace";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import PublicView from "@/pages/public-view";
 import NotFound from "@/pages/not-found";
 import AppSidebar from "@/components/layout/sidebar";
 import AppHeader from "@/components/layout/header";
@@ -46,7 +47,9 @@ function Router() {
       <Switch>
         <Route path="/register" component={Register} />
         <Route path="/login" component={Login} />
-        <Route component={Login} />
+        <Route path="/public" component={PublicView} />
+        <Route path="/" component={PublicView} />
+        <Route component={PublicView} />
       </Switch>
     );
   }
