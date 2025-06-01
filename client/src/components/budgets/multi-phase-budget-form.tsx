@@ -138,11 +138,11 @@ export default function MultiphaseBudgetForm({ budget, onClose }: MultiphaseBudg
         city: data.city || null,
         country: data.country || "Bolivia",
         startDate: data.startDate || null,
-        equipmentPercentage: parseFloat(data.equipmentPercentage || "5.00"),
-        administrativePercentage: parseFloat(data.administrativePercentage || "8.00"),
-        utilityPercentage: parseFloat(data.utilityPercentage || "15.00"),
-        taxPercentage: parseFloat(data.taxPercentage || "3.09"),
-        socialChargesPercentage: parseFloat(data.socialChargesPercentage || "71.18"),
+        equipmentPercentage: data.equipmentPercentage || "5.00",
+        administrativePercentage: data.administrativePercentage || "8.00",
+        utilityPercentage: data.utilityPercentage || "15.00",
+        taxPercentage: data.taxPercentage || "3.09",
+        socialChargesPercentage: data.socialChargesPercentage || "71.18",
       };
       
       console.log("Enviando datos del proyecto:", projectData);
