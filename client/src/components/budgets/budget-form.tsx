@@ -42,6 +42,8 @@ import { z } from "zod";
 
 const projectFormSchema = insertProjectSchema.extend({
   startDate: z.string().optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectFormSchema>;
@@ -65,6 +67,8 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
       name: budget?.project.name || "",
       client: budget?.project.client || "",
       location: budget?.project.location || "",
+      city: budget?.project.city || "",
+      country: budget?.project.country || "Bolivia",
       startDate: budget?.project.startDate 
         ? new Date(budget.project.startDate).toISOString().split('T')[0]
         : "",
@@ -73,6 +77,10 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
 
   const { data: phases } = useQuery<ConstructionPhase[]>({
     queryKey: ["/api/construction-phases"],
+  });
+
+  const { data: cityFactors = [] } = useQuery({
+    queryKey: ["/api/city-price-factors"],
   });
 
   const createProjectMutation = useMutation({

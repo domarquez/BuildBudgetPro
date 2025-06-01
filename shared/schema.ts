@@ -53,6 +53,8 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   client: text("client"),
   location: text("location"),
+  city: text("city"),
+  country: text("country").default("Bolivia"),
   startDate: timestamp("start_date"),
   userId: integer("user_id").references(() => users.id),
   status: text("status").notNull().default('planning'), // planning, active, completed, cancelled
