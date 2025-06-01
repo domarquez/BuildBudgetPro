@@ -20,6 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -45,6 +53,8 @@ export default function Materials() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<MaterialWithCategory | null>(null);
+  const [customizingMaterial, setCustomizingMaterial] = useState<MaterialWithCustomPrice | null>(null);
+  const [newCustomPrice, setNewCustomPrice] = useState("");
   const { toast } = useToast();
 
   // Debounced search
@@ -202,6 +212,32 @@ export default function Materials() {
   const handleImport = () => {
     if (confirm("¿Está seguro de que desea importar todos los materiales del archivo SQL? Esto puede tomar varios minutos.")) {
       importMutation.mutate();
+    }
+  };
+
+  const handleCustomizePrice = (material: MaterialWithCustomPrice) => {
+    setCustomizingMaterial(material);
+    setNewCustomPrice(material.price.toString());
+  };
+
+  const handleSaveCustomPrice = () => {
+    if (customizingMaterial && newCustomPrice) {
+      const price = parseFloat(newCustomPrice);
+      if (price > 0) {
+        customPriceMutation.mutate({
+          materialId: customizingMaterial.id,
+          customPrice: price,
+          reason: "Precio personalizado por el usuario"
+        });
+        setCustomizingMaterial(null);
+        setNewCustomPrice("");
+      }
+    }
+  };
+
+  const handleRestorePrice = (materialId: number) => {
+    if (confirm("¿Está seguro de que desea restaurar el precio original del sistema?")) {
+      removeCustomPriceMutation.mutate(materialId);
     }
   };
 
@@ -470,6 +506,61 @@ export default function Materials() {
           onClose={handleFormClose}
         />
       )}
+
+      {/* Custom Price Modal */}
+      <Dialog open={!!customizingMaterial} onOpenChange={() => setCustomizingMaterial(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Personalizar Precio</DialogTitle>
+            <DialogDescription>
+              Modifica el precio de "{customizingMaterial?.name}". Este cambio será privado y solo lo verás en tus proyectos.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Precio actual del sistema:</Label>
+              <p className="text-lg font-semibold text-gray-600">
+                {customizingMaterial && formatCurrency(customizingMaterial.price)}
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="custom-price">Tu precio personalizado (Bs):</Label>
+              <Input
+                id="custom-price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={newCustomPrice}
+                onChange={(e) => setNewCustomPrice(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <div className="flex items-start space-x-2">
+                <User className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Este precio personalizado solo será visible para ti y se aplicará únicamente en tus proyectos. 
+                  Otros usuarios seguirán viendo el precio original del sistema.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCustomizingMaterial(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveCustomPrice}
+              disabled={!newCustomPrice || parseFloat(newCustomPrice) <= 0 || customPriceMutation.isPending}
+            >
+              {customPriceMutation.isPending ? "Guardando..." : "Guardar Precio"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
