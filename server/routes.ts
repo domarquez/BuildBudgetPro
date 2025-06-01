@@ -1758,7 +1758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes for supplier companies management
   app.get("/api/admin/supplier-companies", requireAuth, async (req, res) => {
     try {
-      const companies = await storage.getAllSupplierCompanies();
+      const companies = await storage.getSupplierCompanies();
       res.json(companies);
     } catch (error) {
       console.error("Error fetching supplier companies:", error);
