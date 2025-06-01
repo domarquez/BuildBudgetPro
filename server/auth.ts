@@ -148,10 +148,20 @@ export const requireAuth = async (req: any, res: any, next: any) => {
   }
 };
 
-// Middleware for admin-only routes
 export const requireAdmin = async (req: any, res: any, next: any) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ message: 'Acceso denegado. Se requieren permisos de administrador' });
-  }
-  next();
+  await requireAuth(req, res, () => {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Acceso denegado: Se requiere rol de administrador' });
+    }
+    next();
+  });
+};
+
+export const requireSupplier = async (req: any, res: any, next: any) => {
+  await requireAuth(req, res, () => {
+    if (req.user.userType !== 'supplier') {
+      return res.status(403).json({ message: 'Acceso denegado: Se requiere ser empresa proveedora' });
+    }
+    next();
+  });
 };
