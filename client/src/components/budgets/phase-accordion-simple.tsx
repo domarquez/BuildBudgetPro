@@ -77,7 +77,14 @@ export default function PhaseAccordion({ phaseId, projectId, onBudgetChange }: P
         const updatedItem = { ...item, [field]: value };
         
         if (field === 'activityId') {
-          updatedItem.activity = activities?.find(a => a.id === value);
+          const selectedActivity = activities?.find(a => a.id === value);
+          updatedItem.activity = selectedActivity;
+          
+          // Auto-aplicar el precio unitario de la actividad seleccionada
+          if (selectedActivity && selectedActivity.unitPrice) {
+            updatedItem.unitPrice = parseFloat(selectedActivity.unitPrice);
+            console.log('Auto-aplicando precio unitario:', selectedActivity.unitPrice, 'para actividad:', selectedActivity.name);
+          }
         }
         
         // Siempre recalcular subtotal cuando cambien cantidad o precio
