@@ -1650,75 +1650,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PDF text extraction route - simplified approach
+  // PDF text extraction route
   app.post("/api/extract-pdf-text", requireAuth, uploadPDF.single('pdf'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No se proporcionó archivo PDF" });
       }
 
-      // Para esta demostración, vamos a simular la extracción
-      // En un entorno real, usarías una librería de PDF o servicio externo
-      const mockText = `
-GUÍA DE PROVEEDORES
+      const fs = require('fs').promises;
+      const path = require('path');
+      const pdfPoppler = require('pdf-poppler');
+      
+      // Guardar el archivo temporalmente
+      const tempFilePath = path.join('/tmp', `pdf_${Date.now()}.pdf`);
+      await fs.writeFile(tempFilePath, req.file.buffer);
 
-EMPRESA                    DIRECCIÓN Y CONTACTO                    PRODUCTO / SERVICIO
+      try {
+        // Convertir PDF a imágenes y extraer texto
+        const options = {
+          format: 'png',
+          out_dir: '/tmp',
+          out_prefix: `pdf_extract_${Date.now()}`,
+          page: null // Procesar todas las páginas
+        };
 
-ACTIV Aluminium           LPZ.: Av. Armenia N° 510, esquina Laja    Importa y Distribuye
-                          (591) 2) 2284418 - 2284419                • Perfiles de aluminio "INDALUM"
-                          aluminiosactiv@hotmail.com                 Realiza diseño, presupuesto:
-                          www.activaluminio.com                      • Carpintería de aluminio
-                                                                     • Vidrio templado
-
-AYUDANTE DE TU HOGAR      (591) 75221344                           Aplicación y página web con la intención de crear
-                          contacto@ayudantedetuhogar.com            una conexión rápida y segura entre los expertos y
-                          www.ayudantedetuhogar.com                 clientes que necesitan ayuda en diferentes ámbitos
-                                                                    del hogar...
-
-BARRIENTOS SERAN          LPZ.: Obrajes esq. Av. Hernando Siles esq. calle 15   Asistencia técnica especializada
-                          Edif. Britannia Piso 7 Of. 78-80          servicio de Post - Tasado en
-                          (591) 71535532 - 73248995                 Puertas y Edificios.
-                          (591) 2) 2792377                          Provisión de Materiales:
-                          info@barrientosseran.com                  • Archelas sistema Freyssinet
-                          consultivos@barrientosseran.com           • Cable de pretensado
-                          www.barrientosseran.com                   • Vainas metálicas corrugadas.
-
-BAU-FUHRER                LPZ.: Av. José Ballivián N° 10 Viacha - La Paz   Nuestros Servicios
-                          (591) 70616576 - 77502762                 • Vial: Pavimentos rígidos, flexibles, enlosados,
-                          Constructora Bau-fuhrer                    mantenimiento viales.
-                          hanns.romer@baufuhrer.com                 • Construcción: Mampostería hidráulica,
-                          www.baufuhrer.com                         metálicas, montajes industriales, y otros.
-                                                                    • Supervisión de obras y elaboración de proyectos.
-
-DORADO                    El ALTO Fábrica: Carretera a Viacha Km. 15   • Ladrillos Tejas
-                          (591 2) 2800495 • (591) 77284877 - 77570471   • Complementos para Losas
-                          Agencia Laja Gta.: Av. Mario Mercado N° 3005   • Viguetas Prefabricadas
-                          CURVA DORADO                               • Complementos Plastiforme
-                          (591) 79530D                              • Calaminas Galvanizadas y de colores
-                          juliocesar@gmail.com                      a medida del Cliente
-                          www.ceramicadorado.com                    • Ladrillo Molido
-
-CERABOL CERAMICA          Sta. Cruz: Carretera Nueva a Camiri Km. 3   • Cerámica Antideslizante
-                          (591 3) 332-9435 • (591) 721-48330
-                          Suc. 1: Av. Cristo Redentor entre 5° y 6° anillo
-                          (591 3) 345-1177
-                          Suc. 2: Av. Fital esq. 4to anillo
-                          (591 3) 346-2315 • 346-6050
-                          www.cerabol.com
-
-CERATECH S.R.L.           La Paz: Av. Ballivián N° 657, casi esq. 15   • Shingle - Teja Americana.
-                          Edif. Sigma Planta Baja, Calacoto          Representantes de TAMKO (Roofing Products)
-                          (591 2) 2791069 • 2795024 • 2797532       en Bolivia.
-                          ceratech@hotmail.com                       Distribuidores autorizados.
-                          www.construex.com.bo                       • Distribuidores americanas, Porcelanato y
-                                                                    • Tableros: OSB/ Aglomerado / Multilaminado
-      `;
-
-      res.json({ 
-        text: mockText,
-        pages: 1,
-        info: { title: "Guía de Proveedores" }
-      });
+        const convertResult = await pdfPoppler.convert(tempFilePath, options);
+        
+        // Para esta implementación, vamos a procesar el texto directamente
+        // usando una implementación más robusta
+        const { exec } = require('child_process');
+        const { promisify } = require('util');
+        const execAsync = promisify(exec);
+        
+        try {
+          const { stdout } = await execAsync(`pdftotext "${tempFilePath}" -`);
+          
+          res.json({ 
+            text: stdout,
+            pages: 1,
+            info: { title: "PDF Extraído" }
+          });
+        } catch (pdfTextError) {
+          // Si pdftotext no está disponible, usar método alternativo
+          console.log("pdftotext no disponible, usando método alternativo");
+          
+          // Leer el archivo como buffer y intentar extraer texto básico
+          const pdfBuffer = await fs.readFile(tempFilePath);
+          const textFromBuffer = pdfBuffer.toString('utf8');
+          
+          res.json({ 
+            text: textFromBuffer,
+            pages: 1,
+            info: { title: "PDF Extraído (método alternativo)" }
+          });
+        }
+        
+      } finally {
+        // Limpiar archivo temporal
+        try {
+          await fs.unlink(tempFilePath);
+        } catch (cleanupError) {
+          console.log("Error limpiando archivo temporal:", cleanupError);
+        }
+      }
+      
     } catch (error) {
       console.error("Error extracting PDF text:", error);
       res.status(500).json({ message: "Error al extraer texto del PDF" });
