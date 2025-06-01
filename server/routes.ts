@@ -558,6 +558,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // City Price Factors
+  app.get("/api/city-price-factors", requireAuth, async (req, res) => {
+    try {
+      const factors = await storage.getCityPriceFactors();
+      res.json(factors);
+    } catch (error) {
+      console.error("Error fetching city price factors:", error);
+      res.status(500).json({ message: "Failed to fetch city price factors" });
+    }
+  });
+
+  app.get("/api/city-price-factors/:city", requireAuth, async (req, res) => {
+    try {
+      const { city } = req.params;
+      const { country = "Bolivia" } = req.query;
+      const factor = await storage.getCityPriceFactor(city, country as string);
+      if (!factor) {
+        return res.status(404).json({ message: "City price factor not found" });
+      }
+      res.json(factor);
+    } catch (error) {
+      console.error("Error fetching city price factor:", error);
+      res.status(500).json({ message: "Failed to fetch city price factor" });
+    }
+  });
+
+  app.post("/api/city-price-factors", requireAuth, async (req, res) => {
+    try {
+      const factorData = insertCityPriceFactorSchema.parse(req.body);
+      const factor = await storage.createCityPriceFactor(factorData);
+      res.status(201).json(factor);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error("Error creating city price factor:", error);
+      res.status(500).json({ message: "Failed to create city price factor" });
+    }
+  });
+
+  app.patch("/api/city-price-factors/:id", requireAuth, async (req, res) => {
+    try {
+      const factorData = insertCityPriceFactorSchema.partial().parse(req.body);
+      const factor = await storage.updateCityPriceFactor(Number(req.params.id), factorData);
+      res.json(factor);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error("Error updating city price factor:", error);
+      res.status(500).json({ message: "Failed to update city price factor" });
+    }
+  });
+
+  app.delete("/api/city-price-factors/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteCityPriceFactor(Number(req.params.id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting city price factor:", error);
+      res.status(500).json({ message: "Failed to delete city price factor" });
+    }
+  });
+
+  // Update user location
+  app.patch("/api/users/:id/location", requireAuth, async (req, res) => {
+    try {
+      const { city, country = "Bolivia" } = req.body;
+      if (!city) {
+        return res.status(400).json({ message: "City is required" });
+      }
+      const user = await storage.updateUserLocation(Number(req.params.id), city, country);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user location:", error);
+      res.status(500).json({ message: "Failed to update user location" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

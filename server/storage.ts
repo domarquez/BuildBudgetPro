@@ -9,6 +9,7 @@ import {
   budgetItems,
   priceSettings,
   activityCompositions,
+  cityPriceFactors,
   type User, 
   type InsertUser,
   type MaterialCategory,
@@ -32,10 +33,12 @@ import {
   type PriceSettings,
   type InsertPriceSettings,
   type ActivityComposition,
-  type InsertActivityComposition
+  type InsertActivityComposition,
+  type CityPriceFactor,
+  type InsertCityPriceFactor
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, like, ilike } from "drizzle-orm";
+import { eq, desc, sql, like, ilike, and } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -564,6 +567,62 @@ export class DatabaseStorage implements IStorage {
       .where(eq(activities.id, id))
       .returning();
     return activity;
+  }
+
+  // City Price Factors
+  async getCityPriceFactors(): Promise<CityPriceFactor[]> {
+    return await db
+      .select()
+      .from(cityPriceFactors)
+      .where(eq(cityPriceFactors.isActive, true))
+      .orderBy(cityPriceFactors.country, cityPriceFactors.city);
+  }
+
+  async getCityPriceFactor(city: string, country: string = "Bolivia"): Promise<CityPriceFactor | undefined> {
+    const [factor] = await db
+      .select()
+      .from(cityPriceFactors)
+      .where(
+        and(
+          eq(cityPriceFactors.city, city),
+          eq(cityPriceFactors.country, country),
+          eq(cityPriceFactors.isActive, true)
+        )
+      );
+    return factor;
+  }
+
+  async createCityPriceFactor(factor: InsertCityPriceFactor): Promise<CityPriceFactor> {
+    const [created] = await db
+      .insert(cityPriceFactors)
+      .values(factor)
+      .returning();
+    return created;
+  }
+
+  async updateCityPriceFactor(id: number, factor: Partial<InsertCityPriceFactor>): Promise<CityPriceFactor> {
+    const [updated] = await db
+      .update(cityPriceFactors)
+      .set({ ...factor, updatedAt: new Date() })
+      .where(eq(cityPriceFactors.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCityPriceFactor(id: number): Promise<void> {
+    await db
+      .update(cityPriceFactors)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(cityPriceFactors.id, id));
+  }
+
+  async updateUserLocation(userId: number, city: string, country: string = "Bolivia"): Promise<User> {
+    const [updated] = await db
+      .update(users)
+      .set({ city, country })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
   }
 }
 
