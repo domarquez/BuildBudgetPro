@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +19,7 @@ import {
   Calculator,
   BarChart3,
   Settings,
+  Shield,
   Construction,
   DollarSign,
   MapPin,
@@ -101,8 +103,17 @@ const settingsItems = [
   },
 ];
 
+const adminItems = [
+  {
+    title: "Gestionar Actividades",
+    url: "/admin/activities",
+    icon: Shield,
+  },
+];
+
 export default function AppSidebar() {
   const [location] = useLocation();
+  const { user } = useAuth();
 
   const isActive = (url: string) => {
     if (url === "/dashboard" && (location === "/" || location === "/dashboard")) {
@@ -188,6 +199,30 @@ export default function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {user?.role === "admin" && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administración</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      className="w-full"
+                    >
+                      <Link href={item.url}>
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       
       <SidebarFooter className="p-4 border-t">

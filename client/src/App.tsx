@@ -64,6 +64,7 @@ function AuthenticatedLayout() {
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/materials" component={Materials} />
               <Route path="/activities" component={Activities} />
+              <Route path="/admin/activities" component={AdminActivities} />
               <Route path="/tools" component={Tools} />
               <Route path="/labor" component={Labor} />
               <Route path="/budgets" component={Budgets} />
