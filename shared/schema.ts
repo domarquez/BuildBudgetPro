@@ -472,7 +472,7 @@ export const insertCompanyAdvertisementSchema = createInsertSchema(companyAdvert
   title: z.string().min(1, "El título es requerido"),
   imageUrl: z.string().url("Debe ser una URL válida"),
   description: z.string().optional(),
-  linkUrl: z.string().url().optional(),
+  linkUrl: z.string().url().optional().or(z.literal("")),
   adType: z.string().optional(),
   startDate: z.union([z.string(), z.date()]).optional(),
   endDate: z.union([z.string(), z.date()]).optional(),
