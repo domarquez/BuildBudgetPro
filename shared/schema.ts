@@ -49,6 +49,17 @@ export const materials = pgTable("materials", {
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
+// Precios personalizados de materiales por usuario
+export const userMaterialPrices = pgTable("user_material_prices", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  materialId: integer("material_id").notNull().references(() => materials.id),
+  customPrice: decimal("custom_price", { precision: 10, scale: 2 }).notNull(),
+  reason: text("reason"), // Motivo del cambio de precio
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -410,6 +421,12 @@ export const insertLaborCategorySchema = createInsertSchema(laborCategories).omi
   updatedAt: true,
 });
 
+export const insertUserMaterialPriceSchema = createInsertSchema(userMaterialPrices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -482,6 +499,15 @@ export type Tool = typeof tools.$inferSelect;
 export type InsertTool = z.infer<typeof insertToolSchema>;
 export type LaborCategory = typeof laborCategories.$inferSelect;
 export type InsertLaborCategory = z.infer<typeof insertLaborCategorySchema>;
+
+export type UserMaterialPrice = typeof userMaterialPrices.$inferSelect;
+export type InsertUserMaterialPrice = z.infer<typeof insertUserMaterialPriceSchema>;
+
+export type MaterialWithCustomPrice = Material & {
+  category: MaterialCategory;
+  customPrice?: UserMaterialPrice;
+  hasCustomPrice: boolean;
+};
 
 export type ActivityCompositionWithDetails = ActivityComposition & {
   material?: Material;

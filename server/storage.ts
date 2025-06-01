@@ -12,6 +12,7 @@ import {
   cityPriceFactors,
   supplierCompanies,
   materialSupplierPrices,
+  userMaterialPrices,
   tools,
   laborCategories,
   type User, 
@@ -25,6 +26,7 @@ import {
   type Material,
   type InsertMaterial,
   type MaterialWithCategory,
+  type MaterialWithCustomPrice,
   type ActivityWithPhase,
   type Project,
   type InsertProject,
@@ -46,6 +48,8 @@ import {
   type MaterialSupplierPrice,
   type InsertMaterialSupplierPrice,
   type MaterialWithSupplierPrices,
+  type UserMaterialPrice,
+  type InsertUserMaterialPrice,
   type Tool,
   type InsertTool,
   type LaborCategory,
@@ -318,6 +322,87 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMaterial(id: number): Promise<void> {
     await db.delete(materials).where(eq(materials.id, id));
+  }
+
+  // Precios personalizados de materiales por usuario
+  async getMaterialsWithCustomPrices(userId: number): Promise<MaterialWithCustomPrice[]> {
+    const rows = await db
+      .select()
+      .from(materials)
+      .leftJoin(materialCategories, eq(materials.categoryId, materialCategories.id))
+      .leftJoin(userMaterialPrices, and(
+        eq(userMaterialPrices.materialId, materials.id),
+        eq(userMaterialPrices.userId, userId)
+      ))
+      .orderBy(desc(materials.lastUpdated));
+
+    return rows.map(row => ({
+      ...row.materials,
+      category: row.material_categories!,
+      customPrice: row.user_material_prices || undefined,
+      hasCustomPrice: !!row.user_material_prices
+    }));
+  }
+
+  async getMaterialsWithCustomPricesByCategory(userId: number, categoryId: number): Promise<MaterialWithCustomPrice[]> {
+    const rows = await db
+      .select()
+      .from(materials)
+      .leftJoin(materialCategories, eq(materials.categoryId, materialCategories.id))
+      .leftJoin(userMaterialPrices, and(
+        eq(userMaterialPrices.materialId, materials.id),
+        eq(userMaterialPrices.userId, userId)
+      ))
+      .where(eq(materials.categoryId, categoryId))
+      .orderBy(materials.name);
+
+    return rows.map(row => ({
+      ...row.materials,
+      category: row.material_categories!,
+      customPrice: row.user_material_prices || undefined,
+      hasCustomPrice: !!row.user_material_prices
+    }));
+  }
+
+  async createUserMaterialPrice(data: InsertUserMaterialPrice): Promise<UserMaterialPrice> {
+    // Verificar si ya existe un precio personalizado
+    const existing = await db
+      .select()
+      .from(userMaterialPrices)
+      .where(and(
+        eq(userMaterialPrices.userId, data.userId),
+        eq(userMaterialPrices.materialId, data.materialId)
+      ));
+
+    if (existing.length > 0) {
+      // Actualizar precio existente
+      const [updated] = await db
+        .update(userMaterialPrices)
+        .set({
+          customPrice: data.customPrice,
+          reason: data.reason,
+          updatedAt: new Date()
+        })
+        .where(eq(userMaterialPrices.id, existing[0].id))
+        .returning();
+      return updated;
+    } else {
+      // Crear nuevo precio personalizado
+      const [created] = await db
+        .insert(userMaterialPrices)
+        .values(data)
+        .returning();
+      return created;
+    }
+  }
+
+  async deleteUserMaterialPrice(userId: number, materialId: number): Promise<void> {
+    await db
+      .delete(userMaterialPrices)
+      .where(and(
+        eq(userMaterialPrices.userId, userId),
+        eq(userMaterialPrices.materialId, materialId)
+      ));
   }
 
   // Projects
