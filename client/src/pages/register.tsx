@@ -5,6 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Construction, User, Mail, Lock, UserPlus } from "lucide-react";
 
@@ -16,6 +23,7 @@ export default function Register() {
     confirmPassword: "",
     firstName: "",
     lastName: "",
+    userType: "architect",
   });
   const { toast } = useToast();
 
@@ -126,6 +134,28 @@ export default function Register() {
                   placeholder="Apellido"
                 />
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="userType">Tipo de Usuario *</Label>
+              <Select value={formData.userType} onValueChange={(value) => handleChange('userType', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el tipo de usuario" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="architect">Arquitecto/Diseñador</SelectItem>
+                  <SelectItem value="constructor">Constructor/Contratista</SelectItem>
+                  <SelectItem value="supplier">Empresa Proveedora</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.userType === 'supplier' 
+                  ? 'Las empresas proveedoras pueden ofertar precios en materiales y herramientas'
+                  : formData.userType === 'constructor'
+                  ? 'Los constructores pueden crear presupuestos y gestionar proyectos'
+                  : 'Los arquitectos pueden crear presupuestos y diseñar proyectos'
+                }
+              </p>
             </div>
 
             <div>

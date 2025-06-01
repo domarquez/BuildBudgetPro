@@ -17,6 +17,7 @@ import SupplierRegistration from "@/pages/supplier-registration";
 import Tools from "@/pages/tools";
 import Labor from "@/pages/labor";
 import AdminActivities from "@/pages/admin-activities";
+import SupplierPricing from "@/pages/supplier-pricing";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import NotFound from "@/pages/not-found";
@@ -74,6 +75,7 @@ function AuthenticatedLayout() {
               <Route path="/city-factors" component={CityFactors} />
               <Route path="/suppliers" component={Suppliers} />
               <Route path="/supplier-registration" component={SupplierRegistration} />
+              <Route path="/supplier-pricing" component={SupplierPricing} />
               <Route component={NotFound} />
             </Switch>
           </main>

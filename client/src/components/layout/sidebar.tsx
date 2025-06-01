@@ -178,6 +178,40 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {user?.userType === "supplier" && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Mi Empresa</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive("/supplier-dashboard")}
+                    className="w-full"
+                  >
+                    <Link href="/supplier-dashboard">
+                      <Store className="w-4 h-4" />
+                      <span>Panel de Empresa</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive("/supplier-pricing")}
+                    className="w-full"
+                  >
+                    <Link href="/supplier-pricing">
+                      <DollarSign className="w-4 h-4" />
+                      <span>Mis Ofertas de Precios</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         <SidebarGroup>
           <SidebarGroupLabel>Configuración</SidebarGroupLabel>
           <SidebarGroupContent>
