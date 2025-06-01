@@ -14,43 +14,50 @@ export default function BudgetDetails() {
   const budgetId = Number(id);
 
   const handleGeneratePDF = () => {
-    if (!budget || !budgetItems) return;
+    if (!budget || !budgetItems) {
+      console.log('No budget or items available');
+      return;
+    }
 
-    const pdfData: BudgetPDFData = {
-      budget: {
-        id: budget.id,
-        total: parseFloat(budget.total.toString()),
-        status: budget.status,
-        createdAt: budget.createdAt?.toISOString() || new Date().toISOString(),
-        project: {
-          name: budget.project.name,
-          description: budget.project.client || undefined,
-          location: budget.project.location || undefined,
-          clientName: budget.project.client || undefined
-        }
-      },
-      items: budgetItems.map(item => ({
-        id: item.id,
-        quantity: parseFloat(item.quantity.toString()),
-        unitPrice: parseFloat(item.unitPrice.toString()),
-        subtotal: parseFloat(item.subtotal.toString()),
-        activity: {
-          name: item.activity.name,
-          unit: item.activity.unit,
-          phase: {
-            name: item.activity.phase?.name || 'Sin fase'
+    try {
+      const pdfData: BudgetPDFData = {
+        budget: {
+          id: budget.id,
+          total: typeof budget.total === 'string' ? parseFloat(budget.total) : budget.total,
+          status: budget.status,
+          createdAt: budget.createdAt ? budget.createdAt.toString() : new Date().toISOString(),
+          project: {
+            name: budget.project?.name || 'Proyecto Sin Nombre',
+            description: (budget.project as any)?.client || undefined,
+            location: budget.project?.location || undefined,
+            clientName: (budget.project as any)?.client || undefined
           }
+        },
+        items: budgetItems.map(item => ({
+          id: item.id,
+          quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity,
+          unitPrice: typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice,
+          subtotal: typeof item.subtotal === 'string' ? parseFloat(item.subtotal) : item.subtotal,
+          activity: {
+            name: item.activity?.name || 'Actividad',
+            unit: item.activity?.unit || 'unidad',
+            phase: {
+              name: (item.activity as any)?.phase?.name || 'Sin fase'
+            }
+          }
+        })),
+        creator: {
+          name: 'Arquitecto/Ingeniero',
+          company: 'MICA - Construcciones',
+          email: 'contacto@mica.bo',
+          phone: '+591 70000000'
         }
-      })),
-      creator: {
-        name: 'Arquitecto/Ingeniero',
-        company: 'MICA - Construcciones',
-        email: 'contacto@mica.bo',
-        phone: '+591 70000000'
-      }
-    };
+      };
 
-    generateBudgetPDF(pdfData);
+      generateBudgetPDF(pdfData);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
   };
 
   const { data: budget, isLoading: budgetLoading } = useQuery<BudgetWithProject>({
