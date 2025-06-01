@@ -128,19 +128,21 @@ export default function BudgetDetails() {
               doc.text('    • MATERIALES:', margin + 25, yPosition);
               yPosition += 4;
               
-              for (const material of composition.materials.slice(0, 3)) { // Limitar a 3 materiales
+              composition.materials.forEach((material: any) => {
+                // Verificar si necesitamos nueva página
+                if (yPosition > 270) {
+                  doc.addPage();
+                  yPosition = 30;
+                }
+                
                 const materialCost = material.quantity * material.unitPrice;
-                const matDesc = material.description.length > 35 ? 
-                  material.description.substring(0, 35) + '...' : material.description;
+                const matDesc = material.description.length > 40 ? 
+                  material.description.substring(0, 40) + '...' : material.description;
                 doc.text(`      - ${matDesc}`, margin + 30, yPosition);
                 doc.text(`${material.quantity} ${material.unit}`, margin + 100, yPosition);
                 doc.text(`Bs ${materialCost.toFixed(2)}`, margin + 145, yPosition);
                 yPosition += 4;
-              }
-              if (composition.materials.length > 3) {
-                doc.text(`      ... y ${composition.materials.length - 3} materiales mas`, margin + 30, yPosition);
-                yPosition += 4;
-              }
+              });
             }
             
             // Mostrar mano de obra
@@ -149,19 +151,21 @@ export default function BudgetDetails() {
               doc.text('    • MANO DE OBRA:', margin + 25, yPosition);
               yPosition += 4;
               
-              for (const labor of composition.labor.slice(0, 2)) { // Limitar a 2 elementos
+              composition.labor.forEach((labor: any) => {
+                // Verificar si necesitamos nueva página
+                if (yPosition > 270) {
+                  doc.addPage();
+                  yPosition = 30;
+                }
+                
                 const laborCost = labor.quantity * labor.unitPrice;
-                const labDesc = labor.description.length > 35 ? 
-                  labor.description.substring(0, 35) + '...' : labor.description;
+                const labDesc = labor.description.length > 40 ? 
+                  labor.description.substring(0, 40) + '...' : labor.description;
                 doc.text(`      - ${labDesc}`, margin + 30, yPosition);
                 doc.text(`${labor.quantity} ${labor.unit}`, margin + 100, yPosition);
                 doc.text(`Bs ${laborCost.toFixed(2)}`, margin + 145, yPosition);
                 yPosition += 4;
-              }
-              if (composition.labor.length > 2) {
-                doc.text(`      ... y ${composition.labor.length - 2} especialidades mas`, margin + 30, yPosition);
-                yPosition += 4;
-              }
+              });
             }
             
             // Mostrar herramientas
@@ -170,19 +174,21 @@ export default function BudgetDetails() {
               doc.text('    • HERRAMIENTAS Y EQUIPOS:', margin + 25, yPosition);
               yPosition += 4;
               
-              for (const tool of composition.tools.slice(0, 2)) { // Limitar a 2 elementos
+              composition.tools.forEach((tool: any) => {
+                // Verificar si necesitamos nueva página
+                if (yPosition > 270) {
+                  doc.addPage();
+                  yPosition = 30;
+                }
+                
                 const toolCost = tool.quantity * tool.unitPrice;
-                const toolDesc = tool.description.length > 35 ? 
-                  tool.description.substring(0, 35) + '...' : tool.description;
+                const toolDesc = tool.description.length > 40 ? 
+                  tool.description.substring(0, 40) + '...' : tool.description;
                 doc.text(`      - ${toolDesc}`, margin + 30, yPosition);
                 doc.text(`${tool.quantity} ${tool.unit}`, margin + 100, yPosition);
                 doc.text(`Bs ${toolCost.toFixed(2)}`, margin + 145, yPosition);
                 yPosition += 4;
-              }
-              if (composition.tools.length > 2) {
-                doc.text(`      ... y ${composition.tools.length - 2} herramientas mas`, margin + 30, yPosition);
-                yPosition += 4;
-              }
+              });
             }
           } else {
             // Análisis estimado si no hay composición
