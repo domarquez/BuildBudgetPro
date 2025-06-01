@@ -106,7 +106,12 @@ export default function Activities() {
                       className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{activity.name}</h4>
+                        <h4 className="font-semibold text-gray-900">
+                          {activity.name
+                            .replace(/^ANÁLISIS DE PRECIOS UNITARIOS \(APU\) DE:\s*/i, '')
+                            .replace(/^APU DE:\s*/i, '')
+                          }
+                        </h4>
                         <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
                         <div className="flex items-center gap-4 mt-2">
                           <Badge variant="outline">
@@ -123,7 +128,10 @@ export default function Activities() {
                       {/* Botón Ver APU - ahora todas las actividades mostradas tienen composiciones */}
                       <ActivityDetailDialog
                         activityId={activity.id}
-                        activityName={activity.name}
+                        activityName={activity.name
+                          .replace(/^ANÁLISIS DE PRECIOS UNITARIOS \(APU\) DE:\s*/i, '')
+                          .replace(/^APU DE:\s*/i, '')
+                        }
                         unitPrice={activity.unitPrice || "0"}
                       >
                         <Button variant="outline" size="sm">
