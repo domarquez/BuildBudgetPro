@@ -99,10 +99,10 @@ export async function extractAndImportAllCompanies() {
     
     console.log(`✅ Parseadas ${empresas.length} empresas válidas`);
     
-    // Importar todas las empresas en lotes
+    // Importar todas las empresas en lotes muy pequeños
     let importedCount = 0;
     let errorCount = 0;
-    const batchSize = 10;
+    const batchSize = 5;
     
     for (let i = 0; i < empresas.length; i += batchSize) {
       const batch = empresas.slice(i, i + batchSize);
