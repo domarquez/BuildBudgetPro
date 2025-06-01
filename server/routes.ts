@@ -422,9 +422,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/budget-items/:budgetId", async (req, res) => {
+  app.get("/api/budget-items", async (req, res) => {
     try {
-      const items = await storage.getBudgetItems(Number(req.params.budgetId));
+      const { budgetId } = req.query;
+      if (!budgetId) {
+        return res.status(400).json({ message: "budgetId parameter is required" });
+      }
+      const items = await storage.getBudgetItems(Number(budgetId));
       res.json(items);
     } catch (error) {
       console.error("Error fetching budget items:", error);

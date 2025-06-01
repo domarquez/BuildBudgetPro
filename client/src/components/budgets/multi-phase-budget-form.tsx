@@ -128,6 +128,63 @@ export default function MultiphaseBudgetForm({ budget, onClose }: MultiphaseBudg
     queryKey: ["/api/activities"],
   });
 
+  // Cargar elementos del presupuesto si estamos editando
+  const { data: budgetItems } = useQuery({
+    queryKey: ["/api/budget-items", budget?.id],
+    queryFn: async () => {
+      if (!budget?.id) return [];
+      const response = await fetch(`/api/budget-items?budgetId=${budget.id}`);
+      if (!response.ok) throw new Error('Failed to fetch budget items');
+      return response.json();
+    },
+    enabled: !!budget?.id,
+  });
+
+  // Cargar datos existentes al editar
+  useEffect(() => {
+    if (budget && budgetItems && allActivities && constructionPhases) {
+      setCurrentProject(budget.project);
+      
+      // Organizar elementos por fases
+      const phaseGroups: Record<number, BudgetItemData[]> = {};
+      
+      budgetItems.forEach((item: any) => {
+        if (!item.phaseId) return;
+        
+        if (!phaseGroups[item.phaseId]) {
+          phaseGroups[item.phaseId] = [];
+        }
+        
+        const activity = allActivities.find(a => a.id === item.activityId);
+        
+        phaseGroups[item.phaseId].push({
+          id: item.id.toString(),
+          activityId: item.activityId,
+          activity,
+          quantity: parseFloat(item.quantity),
+          unitPrice: parseFloat(item.unitPrice),
+          subtotal: parseFloat(item.subtotal),
+        });
+      });
+      
+      // Crear estructura de fases
+      const loadedPhases: PhaseData[] = Object.entries(phaseGroups).map(([phaseId, items]) => {
+        const phase = constructionPhases.find(p => p.id === parseInt(phaseId));
+        const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+        
+        return {
+          phaseId: parseInt(phaseId),
+          phase,
+          items,
+          total,
+        };
+      });
+      
+      setPhases(loadedPhases);
+      setSelectedPhases(loadedPhases.map(p => p.phaseId));
+    }
+  }, [budget, budgetItems, allActivities, constructionPhases]);
+
   // Crear proyecto
   const createProjectMutation = useMutation({
     mutationFn: async (data: ProjectFormData) => {
