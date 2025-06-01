@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { activityCompositions, projects } from "@shared/schema";
+import { activities, activityCompositions, projects } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export interface APUCalculationResult {
@@ -151,10 +151,13 @@ export async function calculateAPUPrice(
 export async function updateActivityUnitPrice(activityId: number, projectId?: number): Promise<number> {
   const calculation = await calculateAPUPrice(activityId, projectId);
   
-  // Actualizar el precio en la base de datos
-  await db.update(activityCompositions)
-    .set({ updatedAt: new Date() })
-    .where(eq(activityCompositions.activityId, activityId));
+  // Actualizar el precio en la tabla de actividades
+  await db.update(activities)
+    .set({ 
+      unitPrice: calculation.totalUnitPrice.toFixed(2),
+      updatedAt: new Date() 
+    })
+    .where(eq(activities.id, activityId));
 
   return calculation.totalUnitPrice;
 }
