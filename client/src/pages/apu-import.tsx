@@ -192,9 +192,19 @@ export default function APUImport() {
                 >
                   {reorganizeActivities.isPending ? "Reorganizando..." : "Reorganizar Actividades por Fases"}
                 </Button>
+
+                <Button 
+                  onClick={handleCalculatePrices}
+                  disabled={calculatePrices.isPending}
+                  variant="outline"
+                  className="w-full md:w-auto border-green-300 text-green-700 hover:bg-green-50"
+                >
+                  {calculatePrices.isPending ? "Calculando..." : "Calcular Precios de Todas las Actividades"}
+                </Button>
                 
-                <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg">
+                <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg space-y-1">
                   <p><strong>Reorganizar:</strong> Distribuye las actividades importadas en las fases correctas según su tipo (demolición → preliminares, vidrios → acabados, etc.)</p>
+                  <p><strong>Calcular Precios:</strong> Actualiza automáticamente los precios unitarios de todas las actividades basándose en sus composiciones importadas (materiales + mano de obra).</p>
                 </div>
               </div>
 
