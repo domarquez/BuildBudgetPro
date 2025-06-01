@@ -1125,6 +1125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               city: offer.supplier.city,
               membershipType: offer.supplier.membershipType,
               rating: offer.supplier.rating ? parseFloat(offer.supplier.rating.toString()) : 0,
+              speciality: offer.supplier.speciality,
               phone: offer.supplier.phone,
               website: offer.supplier.website
             },

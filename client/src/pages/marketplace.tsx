@@ -36,6 +36,7 @@ interface MaterialWithOffers {
       city: string;
       membershipType: string;
       rating: number;
+      speciality?: string;
       phone?: string;
       website?: string;
     };
@@ -49,6 +50,28 @@ interface MaterialCategory {
   id: number;
   name: string;
 }
+
+// Función para convertir códigos de especialidad en etiquetas legibles
+const getSpecialityLabel = (speciality: string): string => {
+  const specialities: Record<string, string> = {
+    acero: "Acero para Construcción",
+    aluminio: "Aluminio",
+    cemento: "Cemento y Hormigón",
+    agua: "Agua y Saneamiento",
+    electricos: "Materiales Eléctricos",
+    ceramicos: "Cerámicos y Pisos",
+    maderas: "Maderas",
+    pinturas: "Pinturas y Acabados",
+    plomeria: "Plomería y Gasfitería",
+    prefabricados: "Elementos Prefabricados",
+    herramientas: "Herramientas y Equipos",
+    seguridad: "Seguridad Industrial",
+    aislantes: "Materiales Aislantes",
+    vidrios: "Vidrios y Cristales",
+    general: "General/Varios"
+  };
+  return specialities[speciality] || speciality;
+};
 
 export default function Marketplace() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -222,10 +245,15 @@ export default function Marketplace() {
                     return (
                       <div key={offer.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-3">
-                          <div className="flex items-center gap-2">
-                            <Store className="w-4 h-4 text-gray-600" />
-                            <span className="font-medium text-sm">{offer.supplier.companyName}</span>
-                            {getMembershipBadge(offer.supplier.membershipType)}
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <Store className="w-4 h-4 text-gray-600" />
+                              <span className="font-medium text-sm">{offer.supplier.companyName}</span>
+                              {getMembershipBadge(offer.supplier.membershipType)}
+                            </div>
+                            {offer.supplier.speciality && (
+                              <span className="text-xs text-gray-500 ml-6">{getSpecialityLabel(offer.supplier.speciality)}</span>
+                            )}
                           </div>
                           {savings > 0 && (
                             <Badge className="bg-red-500 text-white text-xs">
