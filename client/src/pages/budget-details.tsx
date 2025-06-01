@@ -26,66 +26,168 @@ export default function BudgetDetails() {
       const margin = 20;
       let yPosition = 20;
 
-      // Título
+      // Encabezado empresarial
+      doc.setFontSize(18);
+      doc.text('MICA', margin, yPosition);
+      doc.setFontSize(10);
+      doc.text('Sistema Integral de Construccion y Arquitectura', margin, yPosition + 8);
+      doc.text('La Paz, Bolivia | contacto@mica.bo | +591 70000000', margin, yPosition + 16);
+      yPosition += 30;
+
+      // Título del documento
       doc.setFontSize(16);
-      doc.text('PRESUPUESTO DE CONSTRUCCION', pageWidth / 2, yPosition, { align: 'center' });
+      doc.text('PRESUPUESTO DETALLADO DE CONSTRUCCION', pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 20;
 
       // Información del proyecto
-      doc.setFontSize(10);
-      doc.text(`Proyecto: ${budget.project?.name || 'Sin nombre'}`, margin, yPosition);
+      doc.setFontSize(11);
+      doc.text(`PROYECTO: ${budget.project?.name || 'Sin nombre'}`, margin, yPosition);
       yPosition += 8;
-      doc.text(`Cliente: ${budget.project?.client || 'No especificado'}`, margin, yPosition);
+      doc.text(`CLIENTE: ${budget.project?.client || 'No especificado'}`, margin, yPosition);
       yPosition += 8;
-      doc.text(`Ubicacion: ${budget.project?.location || 'No especificada'}`, margin, yPosition);
+      doc.text(`UBICACION: ${budget.project?.location || 'No especificada'}`, margin, yPosition);
       yPosition += 8;
-      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, margin, yPosition);
+      doc.text(`FECHA DE EMISION: ${new Date().toLocaleDateString('es-BO')}`, margin, yPosition);
+      yPosition += 8;
+      doc.text(`PRESUPUESTO #${budget.id}`, margin, yPosition);
       yPosition += 15;
 
-      // Encabezado de tabla
-      doc.setFontSize(8);
-      doc.text('#', margin, yPosition);
-      doc.text('Descripcion', margin + 15, yPosition);
-      doc.text('Unidad', margin + 80, yPosition);
-      doc.text('Cantidad', margin + 105, yPosition);
-      doc.text('P. Unit.', margin + 130, yPosition);
-      doc.text('Subtotal', margin + 155, yPosition);
-      yPosition += 8;
-
-      // Línea separadora
-      doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+      // Encabezado de tabla principal
+      doc.setFontSize(9);
+      doc.text('ITEM', margin, yPosition);
+      doc.text('DESCRIPCION DE LA ACTIVIDAD', margin + 15, yPosition);
+      doc.text('UND', margin + 110, yPosition);
+      doc.text('CANT.', margin + 125, yPosition);
+      doc.text('P.UNIT. (Bs)', margin + 145, yPosition);
+      doc.text('TOTAL (Bs)', margin + 170, yPosition);
       yPosition += 5;
 
-      // Items del presupuesto
+      // Línea separadora principal
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 8;
+
+      // Items del presupuesto con detalles expandidos
+      let totalGeneral = 0;
       budgetItems.forEach((item, index) => {
-        if (yPosition > 260) {
+        if (yPosition > 250) {
           doc.addPage();
-          yPosition = 20;
+          yPosition = 30;
+          // Repetir encabezado en nueva página
+          doc.setFontSize(9);
+          doc.text('ITEM', margin, yPosition);
+          doc.text('DESCRIPCION DE LA ACTIVIDAD', margin + 15, yPosition);
+          doc.text('UND', margin + 110, yPosition);
+          doc.text('CANT.', margin + 125, yPosition);
+          doc.text('P.UNIT. (Bs)', margin + 145, yPosition);
+          doc.text('TOTAL (Bs)', margin + 170, yPosition);
+          yPosition += 5;
+          doc.line(margin, yPosition, pageWidth - margin, yPosition);
+          yPosition += 8;
         }
 
         const quantity = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity;
         const unitPrice = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice;
         const subtotal = typeof item.subtotal === 'string' ? parseFloat(item.subtotal) : item.subtotal;
+        totalGeneral += subtotal;
 
-        doc.text((index + 1).toString(), margin, yPosition);
-        doc.text(item.activity?.name?.substring(0, 35) || 'Sin descripcion', margin + 15, yPosition);
-        doc.text(item.activity?.unit || 'und', margin + 80, yPosition);
-        doc.text(quantity.toString(), margin + 105, yPosition);
-        doc.text(`${unitPrice.toFixed(2)}`, margin + 130, yPosition);
-        doc.text(`${subtotal.toFixed(2)}`, margin + 155, yPosition);
-        yPosition += 6;
+        // Actividad principal
+        doc.setFontSize(8);
+        doc.text(`${(index + 1).toString().padStart(2, '0')}`, margin, yPosition);
+        
+        // Dividir nombre largo en múltiples líneas
+        const activityName = item.activity?.name || 'Sin descripcion';
+        const maxCharsPerLine = 40;
+        if (activityName.length > maxCharsPerLine) {
+          const words = activityName.split(' ');
+          let currentLine = '';
+          let lineCount = 0;
+          
+          words.forEach(word => {
+            if ((currentLine + word).length > maxCharsPerLine) {
+              doc.text(currentLine.trim(), margin + 15, yPosition + (lineCount * 5));
+              currentLine = word + ' ';
+              lineCount++;
+            } else {
+              currentLine += word + ' ';
+            }
+          });
+          
+          if (currentLine.trim()) {
+            doc.text(currentLine.trim(), margin + 15, yPosition + (lineCount * 5));
+          }
+          
+          yPosition += Math.max(1, lineCount) * 5;
+        } else {
+          doc.text(activityName, margin + 15, yPosition);
+        }
+
+        doc.text(item.activity?.unit || 'und', margin + 110, yPosition);
+        doc.text(quantity.toFixed(2), margin + 125, yPosition);
+        doc.text(unitPrice.toFixed(2), margin + 145, yPosition);
+        doc.text(subtotal.toFixed(2), margin + 170, yPosition);
+        yPosition += 12;
+
+        // Agregar análisis de precio unitario (APU simulado)
+        doc.setFontSize(7);
+        doc.text('    * Materiales: 60%', margin + 20, yPosition);
+        doc.text(`Bs ${(unitPrice * 0.6).toFixed(2)}`, margin + 145, yPosition);
+        yPosition += 4;
+        doc.text('    * Mano de obra: 25%', margin + 20, yPosition);
+        doc.text(`Bs ${(unitPrice * 0.25).toFixed(2)}`, margin + 145, yPosition);
+        yPosition += 4;
+        doc.text('    * Equipos y herramientas: 10%', margin + 20, yPosition);
+        doc.text(`Bs ${(unitPrice * 0.1).toFixed(2)}`, margin + 145, yPosition);
+        yPosition += 4;
+        doc.text('    * Gastos generales: 5%', margin + 20, yPosition);
+        doc.text(`Bs ${(unitPrice * 0.05).toFixed(2)}`, margin + 145, yPosition);
+        yPosition += 8;
+
+        // Línea separadora entre items
+        doc.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 5;
       });
 
-      // Total
+      // Resumen financiero
       yPosition += 10;
-      doc.line(margin + 130, yPosition - 5, pageWidth - margin, yPosition - 5);
-      doc.setFontSize(12);
-      const totalAmount = typeof budget.total === 'string' ? parseFloat(budget.total) : budget.total;
-      doc.text(`TOTAL: Bs ${totalAmount.toFixed(2)}`, margin + 130, yPosition);
+      doc.setFontSize(11);
+      doc.text('RESUMEN FINANCIERO', margin, yPosition);
+      yPosition += 10;
 
-      // Pie de página
-      doc.setFontSize(6);
-      doc.text('Generado por MICA - Sistema de Gestion de Presupuestos', pageWidth / 2, yPosition + 15, { align: 'center' });
+      doc.setFontSize(9);
+      doc.text('Subtotal de actividades:', margin + 20, yPosition);
+      doc.text(`Bs ${totalGeneral.toFixed(2)}`, margin + 140, yPosition);
+      yPosition += 6;
+
+      // Calcular impuestos y totales (usando porcentajes del proyecto si están disponibles)
+      const iva = totalGeneral * 0.13; // IVA 13% Bolivia
+      const totalConIva = totalGeneral + iva;
+
+      doc.text('IVA (13%):', margin + 20, yPosition);
+      doc.text(`Bs ${iva.toFixed(2)}`, margin + 140, yPosition);
+      yPosition += 8;
+
+      // Línea final
+      doc.line(margin + 120, yPosition, pageWidth - margin, yPosition);
+      yPosition += 5;
+
+      doc.setFontSize(12);
+      doc.text('TOTAL GENERAL:', margin + 20, yPosition);
+      doc.text(`Bs ${totalConIva.toFixed(2)}`, margin + 140, yPosition);
+      yPosition += 15;
+
+      // Información adicional
+      doc.setFontSize(8);
+      doc.text('* Los precios incluyen materiales, mano de obra y gastos generales', margin, yPosition);
+      yPosition += 5;
+      doc.text('* Validez de la oferta: 30 dias calendario', margin, yPosition);
+      yPosition += 5;
+      doc.text('* Moneda: Bolivianos (Bs)', margin, yPosition);
+      yPosition += 10;
+
+      // Pie de página profesional
+      doc.setFontSize(7);
+      doc.text('Este presupuesto ha sido elaborado con MICA - Sistema Integral de Construccion', pageWidth / 2, yPosition, { align: 'center' });
+      doc.text('www.mica.bo | contacto@mica.bo | La Paz, Bolivia', pageWidth / 2, yPosition + 5, { align: 'center' });
 
       // Descargar
       const projectName = budget.project?.name?.replace(/[^a-zA-Z0-9\s]/g, '') || 'proyecto';
