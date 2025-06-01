@@ -651,6 +651,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get composition breakdown for a specific activity (for PDF generation)
+  app.get("/api/activities/:id/composition", async (req, res) => {
+    try {
+      const activityId = Number(req.params.id);
+      const compositions = await storage.getActivityCompositionsByActivity(activityId);
+      
+      // Agrupar por tipo para el PDF
+      const materials = compositions.filter(c => c.type === 'material');
+      const labor = compositions.filter(c => c.type === 'labor');
+      const tools = compositions.filter(c => c.type === 'tool');
+      
+      res.json({
+        materials: materials.map(m => ({
+          description: m.description,
+          unit: m.unit,
+          quantity: parseFloat(m.quantity),
+          unitPrice: parseFloat(m.unitCost)
+        })),
+        labor: labor.map(l => ({
+          description: l.description,
+          unit: l.unit,
+          quantity: parseFloat(l.quantity),
+          unitPrice: parseFloat(l.unitCost)
+        })),
+        tools: tools.map(t => ({
+          description: t.description,
+          unit: t.unit,
+          quantity: parseFloat(t.quantity),
+          unitPrice: parseFloat(t.unitCost)
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching activity composition:", error);
+      res.status(500).json({ message: "Failed to fetch activity composition" });
+    }
+  });
+
   // Price settings routes (Admin only)
   app.get("/api/price-settings", requireAdmin, async (req, res) => {
     try {
