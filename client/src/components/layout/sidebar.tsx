@@ -145,20 +145,27 @@ export default function AppSidebar() {
                 }
                 // Usuarios normales y admin ven todo excepto reportes
                 return item.title !== "Reportes";
-              }).map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    className="w-full"
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="w-4 h-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              }).map((item) => {
+                // Redirect supplier companies to their specific dashboard
+                const url = (user as any)?.userType === "supplier" && item.title === "Panel Principal" 
+                  ? "/supplier-dashboard" 
+                  : item.url;
+                
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(url)}
+                      className="w-full"
+                    >
+                      <Link href={url}>
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
