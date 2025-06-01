@@ -1657,58 +1657,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No se proporcionó archivo PDF" });
       }
 
-      const fs = require('fs').promises;
-      const path = require('path');
-      const pdfPoppler = require('pdf-poppler');
+      const fs = await import('fs');
+      const path = await import('path');
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      
+      const execAsync = promisify(exec);
       
       // Guardar el archivo temporalmente
       const tempFilePath = path.join('/tmp', `pdf_${Date.now()}.pdf`);
-      await fs.writeFile(tempFilePath, req.file.buffer);
+      await fs.promises.writeFile(tempFilePath, req.file.buffer);
 
       try {
-        // Convertir PDF a imágenes y extraer texto
-        const options = {
-          format: 'png',
-          out_dir: '/tmp',
-          out_prefix: `pdf_extract_${Date.now()}`,
-          page: null // Procesar todas las páginas
-        };
-
-        const convertResult = await pdfPoppler.convert(tempFilePath, options);
+        // Usar pdftotext para extraer texto del PDF
+        const { stdout } = await execAsync(`pdftotext "${tempFilePath}" -`);
         
-        // Para esta implementación, vamos a procesar el texto directamente
-        // usando una implementación más robusta
-        const { exec } = require('child_process');
-        const { promisify } = require('util');
-        const execAsync = promisify(exec);
+        res.json({ 
+          text: stdout,
+          pages: 1,
+          info: { title: "PDF Extraído" }
+        });
         
-        try {
-          const { stdout } = await execAsync(`pdftotext "${tempFilePath}" -`);
-          
-          res.json({ 
-            text: stdout,
-            pages: 1,
-            info: { title: "PDF Extraído" }
-          });
-        } catch (pdfTextError) {
-          // Si pdftotext no está disponible, usar método alternativo
-          console.log("pdftotext no disponible, usando método alternativo");
-          
-          // Leer el archivo como buffer y intentar extraer texto básico
-          const pdfBuffer = await fs.readFile(tempFilePath);
-          const textFromBuffer = pdfBuffer.toString('utf8');
-          
-          res.json({ 
-            text: textFromBuffer,
-            pages: 1,
-            info: { title: "PDF Extraído (método alternativo)" }
-          });
+      } catch (pdfTextError) {
+        console.log("Error con pdftotext:", pdfTextError.message);
+        
+        // Método alternativo: leer el buffer directamente
+        const pdfBuffer = await fs.promises.readFile(tempFilePath);
+        let extractedText = '';
+        
+        // Buscar patrones de texto en el buffer
+        const bufferString = pdfBuffer.toString('binary');
+        const textMatches = bufferString.match(/[A-Za-z0-9\s\.\,\;\:\!\?\-\(\)@]+/g);
+        
+        if (textMatches) {
+          extractedText = textMatches
+            .filter(text => text.trim().length > 2)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
         }
         
+        res.json({ 
+          text: extractedText || "No se pudo extraer texto del PDF",
+          pages: 1,
+          info: { title: "PDF Extraído (método alternativo)" }
+        });
       } finally {
         // Limpiar archivo temporal
         try {
-          await fs.unlink(tempFilePath);
+          await fs.promises.unlink(tempFilePath);
         } catch (cleanupError) {
           console.log("Error limpiando archivo temporal:", cleanupError);
         }
