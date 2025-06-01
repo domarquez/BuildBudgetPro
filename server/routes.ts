@@ -7,7 +7,8 @@ import {
   insertProjectSchema,
   insertBudgetSchema,
   insertBudgetItemSchema,
-  insertActivityCompositionSchema
+  insertActivityCompositionSchema,
+  insertCityPriceFactorSchema
 } from "@shared/schema";
 import { z } from "zod";
 

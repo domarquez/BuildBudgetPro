@@ -11,6 +11,7 @@ import Budgets from "@/pages/budgets";
 import BudgetDetails from "@/pages/budget-details";
 import PriceSettings from "@/pages/price-settings";
 import APUImport from "@/pages/apu-import";
+import CityFactors from "@/pages/city-factors";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import NotFound from "@/pages/not-found";
@@ -62,6 +63,7 @@ function AuthenticatedLayout() {
               <Route path="/budgets/:id" component={BudgetDetails} />
               <Route path="/price-settings" component={PriceSettings} />
               <Route path="/apu-import" component={APUImport} />
+              <Route path="/city-factors" component={CityFactors} />
               <Route component={NotFound} />
             </Switch>
           </main>
