@@ -47,7 +47,7 @@ export default function Login() {
           <div className="mx-auto w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
             <Construction className="w-6 h-6 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold">ConstructPro</CardTitle>
+          <CardTitle className="text-2xl font-bold">MICA</CardTitle>
           <CardDescription>
             Sistema de presupuestos de construcción
           </CardDescription>
