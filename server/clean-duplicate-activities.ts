@@ -1,82 +1,65 @@
 import { db } from "./db";
 import { activities, budgetItems, activityCompositions } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql, not, like } from "drizzle-orm";
 
 export async function cleanDuplicateActivities() {
-  console.log("🧹 Calculando precios para actividades sin precio...");
+  console.log("🧹 Eliminando actividades que no son de la importación APU...");
   
   try {
-    // Importar la función de cálculo APU
-    const { updateActivityUnitPrice } = await import("./apu-calculator");
-    
-    // Obtener actividades sin precio
-    const activitiesWithoutPrice = await db.select()
+    // Obtener actividades que NO son de la importación APU (no tienen "APU" en el nombre)
+    const activitiesWithoutAPU = await db.select()
       .from(activities)
-      .where(eq(activities.unitPrice, "0.00"));
+      .where(not(like(activities.name, '%APU%')));
     
-    console.log(`📋 Actividades sin precio encontradas: ${activitiesWithoutPrice.length}`);
+    console.log(`📋 Actividades antiguas encontradas: ${activitiesWithoutAPU.length}`);
     
-    let calculatedCount = 0;
-    let skippedCount = 0;
+    let deletedCount = 0;
+    let keptCount = 0;
     
-    for (const activity of activitiesWithoutPrice) {
-      console.log(`🔍 Calculando precio para: ${activity.name}`);
+    for (const activity of activitiesWithoutAPU) {
+      console.log(`🔍 Analizando: ${activity.name}`);
       
-      // Verificar si tiene composiciones
-      const compositionsCount = await db.select()
-        .from(activityCompositions)
-        .where(eq(activityCompositions.activityId, activity.id));
+      // Verificar si esta actividad tiene presupuestos asociados
+      const budgetItemsCount = await db.select()
+        .from(budgetItems)
+        .where(eq(budgetItems.activityId, activity.id));
       
-      if (compositionsCount.length === 0) {
-        console.log(`   ⚠️ Sin composiciones - SALTANDO`);
-        skippedCount++;
+      if (budgetItemsCount.length > 0) {
+        console.log(`   ⚠️ Tiene ${budgetItemsCount.length} presupuestos asociados - MANTENIENDO`);
+        keptCount++;
         continue;
       }
       
-      try {
-        // Calcular el precio unitario usando el sistema APU
-        const newPrice = await updateActivityUnitPrice(activity.id);
-        
-        if (newPrice > 0) {
-          console.log(`   ✅ Precio calculado: ${newPrice.toFixed(2)} BOB`);
-          calculatedCount++;
-        } else {
-          console.log(`   ⚠️ No se pudo calcular precio válido`);
-          skippedCount++;
-        }
-      } catch (error) {
-        console.log(`   ❌ Error calculando precio: ${error}`);
-        skippedCount++;
-      }
+      // Eliminar las composiciones asociadas primero
+      await db.delete(activityCompositions)
+        .where(eq(activityCompositions.activityId, activity.id));
+      
+      // Eliminar la actividad
+      await db.delete(activities)
+        .where(eq(activities.id, activity.id));
+      
+      console.log(`   🗑️ ELIMINADO - No tiene presupuestos asociados`);
+      deletedCount++;
     }
     
     // Resumen final
     const finalActivities = await db.select().from(activities);
-    const finalWithoutPrice = finalActivities.filter(a => a.unitPrice === "0.00");
+    const onlyAPUActivities = finalActivities.filter(a => a.name.includes('APU'));
     
-    console.log("\n📊 RESUMEN DE CÁLCULO:");
-    console.log(`   • Actividades con precio calculado: ${calculatedCount}`);
-    console.log(`   • Actividades saltadas: ${skippedCount}`);
+    console.log("\n📊 RESUMEN DE LIMPIEZA:");
+    console.log(`   • Actividades eliminadas: ${deletedCount}`);
+    console.log(`   • Actividades mantenidas (con presupuestos): ${keptCount}`);
     console.log(`   • Total actividades después: ${finalActivities.length}`);
-    console.log(`   • Actividades sin precio restantes: ${finalWithoutPrice.length}`);
-    
-    // Mostrar actividades sin precio que quedaron
-    if (finalWithoutPrice.length > 0) {
-      console.log("\n📝 Actividades sin precio restantes:");
-      for (const activity of finalWithoutPrice) {
-        const compositions = await db.select().from(activityCompositions).where(eq(activityCompositions.activityId, activity.id));
-        console.log(`   • ${activity.name} (${compositions.length} composiciones)`);
-      }
-    }
+    console.log(`   • Actividades APU (válidas): ${onlyAPUActivities.length}`);
     
     return {
       success: true,
-      message: "Cálculo de precios completado",
+      message: "Limpieza de actividades completada",
       data: {
-        calculated: calculatedCount,
-        skipped: skippedCount,
+        deleted: deletedCount,
+        kept: keptCount,
         totalAfter: finalActivities.length,
-        withoutPriceRemaining: finalWithoutPrice.length
+        validAPUActivities: onlyAPUActivities.length
       }
     };
     
