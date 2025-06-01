@@ -92,8 +92,8 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
         // Recalculate subtotal when quantity, unitPrice, or activityId changes
         if (field === 'quantity' || field === 'unitPrice' || field === 'activityId') {
           updatedItem.subtotal = calculateSubtotal(
-            field === 'quantity' ? value : updatedItem.quantity,
-            field === 'unitPrice' ? value : updatedItem.unitPrice
+            updatedItem.quantity,
+            updatedItem.unitPrice
           );
         }
         
