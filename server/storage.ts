@@ -12,6 +12,8 @@ import {
   cityPriceFactors,
   supplierCompanies,
   materialSupplierPrices,
+  tools,
+  laborCategories,
   type User, 
   type InsertUser,
   type MaterialCategory,
@@ -43,7 +45,11 @@ import {
   type SupplierCompanyWithUser,
   type MaterialSupplierPrice,
   type InsertMaterialSupplierPrice,
-  type MaterialWithSupplierPrices
+  type MaterialWithSupplierPrices,
+  type Tool,
+  type InsertTool,
+  type LaborCategory,
+  type InsertLaborCategory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, like, ilike, and } from "drizzle-orm";
@@ -775,6 +781,62 @@ export class DatabaseStorage implements IStorage {
       .update(materialSupplierPrices)
       .set({ isActive: false })
       .where(eq(materialSupplierPrices.id, id));
+  }
+
+  // Tools management
+  async getTools(): Promise<Tool[]> {
+    const toolsList = await db.select().from(tools).where(eq(tools.isActive, true)).orderBy(tools.name);
+    return toolsList;
+  }
+
+  async getTool(id: number): Promise<Tool | undefined> {
+    const [tool] = await db.select().from(tools).where(eq(tools.id, id));
+    return tool;
+  }
+
+  async createTool(toolData: InsertTool): Promise<Tool> {
+    const [tool] = await db.insert(tools).values(toolData).returning();
+    return tool;
+  }
+
+  async updateTool(id: number, toolData: Partial<InsertTool>): Promise<Tool> {
+    const [tool] = await db.update(tools)
+      .set({ ...toolData, updatedAt: new Date() })
+      .where(eq(tools.id, id))
+      .returning();
+    return tool;
+  }
+
+  async deleteTool(id: number): Promise<void> {
+    await db.update(tools).set({ isActive: false }).where(eq(tools.id, id));
+  }
+
+  // Labor categories management
+  async getLaborCategories(): Promise<LaborCategory[]> {
+    const laborList = await db.select().from(laborCategories).where(eq(laborCategories.isActive, true)).orderBy(laborCategories.name);
+    return laborList;
+  }
+
+  async getLaborCategory(id: number): Promise<LaborCategory | undefined> {
+    const [labor] = await db.select().from(laborCategories).where(eq(laborCategories.id, id));
+    return labor;
+  }
+
+  async createLaborCategory(laborData: InsertLaborCategory): Promise<LaborCategory> {
+    const [labor] = await db.insert(laborCategories).values(laborData).returning();
+    return labor;
+  }
+
+  async updateLaborCategory(id: number, laborData: Partial<InsertLaborCategory>): Promise<LaborCategory> {
+    const [labor] = await db.update(laborCategories)
+      .set({ ...laborData, updatedAt: new Date() })
+      .where(eq(laborCategories.id, id))
+      .returning();
+    return labor;
+  }
+
+  async deleteLaborCategory(id: number): Promise<void> {
+    await db.update(laborCategories).set({ isActive: false }).where(eq(laborCategories.id, id));
   }
 }
 

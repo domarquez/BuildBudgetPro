@@ -935,6 +935,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============== TOOLS ROUTES ===============
+  
+  app.get("/api/tools", async (req, res) => {
+    try {
+      const tools = await storage.getTools();
+      res.json(tools);
+    } catch (error) {
+      console.error("Error fetching tools:", error);
+      res.status(500).json({ message: "Failed to fetch tools" });
+    }
+  });
+
+  app.get("/api/tools/:id", async (req, res) => {
+    try {
+      const tool = await storage.getTool(Number(req.params.id));
+      if (!tool) {
+        return res.status(404).json({ message: "Tool not found" });
+      }
+      res.json(tool);
+    } catch (error) {
+      console.error("Error fetching tool:", error);
+      res.status(500).json({ message: "Failed to fetch tool" });
+    }
+  });
+
+  app.post("/api/tools", requireAuth, async (req, res) => {
+    try {
+      const toolData = insertToolSchema.parse(req.body);
+      const tool = await storage.createTool(toolData);
+      res.status(201).json(tool);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid tool data", errors: error.errors });
+      }
+      console.error("Error creating tool:", error);
+      res.status(500).json({ message: "Failed to create tool" });
+    }
+  });
+
+  app.put("/api/tools/:id", requireAuth, async (req, res) => {
+    try {
+      const toolData = insertToolSchema.partial().parse(req.body);
+      const tool = await storage.updateTool(Number(req.params.id), toolData);
+      res.json(tool);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid tool data", errors: error.errors });
+      }
+      console.error("Error updating tool:", error);
+      res.status(500).json({ message: "Failed to update tool" });
+    }
+  });
+
+  app.delete("/api/tools/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteTool(Number(req.params.id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting tool:", error);
+      res.status(500).json({ message: "Failed to delete tool" });
+    }
+  });
+
+  // =============== LABOR CATEGORIES ROUTES ===============
+  
+  app.get("/api/labor-categories", async (req, res) => {
+    try {
+      const laborCategories = await storage.getLaborCategories();
+      res.json(laborCategories);
+    } catch (error) {
+      console.error("Error fetching labor categories:", error);
+      res.status(500).json({ message: "Failed to fetch labor categories" });
+    }
+  });
+
+  app.get("/api/labor-categories/:id", async (req, res) => {
+    try {
+      const laborCategory = await storage.getLaborCategory(Number(req.params.id));
+      if (!laborCategory) {
+        return res.status(404).json({ message: "Labor category not found" });
+      }
+      res.json(laborCategory);
+    } catch (error) {
+      console.error("Error fetching labor category:", error);
+      res.status(500).json({ message: "Failed to fetch labor category" });
+    }
+  });
+
+  app.post("/api/labor-categories", requireAuth, async (req, res) => {
+    try {
+      const laborData = insertLaborCategorySchema.parse(req.body);
+      const laborCategory = await storage.createLaborCategory(laborData);
+      res.status(201).json(laborCategory);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid labor category data", errors: error.errors });
+      }
+      console.error("Error creating labor category:", error);
+      res.status(500).json({ message: "Failed to create labor category" });
+    }
+  });
+
+  app.put("/api/labor-categories/:id", requireAuth, async (req, res) => {
+    try {
+      const laborData = insertLaborCategorySchema.partial().parse(req.body);
+      const laborCategory = await storage.updateLaborCategory(Number(req.params.id), laborData);
+      res.json(laborCategory);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid labor category data", errors: error.errors });
+      }
+      console.error("Error updating labor category:", error);
+      res.status(500).json({ message: "Failed to update labor category" });
+    }
+  });
+
+  app.delete("/api/labor-categories/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteLaborCategory(Number(req.params.id));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting labor category:", error);
+      res.status(500).json({ message: "Failed to delete labor category" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
