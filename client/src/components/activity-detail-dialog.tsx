@@ -8,9 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -20,7 +18,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Wrench, Users, Package } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Package, Users, Wrench } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { ActivityComposition } from "@shared/schema";
 
@@ -59,17 +58,10 @@ export default function ActivityDetailDialog({
     enabled: open && activityId > 0,
   });
 
-  const priceValue = parseFloat(unitPrice || "0");
-
-  // Group compositions by type
+  // Group compositions by type for detailed tables
   const materials = compositions?.filter(c => c.type === 'material') || [];
   const labor = compositions?.filter(c => c.type === 'labor') || [];
   const equipment = compositions?.filter(c => c.type === 'equipment') || [];
-
-  const materialsTotal = materials.reduce((sum, item) => sum + (parseFloat(item.quantity) * parseFloat(item.unitCost)), 0);
-  const laborTotal = labor.reduce((sum, item) => sum + (parseFloat(item.quantity) * parseFloat(item.unitCost)), 0);
-  const equipmentTotal = equipment.reduce((sum, item) => sum + (parseFloat(item.quantity) * parseFloat(item.unitCost)), 0);
-  const directTotal = materialsTotal + laborTotal + equipmentTotal;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -208,14 +200,10 @@ export default function ActivityDetailDialog({
             </Card>
           )}
 
-          {isLoading ? (
+          {/* Detailed Compositions Tables */}
+          {compositions && compositions.length > 0 && (
             <div className="space-y-4">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-32 w-full" />
-            </div>
-          ) : compositions?.length ? (
-            <div className="space-y-6">
-              {/* Materials */}
+              {/* Materials Detail */}
               {materials.length > 0 && (
                 <Card>
                   <CardHeader>
@@ -248,19 +236,13 @@ export default function ActivityDetailDialog({
                             </TableCell>
                           </TableRow>
                         ))}
-                        <TableRow className="border-t-2">
-                          <TableCell colSpan={4} className="font-semibold">Subtotal Materiales:</TableCell>
-                          <TableCell className="text-right font-semibold text-blue-600">
-                            {formatCurrency(materialsTotal)}
-                          </TableCell>
-                        </TableRow>
                       </TableBody>
                     </Table>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Labor */}
+              {/* Labor Detail */}
               {labor.length > 0 && (
                 <Card>
                   <CardHeader>
@@ -293,25 +275,19 @@ export default function ActivityDetailDialog({
                             </TableCell>
                           </TableRow>
                         ))}
-                        <TableRow className="border-t-2">
-                          <TableCell colSpan={4} className="font-semibold">Subtotal Mano de Obra:</TableCell>
-                          <TableCell className="text-right font-semibold text-green-600">
-                            {formatCurrency(laborTotal)}
-                          </TableCell>
-                        </TableRow>
                       </TableBody>
                     </Table>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Equipment */}
+              {/* Equipment Detail */}
               {equipment.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
                       <Wrench className="w-4 h-4 text-orange-600" />
-                      Equipos y Herramientas
+                      Equipos
                       <Badge variant="outline">{equipment.length} items</Badge>
                     </CardTitle>
                   </CardHeader>
@@ -338,41 +314,20 @@ export default function ActivityDetailDialog({
                             </TableCell>
                           </TableRow>
                         ))}
-                        <TableRow className="border-t-2">
-                          <TableCell colSpan={4} className="font-semibold">Subtotal Equipos:</TableCell>
-                          <TableCell className="text-right font-semibold text-orange-600">
-                            {formatCurrency(equipmentTotal)}
-                          </TableCell>
-                        </TableRow>
                       </TableBody>
                     </Table>
                   </CardContent>
                 </Card>
               )}
-
-              {/* Total Summary */}
-              <Card className="border-2 border-primary/20">
-                <CardContent className="pt-6">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Costo Directo:</span>
-                      <span className="font-medium">{formatCurrency(directTotal)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Costos Indirectos e Impuestos:</span>
-                      <span className="font-medium">{formatCurrency(priceValue - directTotal)}</span>
-                    </div>
-                    <div className="border-t pt-2">
-                      <div className="flex justify-between text-lg font-semibold">
-                        <span>Precio Unitario Total:</span>
-                        <span className="text-primary">{formatCurrency(priceValue)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
-          ) : (
+          )}
+
+          {isLoading || calculationLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          ) : !apuCalculation ? (
             <Card>
               <CardContent className="py-8 text-center text-gray-500">
                 <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -380,7 +335,7 @@ export default function ActivityDetailDialog({
                 <p className="text-sm">Las composiciones se importan desde los APU de insucons.com</p>
               </CardContent>
             </Card>
-          )}
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
