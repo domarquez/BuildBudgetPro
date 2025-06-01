@@ -88,16 +88,18 @@ export const budgetItems = pgTable("budget_items", {
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
 });
 
-// Composiciones de actividades - materiales y mano de obra que conforman cada actividad
+// Composiciones de actividades - materiales, mano de obra y herramientas que conforman cada actividad
 export const activityCompositions = pgTable("activity_compositions", {
   id: serial("id").primaryKey(),
   activityId: integer("activity_id").notNull().references(() => activities.id),
-  materialId: integer("material_id").references(() => materials.id), // null para mano de obra
-  description: text("description").notNull(), // ej: "Mano de obra especializada", "Cemento Portland"
+  materialId: integer("material_id").references(() => materials.id), // null para mano de obra y herramientas
+  laborId: integer("labor_id").references(() => laborCategories.id), // null para materiales y herramientas
+  toolId: integer("tool_id").references(() => tools.id), // null para materiales y mano de obra
+  description: text("description").notNull(), // ej: "Mano de obra especializada", "Cemento Portland", "Retroexcavadora"
   unit: text("unit").notNull(),
   quantity: decimal("quantity", { precision: 10, scale: 4 }).notNull(), // rendimiento por unidad de actividad
   unitCost: decimal("unit_cost", { precision: 10, scale: 2 }).notNull(),
-  type: text("type").notNull(), // 'material' o 'labor'
+  type: text("type").notNull(), // 'material', 'labor', 'tool'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -216,6 +218,22 @@ export const activityCompositionsRelations = relations(activityCompositions, ({ 
     fields: [activityCompositions.materialId],
     references: [materials.id],
   }),
+  labor: one(laborCategories, {
+    fields: [activityCompositions.laborId],
+    references: [laborCategories.id],
+  }),
+  tool: one(tools, {
+    fields: [activityCompositions.toolId],
+    references: [tools.id],
+  }),
+}));
+
+export const toolsRelations = relations(tools, ({ many }) => ({
+  compositions: many(activityCompositions),
+}));
+
+export const laborCategoriesRelations = relations(laborCategories, ({ many }) => ({
+  compositions: many(activityCompositions),
 }));
 
 export const materialsRelations = relations(materials, ({ one }) => ({
@@ -363,6 +381,18 @@ export const insertMaterialSupplierPriceSchema = createInsertSchema(materialSupp
   minimumQuantity: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
+export const insertToolSchema = createInsertSchema(tools).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLaborCategorySchema = createInsertSchema(laborCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -429,4 +459,15 @@ export type MaterialWithSupplierPrices = Material & {
   supplierPrices: (MaterialSupplierPrice & {
     supplier: SupplierCompany;
   })[];
+};
+
+export type Tool = typeof tools.$inferSelect;
+export type InsertTool = z.infer<typeof insertToolSchema>;
+export type LaborCategory = typeof laborCategories.$inferSelect;
+export type InsertLaborCategory = z.infer<typeof insertLaborCategorySchema>;
+
+export type ActivityCompositionWithDetails = ActivityComposition & {
+  material?: Material;
+  labor?: LaborCategory;
+  tool?: Tool;
 };
