@@ -61,6 +61,9 @@ export default function CompanyAdvertising() {
     endDate: "",
   });
 
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const { data: advertisements, isLoading } = useQuery<CompanyAdvertisement[]>({
     queryKey: ["/api/advertisements"],
   });
@@ -107,6 +110,41 @@ export default function CompanyAdvertising() {
     },
   });
 
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload-advertisement-image', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Error uploading image');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setFormData(prev => ({ ...prev, imageUrl: data.imageUrl }));
+      setSelectedFile(null);
+      toast({
+        title: "Imagen subida",
+        description: "La imagen ha sido procesada y optimizada exitosamente.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo subir la imagen.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       title: "",
@@ -118,6 +156,7 @@ export default function CompanyAdvertising() {
       endDate: "",
     });
     setEditingAd(null);
+    setSelectedFile(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -142,6 +181,37 @@ export default function CompanyAdvertising() {
   const handleDelete = (id: number) => {
     if (confirm("¿Está seguro de que desea eliminar esta publicidad?")) {
       deleteMutation.mutate(id);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "La imagen no puede superar los 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Solo se permiten archivos de imagen.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setSelectedFile(file);
+    }
+  };
+
+  const handleUploadImage = () => {
+    if (selectedFile) {
+      uploadImageMutation.mutate(selectedFile);
     }
   };
 
@@ -360,18 +430,74 @@ export default function CompanyAdvertising() {
               </div>
 
               <div className="md:col-span-2">
-                <Label htmlFor="imageUrl">URL de la Imagen *</Label>
-                <Input
-                  id="imageUrl"
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Sube tu imagen a un servicio como Imgur o utiliza la URL de tu sitio web
-                </p>
+                <Label htmlFor="imageUrl">Imagen del Anuncio *</Label>
+                
+                {/* File Upload Section */}
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+                    <div className="text-center">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="mt-4">
+                        <Label htmlFor="file-upload" className="cursor-pointer">
+                          <span className="mt-2 block text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Sube una imagen
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            JPG, PNG hasta 5MB (se redimensionará automáticamente a 400x400px)
+                          </span>
+                        </Label>
+                        <Input
+                          id="file-upload"
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedFile && (
+                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Camera className="w-5 h-5 text-blue-600" />
+                        <div>
+                          <p className="text-sm font-medium">{selectedFile.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleUploadImage}
+                        disabled={uploadImageMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {uploadImageMutation.isPending ? "Procesando..." : "Subir"}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Alternative URL Input */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white dark:bg-gray-900 px-2 text-gray-500">O usa una URL</span>
+                    </div>
+                  </div>
+
+                  <Input
+                    id="imageUrl"
+                    type="url"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                  />
+                </div>
               </div>
 
               <div>

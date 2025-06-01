@@ -5,6 +5,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import express from "express";
+import sharp from "sharp";
 import { AuthService, requireAuth, requireAdmin, requireSupplier } from "./auth";
 import { 
   insertMaterialSchema,
@@ -1571,6 +1572,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating advertisement clicks:", error);
       res.status(500).json({ message: "Failed to update click count" });
+    }
+  });
+
+  // Upload and process advertisement images
+  app.post("/api/upload-advertisement-image", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      const userId = (req as any).user.id;
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(404).json({ message: "No supplier company found for user" });
+      }
+
+      const originalPath = req.file.path;
+      const timestamp = Date.now();
+      const filename = `ad-${company.id}-${timestamp}.jpg`;
+      const outputPath = path.join(uploadsDir, filename);
+
+      // Process image: resize to 400x400 square format with smart crop
+      await sharp(originalPath)
+        .resize(400, 400, {
+          fit: 'cover',
+          position: 'center'
+        })
+        .jpeg({
+          quality: 85,
+          progressive: true
+        })
+        .toFile(outputPath);
+
+      // Delete the original uploaded file
+      fs.unlinkSync(originalPath);
+
+      // Return the URL for the processed image
+      const imageUrl = `/uploads/${filename}`;
+      res.json({ 
+        imageUrl,
+        message: "Image uploaded and processed successfully"
+      });
+
+    } catch (error) {
+      console.error("Error processing advertisement image:", error);
+      
+      // Clean up files on error
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({ message: "Failed to process image" });
     }
   });
 

@@ -1025,20 +1025,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCompanyAdvertisement(ad: InsertCompanyAdvertisement): Promise<CompanyAdvertisement> {
+    const adData = {
+      ...ad,
+      startDate: ad.startDate ? new Date(ad.startDate) : null,
+      endDate: ad.endDate ? new Date(ad.endDate) : null,
+    };
+    
     const [created] = await db
       .insert(companyAdvertisements)
-      .values(ad)
+      .values(adData)
       .returning();
     return created;
   }
 
   async updateCompanyAdvertisement(id: number, ad: Partial<InsertCompanyAdvertisement>): Promise<CompanyAdvertisement> {
+    const updateData: any = {
+      ...ad,
+      updatedAt: new Date()
+    };
+    
+    if (ad.startDate) {
+      updateData.startDate = new Date(ad.startDate);
+    }
+    if (ad.endDate) {
+      updateData.endDate = new Date(ad.endDate);
+    }
+    
     const [updated] = await db
       .update(companyAdvertisements)
-      .set({
-        ...ad,
-        updatedAt: new Date()
-      })
+      .set(updateData)
       .where(eq(companyAdvertisements.id, id))
       .returning();
     return updated;
