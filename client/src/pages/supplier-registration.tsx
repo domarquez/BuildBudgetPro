@@ -25,6 +25,7 @@ const supplierCompanySchema = z.object({
   whatsapp: z.string().optional(),
   website: z.string().url("URL inválida").optional().or(z.literal("")),
   facebook: z.string().optional(),
+  logoUrl: z.string().optional(),
 });
 
 type SupplierCompanyForm = z.infer<typeof supplierCompanySchema>;
@@ -54,6 +55,7 @@ export default function SupplierRegistration() {
       whatsapp: (company as any)?.whatsapp || "",
       website: (company as any)?.website || "",
       facebook: (company as any)?.facebook || "",
+      logoUrl: (company as any)?.logoUrl || "",
     },
   });
 
@@ -71,6 +73,7 @@ export default function SupplierRegistration() {
         whatsapp: (company as any).whatsapp || "",
         website: (company as any).website || "",
         facebook: (company as any).facebook || "",
+        logoUrl: (company as any).logoUrl || "",
       });
     }
   });

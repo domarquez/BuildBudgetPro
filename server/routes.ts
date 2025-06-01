@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import express from "express";
 import { AuthService, requireAuth, requireAdmin } from "./auth";
 import { 
   insertMaterialSchema,
@@ -20,7 +21,62 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
+// Configurar multer para subida de archivos
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage_multer = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    cb(null, `logo-${timestamp}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage: storage_multer,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos de imagen'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Servir archivos estáticos (uploads)
+  app.use('/uploads', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
+  });
+  app.use('/uploads', express.static(uploadsDir));
+
+  // =============== FILE UPLOAD ROUTES ===============
+  
+  // Upload logo endpoint
+  app.post("/api/upload/logo", upload.single('logo'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No se ha subido ningún archivo" });
+      }
+
+      const logoUrl = `/uploads/${req.file.filename}`;
+      res.json({ logoUrl });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      res.status(500).json({ message: "Error al subir el archivo" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
