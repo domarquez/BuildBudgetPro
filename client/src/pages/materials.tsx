@@ -30,12 +30,15 @@ import {
   Trash2, 
   Package,
   Hammer,
-  Palette
+  Palette,
+  User,
+  RotateCcw,
+  AlertCircle
 } from "lucide-react";
 import { formatCurrency, formatRelativeTime, debounce } from "@/lib/utils";
 import { queryClient } from "@/lib/queryClient";
 import MaterialForm from "@/components/materials/material-form";
-import type { MaterialWithCategory, MaterialCategory } from "@shared/schema";
+import type { MaterialWithCategory, MaterialWithCustomPrice, MaterialCategory } from "@shared/schema";
 
 export default function Materials() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,7 +60,7 @@ export default function Materials() {
     data: materials, 
     isLoading: materialsLoading,
     refetch: refetchMaterials 
-  } = useQuery<MaterialWithCategory[]>({
+  } = useQuery<MaterialWithCustomPrice[]>({
     queryKey: [
       "/api/materials", 
       { 
@@ -87,6 +90,59 @@ export default function Materials() {
       toast({
         title: "Error",
         description: "No se pudo eliminar el material.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const customPriceMutation = useMutation({
+    mutationFn: async ({ materialId, customPrice, reason }: { materialId: number, customPrice: number, reason?: string }) => {
+      const response = await fetch(`/api/materials/${materialId}/custom-price`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customPrice, reason }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save custom price');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials"] });
+      toast({
+        title: "Precio personalizado guardado",
+        description: "Tu precio personalizado ha sido guardado. Solo tu lo verás en tus proyectos.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo guardar el precio personalizado.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeCustomPriceMutation = useMutation({
+    mutationFn: async (materialId: number) => {
+      const response = await fetch(`/api/materials/${materialId}/custom-price`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to remove custom price');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials"] });
+      toast({
+        title: "Precio restaurado",
+        description: "Se ha restaurado el precio original del sistema.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo restaurar el precio original.",
         variant: "destructive",
       });
     },
@@ -180,6 +236,23 @@ export default function Materials() {
             <Plus className="w-4 h-4 mr-2" />
             Agregar Material
           </Button>
+        </div>
+      </div>
+
+      {/* Custom Pricing Warning */}
+      <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+          <div>
+            <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              Precios Personalizados
+            </h3>
+            <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+              Los precios que modifiques aquí son privados y solo los verás en tus proyectos. 
+              Otros usuarios seguirán viendo los precios originales del sistema. 
+              Los materiales con precios personalizados aparecen marcados con <User className="w-4 h-4 inline mx-1" />.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -308,7 +381,19 @@ export default function Materials() {
                           </Badge>
                         </TableCell>
                         <TableCell className="font-semibold">
-                          {formatCurrency(material.price)}
+                          <div className="flex items-center space-x-2">
+                            <span className={material.hasCustomPrice ? "line-through text-gray-400" : ""}>
+                              {formatCurrency(material.price)}
+                            </span>
+                            {material.hasCustomPrice && material.customPrice && (
+                              <>
+                                <span className="text-blue-600 font-bold">
+                                  {formatCurrency(Number(material.customPrice.customPrice))}
+                                </span>
+                                <User className="w-4 h-4 text-blue-600" />
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-gray-500">
                           {material.unit}
@@ -318,6 +403,28 @@ export default function Materials() {
                         </TableCell>
                         <TableCell>
                           <div className="flex justify-end space-x-2">
+                            {material.hasCustomPrice ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRestorePrice(material.id)}
+                                className="text-orange-600 hover:text-orange-900"
+                                disabled={removeCustomPriceMutation.isPending}
+                                title="Restaurar precio original"
+                              >
+                                <RotateCcw className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleCustomizePrice(material)}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="Personalizar precio"
+                              >
+                                <User className="w-4 h-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="icon"
