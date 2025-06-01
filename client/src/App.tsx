@@ -16,6 +16,7 @@ import Suppliers from "@/pages/suppliers";
 import SupplierRegistration from "@/pages/supplier-registration";
 import Tools from "@/pages/tools";
 import Labor from "@/pages/labor";
+import AdminActivities from "@/pages/admin-activities";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import NotFound from "@/pages/not-found";

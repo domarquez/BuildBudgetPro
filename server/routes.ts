@@ -12,7 +12,8 @@ import {
   insertSupplierCompanySchema,
   insertMaterialSupplierPriceSchema,
   insertToolSchema,
-  insertLaborCategorySchema
+  insertLaborCategorySchema,
+  insertActivitySchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -137,6 +138,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching activities:", error);
       res.status(500).json({ message: "Failed to fetch activities" });
+    }
+  });
+
+  // Admin: Create activity
+  app.post("/api/activities", requireAdmin, async (req, res) => {
+    try {
+      const activityData = insertActivitySchema.parse(req.body);
+      const activity = await storage.createActivity(activityData);
+      res.status(201).json(activity);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid activity data", errors: error.errors });
+      }
+      console.error("Error creating activity:", error);
+      res.status(500).json({ message: "Failed to create activity" });
+    }
+  });
+
+  // Admin: Update activity
+  app.put("/api/activities/:id", requireAdmin, async (req, res) => {
+    try {
+      const activityData = insertActivitySchema.partial().parse(req.body);
+      const activity = await storage.updateActivity(Number(req.params.id), activityData);
+      res.json(activity);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid activity data", errors: error.errors });
+      }
+      console.error("Error updating activity:", error);
+      res.status(500).json({ message: "Failed to update activity" });
+    }
+  });
+
+  // Admin: Delete activity
+  app.delete("/api/activities/:id", requireAdmin, async (req, res) => {
+    try {
+      const activityId = Number(req.params.id);
+      
+      // Check if activity has budget items
+      const budgetItems = await storage.getBudgetItemsByActivity(activityId);
+      if (budgetItems.length > 0) {
+        return res.status(400).json({ 
+          message: "Cannot delete activity with existing budget items" 
+        });
+      }
+      
+      // Delete compositions first
+      await storage.deleteActivityCompositionsByActivity(activityId);
+      
+      // Delete activity
+      await storage.deleteActivity(activityId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting activity:", error);
+      res.status(500).json({ message: "Failed to delete activity" });
     }
   });
 

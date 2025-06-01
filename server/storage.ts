@@ -838,6 +838,19 @@ export class DatabaseStorage implements IStorage {
   async deleteLaborCategory(id: number): Promise<void> {
     await db.update(laborCategories).set({ isActive: false }).where(eq(laborCategories.id, id));
   }
+
+  // Additional activity management methods
+  async deleteActivity(id: number): Promise<void> {
+    await db.delete(activities).where(eq(activities.id, id));
+  }
+
+  async getBudgetItemsByActivity(activityId: number): Promise<BudgetItem[]> {
+    return await db.select().from(budgetItems).where(eq(budgetItems.activityId, activityId));
+  }
+
+  async deleteActivityCompositionsByActivity(activityId: number): Promise<void> {
+    await db.delete(activityCompositions).where(eq(activityCompositions.activityId, activityId));
+  }
 }
 
 export const storage = new DatabaseStorage();
