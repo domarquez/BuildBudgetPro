@@ -27,6 +27,7 @@ import {
   Store,
   Wrench,
   Users,
+  Camera,
 } from "lucide-react";
 
 const menuItems = [
@@ -225,6 +226,18 @@ export default function AppSidebar() {
                     <Link href="/supplier-pricing">
                       <DollarSign className="w-4 h-4" />
                       <span>Mis Ofertas de Precios</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive("/company-advertising")}
+                    className="w-full"
+                  >
+                    <Link href="/company-advertising">
+                      <Camera className="w-4 h-4" />
+                      <span>Gestión de Publicidad</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

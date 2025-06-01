@@ -1447,6 +1447,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============== COMPANY ADVERTISEMENTS ROUTES ===============
+
+  // Get company's advertisements
+  app.get("/api/advertisements", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(404).json({ message: "No supplier company found for user" });
+      }
+      
+      const advertisements = await storage.getCompanyAdvertisements(company.id);
+      res.json(advertisements);
+    } catch (error) {
+      console.error("Error fetching advertisements:", error);
+      res.status(500).json({ message: "Failed to fetch advertisements" });
+    }
+  });
+
+  // Create advertisement
+  app.post("/api/advertisements", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(404).json({ message: "No supplier company found for user" });
+      }
+      
+      const adData = insertCompanyAdvertisementSchema.parse({
+        ...req.body,
+        supplierId: company.id
+      });
+      
+      const advertisement = await storage.createCompanyAdvertisement(adData);
+      res.status(201).json(advertisement);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid advertisement data", errors: error.errors });
+      }
+      console.error("Error creating advertisement:", error);
+      res.status(500).json({ message: "Failed to create advertisement" });
+    }
+  });
+
+  // Update advertisement
+  app.put("/api/advertisements/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const adId = Number(req.params.id);
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(404).json({ message: "No supplier company found for user" });
+      }
+      
+      // Check if advertisement belongs to user's company
+      const existingAd = await storage.getCompanyAdvertisement(adId);
+      if (!existingAd || existingAd.supplierId !== company.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const adData = insertCompanyAdvertisementSchema.partial().parse(req.body);
+      const advertisement = await storage.updateCompanyAdvertisement(adId, adData);
+      res.json(advertisement);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid advertisement data", errors: error.errors });
+      }
+      console.error("Error updating advertisement:", error);
+      res.status(500).json({ message: "Failed to update advertisement" });
+    }
+  });
+
+  // Delete advertisement
+  app.delete("/api/advertisements/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const adId = Number(req.params.id);
+      
+      // Get user's supplier company
+      const company = await storage.getSupplierCompanyByUser(userId);
+      if (!company) {
+        return res.status(404).json({ message: "No supplier company found for user" });
+      }
+      
+      // Check if advertisement belongs to user's company
+      const existingAd = await storage.getCompanyAdvertisement(adId);
+      if (!existingAd || existingAd.supplierId !== company.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.deleteCompanyAdvertisement(adId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting advertisement:", error);
+      res.status(500).json({ message: "Failed to delete advertisement" });
+    }
+  });
+
+  // Update advertisement statistics
+  app.post("/api/advertisements/:id/view", async (req, res) => {
+    try {
+      const adId = Number(req.params.id);
+      await storage.incrementAdvertisementViews(adId);
+      res.status(200).json({ message: "View count updated" });
+    } catch (error) {
+      console.error("Error updating advertisement views:", error);
+      res.status(500).json({ message: "Failed to update view count" });
+    }
+  });
+
+  app.post("/api/advertisements/:id/click", async (req, res) => {
+    try {
+      const adId = Number(req.params.id);
+      await storage.incrementAdvertisementClicks(adId);
+      res.status(200).json({ message: "Click count updated" });
+    } catch (error) {
+      console.error("Error updating advertisement clicks:", error);
+      res.status(500).json({ message: "Failed to update click count" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
