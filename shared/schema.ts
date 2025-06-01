@@ -12,6 +12,8 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   role: text("role").notNull().default("user"), // 'admin', 'user'
   isActive: boolean("is_active").notNull().default(true),
+  city: text("city"),
+  country: text("country").default("Bolivia"),
   createdAt: timestamp("created_at").defaultNow(),
   lastLogin: timestamp("last_login"),
 });
@@ -98,6 +100,20 @@ export const priceSettings = pgTable("price_settings", {
   globalAdjustmentFactor: decimal("global_adjustment_factor", { precision: 10, scale: 4 }).notNull().default("1.0000"),
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
   updatedBy: text("updated_by"),
+});
+
+export const cityPriceFactors = pgTable("city_price_factors", {
+  id: serial("id").primaryKey(),
+  city: text("city").notNull(),
+  country: text("country").notNull().default("Bolivia"),
+  materialsFactor: decimal("materials_factor", { precision: 10, scale: 4 }).notNull().default("1.0000"),
+  laborFactor: decimal("labor_factor", { precision: 10, scale: 4 }).notNull().default("1.0000"),
+  equipmentFactor: decimal("equipment_factor", { precision: 10, scale: 4 }).notNull().default("1.0000"),
+  transportFactor: decimal("transport_factor", { precision: 10, scale: 4 }).notNull().default("1.0000"),
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Relations
@@ -228,6 +244,12 @@ export const insertActivityCompositionSchema = createInsertSchema(activityCompos
   updatedAt: true,
 });
 
+export const insertCityPriceFactorSchema = createInsertSchema(cityPriceFactors).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -264,6 +286,9 @@ export type BudgetWithProject = Budget & {
 
 export type ActivityComposition = typeof activityCompositions.$inferSelect;
 export type InsertActivityComposition = z.infer<typeof insertActivityCompositionSchema>;
+
+export type CityPriceFactor = typeof cityPriceFactors.$inferSelect;
+export type InsertCityPriceFactor = z.infer<typeof insertCityPriceFactorSchema>;
 
 export type BudgetItemWithActivity = BudgetItem & {
   activity: ActivityWithPhase;

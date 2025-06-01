@@ -110,6 +110,16 @@ export interface IStorage {
   getPriceSettings(): Promise<PriceSettings>;
   updatePriceSettings(settings: Partial<InsertPriceSettings>): Promise<PriceSettings>;
   applyGlobalPriceAdjustment(factor: number, updatedBy: string): Promise<{ affectedMaterials: number }>;
+
+  // City Price Factors
+  getCityPriceFactors(): Promise<CityPriceFactor[]>;
+  getCityPriceFactor(city: string, country?: string): Promise<CityPriceFactor | undefined>;
+  createCityPriceFactor(factor: InsertCityPriceFactor): Promise<CityPriceFactor>;
+  updateCityPriceFactor(id: number, factor: Partial<InsertCityPriceFactor>): Promise<CityPriceFactor>;
+  deleteCityPriceFactor(id: number): Promise<void>;
+
+  // User location
+  updateUserLocation(userId: number, city: string, country?: string): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
