@@ -15,6 +15,7 @@ import {
   insertCityPriceFactorSchema,
   insertSupplierCompanySchema,
   insertMaterialSupplierPriceSchema,
+  insertUserMaterialPriceSchema,
   insertToolSchema,
   insertLaborCategorySchema,
   insertActivitySchema
@@ -267,10 +268,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Materials
-  app.get("/api/materials", async (req, res) => {
+  // Materials with personalized prices
+  app.get("/api/materials", requireAuth, async (req: any, res) => {
     try {
       const { categoryId, search } = req.query;
+      const userId = req.user.id;
       console.log("Materials query params:", { categoryId, search });
       let materials;
       
@@ -279,10 +281,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         materials = await storage.searchMaterials(String(search));
       } else if (categoryId) {
         console.log("Filtering by category:", categoryId);
-        materials = await storage.getMaterialsByCategory(Number(categoryId));
+        materials = await storage.getMaterialsWithCustomPricesByCategory(userId, Number(categoryId));
       } else {
-        console.log("Getting all materials");
-        materials = await storage.getMaterials();
+        console.log("Getting all materials with custom prices for user:", userId);
+        materials = await storage.getMaterialsWithCustomPrices(userId);
       }
       
       console.log("Returning", materials.length, "materials");
@@ -341,6 +343,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting material:", error);
       res.status(500).json({ message: "Failed to delete material" });
+    }
+  });
+
+  // Precios personalizados de materiales por usuario
+  app.post("/api/materials/:id/custom-price", requireAuth, async (req: any, res) => {
+    try {
+      const materialId = Number(req.params.id);
+      const userId = req.user.id;
+      const data = insertUserMaterialPriceSchema.parse({
+        ...req.body,
+        userId,
+        materialId
+      });
+      
+      const customPrice = await storage.createUserMaterialPrice(data);
+      res.status(201).json(customPrice);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Error creating custom price:", error);
+      res.status(500).json({ message: "Failed to create custom price" });
+    }
+  });
+
+  app.delete("/api/materials/:id/custom-price", requireAuth, async (req: any, res) => {
+    try {
+      const materialId = Number(req.params.id);
+      const userId = req.user.id;
+      
+      await storage.deleteUserMaterialPrice(userId, materialId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting custom price:", error);
+      res.status(500).json({ message: "Failed to delete custom price" });
     }
   });
 
