@@ -1040,7 +1040,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const quoteData = insertMaterialSupplierPriceSchema.parse({
         ...req.body,
-        supplierId: company.id
+        supplierId: company.id,
+        currency: req.body.currency || "BOB",
+        minimumQuantity: req.body.minimumQuantity || "1.00",
+        leadTimeDays: req.body.leadTimeDays || 0,
+        isActive: req.body.isActive !== undefined ? req.body.isActive : true
       });
       
       const quote = await storage.createMaterialSupplierPrice(quoteData);

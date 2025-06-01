@@ -380,7 +380,17 @@ export const insertMaterialSupplierPriceSchema = createInsertSchema(materialSupp
   lastUpdated: true,
 }).extend({
   price: z.union([z.string(), z.number()]).transform(val => String(val)),
-  minimumQuantity: z.union([z.string(), z.number()]).transform(val => String(val)),
+  minimumQuantity: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
+  currency: z.string().optional(),
+  leadTimeDays: z.number().optional(),
+  description: z.string().optional(),
+  isActive: z.boolean().optional(),
+}).partial({
+  minimumQuantity: true,
+  currency: true,
+  leadTimeDays: true,
+  description: true,
+  isActive: true,
 });
 
 export const insertToolSchema = createInsertSchema(tools).omit({
