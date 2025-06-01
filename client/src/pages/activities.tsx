@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Building2 } from "lucide-react";
+import { Plus, Search, Building2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import ActivityDetailDialog from "@/components/activity-detail-dialog";
+import { formatCurrency } from "@/lib/utils";
 import type { ActivityWithPhase } from "@shared/schema";
 
 export default function Activities() {
@@ -105,8 +107,27 @@ export default function Activities() {
                           <Badge variant="outline">
                             Unidad: {activity.unit}
                           </Badge>
+                          {activity.unitPrice && parseFloat(activity.unitPrice) > 0 && (
+                            <Badge variant="secondary">
+                              {formatCurrency(parseFloat(activity.unitPrice))}
+                            </Badge>
+                          )}
                         </div>
                       </div>
+                      
+                      {/* Botón Ver APU para actividades con composiciones */}
+                      {activity.name.includes("ANÁLISIS DE PRECIOS UNITARIOS") && (
+                        <ActivityDetailDialog
+                          activityId={activity.id}
+                          activityName={activity.name}
+                          unitPrice={activity.unitPrice || "0"}
+                        >
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver APU
+                          </Button>
+                        </ActivityDetailDialog>
+                      )}
                     </div>
                   ))}
                 </div>
