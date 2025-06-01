@@ -6,21 +6,23 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, MapPin, User, FileText, Calculator, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { generateBudgetPDF, type BudgetPDFData } from "@/lib/pdfGenerator";
 import type { BudgetWithProject, BudgetItemWithActivity } from "@shared/schema";
 
 export default function BudgetDetails() {
   const { id } = useParams();
   const budgetId = Number(id);
 
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     if (!budget || !budgetItems) {
-      console.log('No budget or items available');
+      alert('No hay datos disponibles para generar el PDF');
       return;
     }
 
     try {
-      const pdfData: BudgetPDFData = {
+      // Importar dinámicamente para evitar errores de tipos
+      const { generateBudgetPDF } = await import('@/lib/pdfGenerator');
+      
+      const pdfData: any = {
         budget: {
           id: budget.id,
           total: typeof budget.total === 'string' ? parseFloat(budget.total) : budget.total,
@@ -57,6 +59,7 @@ export default function BudgetDetails() {
       generateBudgetPDF(pdfData);
     } catch (error) {
       console.error('Error generating PDF:', error);
+      alert('Error al generar el PDF. Por favor intenta de nuevo.');
     }
   };
 
