@@ -53,6 +53,19 @@ const menuItems = [
   },
 ];
 
+const marketplaceItems = [
+  {
+    title: "Empresas Proveedoras",
+    url: "/suppliers",
+    icon: Building2,
+  },
+  {
+    title: "Mi Empresa",
+    url: "/supplier-registration",
+    icon: Store,
+  },
+];
+
 const settingsItems = [
   {
     title: "Importar APU",
@@ -121,6 +134,29 @@ export default function AppSidebar() {
         </SidebarGroup>
         
         <SidebarGroup>
+          <SidebarGroupLabel>Marketplace</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {marketplaceItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    className="w-full"
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Configuración</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {settingsItems.map((item) => (
