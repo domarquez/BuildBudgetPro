@@ -1657,7 +1657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No se proporcionó archivo PDF" });
       }
 
-      const pdfParse = require('pdf-parse');
+      const pdfParse = (await import('pdf-parse')).default;
       const pdfBuffer = req.file.buffer;
       
       const data = await pdfParse(pdfBuffer);
