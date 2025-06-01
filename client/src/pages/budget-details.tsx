@@ -129,15 +129,15 @@ export default function BudgetDetails() {
             <Download className="w-4 h-4" />
             <span>Descargar PDF</span>
           </Button>
+          <Badge
+            variant={budget.status === 'active' ? 'default' : 
+                    budget.status === 'completed' ? 'secondary' : 'outline'}
+            className="text-sm"
+          >
+            {budget.status === 'active' ? 'Activo' : 
+             budget.status === 'completed' ? 'Completado' : 'Borrador'}
+          </Badge>
         </div>
-        <Badge
-          variant={budget.status === 'active' ? 'default' : 
-                  budget.status === 'completed' ? 'secondary' : 'outline'}
-          className="text-sm"
-        >
-          {budget.status === 'active' ? 'Activo' : 
-           budget.status === 'completed' ? 'Completado' : 'Borrador'}
-        </Badge>
       </div>
 
       {/* Project Info */}
