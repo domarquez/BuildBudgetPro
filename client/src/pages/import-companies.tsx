@@ -83,25 +83,47 @@ export default function ImportCompanies() {
   const parseCompanies = () => {
     if (!extractedText) return;
 
-    // Algoritmo para extraer empresas del texto
-    const companies: ExtractedCompany[] = [];
+    // Procesar como UNA SOLA empresa
     const lines = extractedText.split('\n').filter(line => line.trim());
     
-    let currentCompany: Partial<ExtractedCompany> = {};
-    let companyStarted = false;
+    const company: Partial<ExtractedCompany> = {
+      name: '',
+      address: '',
+      phone: '',
+      email: '',
+      website: '',
+      services: '',
+      city: 'La Paz',
+      businessType: 'General'
+    };
 
+    // Detectar el nombre de la empresa (primera línea significativa)
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       
-      // Detectar inicio de nueva empresa (usualmente nombre en mayúsculas o con logo)
-      if (line.length > 3 && (line.toUpperCase() === line || line.includes('®') || line.includes('S.R.L') || line.includes('LTDA'))) {
-        if (companyStarted && currentCompany.name) {
-          companies.push(currentCompany as ExtractedCompany);
+      // Buscar nombre de empresa (línea con características de nombre comercial)
+      if (!company.name && line.length > 3 && line.length < 80) {
+        const isCompanyName = 
+          line.toUpperCase() === line ||  // Todo en mayúsculas
+          line.includes('S.R.L') || line.includes('LTDA') || line.includes('S.A.') ||
+          line.includes('CIA') || line.includes('®') || line.includes('™') ||
+          /^[A-ZÑÁÉÍÓÚ][A-ZÑÁÉÍÓÚ\s&.\-]{5,}/.test(line); // Inicia con mayúscula y tiene formato de empresa
+        
+        if (isCompanyName) {
+          company.name = line;
+          break;
         }
-        currentCompany = { name: line };
-        companyStarted = true;
-        continue;
       }
+    }
+
+    // Si no se detectó nombre, usar la primera línea no vacía
+    if (!company.name && lines.length > 0) {
+      company.name = lines[0];
+    }
+
+    // Ahora buscar el resto de la información en todas las líneas
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
 
       if (companyStarted) {
         // Detectar teléfonos

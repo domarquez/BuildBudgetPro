@@ -22,6 +22,7 @@ import SupplierDashboard from "@/pages/supplier-dashboard";
 import CompanyAdvertising from "@/pages/company-advertising";
 import ImportCompanies from "@/pages/import-companies";
 import ReviewCompanies from "@/pages/review-companies";
+import SimpleImport from "@/pages/simple-import";
 import Marketplace from "@/pages/marketplace";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -88,6 +89,7 @@ function AuthenticatedLayout() {
               <Route path="/company-advertising" component={CompanyAdvertising} />
               <Route path="/import-companies" component={ImportCompanies} />
         <Route path="/review-companies" component={ReviewCompanies} />
+        <Route path="/simple-import" component={SimpleImport} />
               <Route path="/marketplace" component={Marketplace} />
               <Route component={NotFound} />
             </Switch>
