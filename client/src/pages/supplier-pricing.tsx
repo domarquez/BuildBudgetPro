@@ -62,6 +62,34 @@ export default function SupplierPricing() {
   const [validUntil, setValidUntil] = useState("");
   const { toast } = useToast();
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-BO', {
+      style: 'currency',
+      currency: 'BOB',
+      minimumFractionDigits: 2
+    }).format(amount);
+  };
+
+  const getQuoteStatus = (quote: SupplierQuote) => {
+    if (!quote.validUntil) return { status: 'active', label: 'Activa', variant: 'default' as const };
+    
+    const validUntil = new Date(quote.validUntil);
+    const now = new Date();
+    
+    if (validUntil < now) {
+      return { status: 'expired', label: 'Oferta Vencida', variant: 'destructive' as const };
+    }
+    
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+    
+    if (validUntil <= thirtyDaysFromNow) {
+      return { status: 'expiring', label: 'Por Vencer', variant: 'secondary' as const };
+    }
+    
+    return { status: 'active', label: 'Activa', variant: 'default' as const };
+  };
+
   // Cargar categorías de materiales
   const { data: categories } = useQuery<MaterialCategory[]>({
     queryKey: ["/api/material-categories"],
@@ -160,14 +188,14 @@ export default function SupplierPricing() {
       </div>
 
       {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Cotizaciones Activas</p>
-                <p className="text-2xl font-bold text-on-surface">
-                  {myQuotes?.filter(q => q.status === 'active').length || 0}
+                <p className="text-2xl font-bold text-green-600">
+                  {myQuotes?.filter(q => getQuoteStatus(q).status === 'active').length || 0}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -181,13 +209,13 @@ export default function SupplierPricing() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Cotizaciones</p>
-                <p className="text-2xl font-bold text-on-surface">
-                  {myQuotes?.length || 0}
+                <p className="text-sm text-gray-600">Por Vencer</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {myQuotes?.filter(q => getQuoteStatus(q).status === 'expiring').length || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Package className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-yellow-600" />
               </div>
             </div>
           </CardContent>
@@ -197,18 +225,29 @@ export default function SupplierPricing() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Próximas a Vencer</p>
-                <p className="text-2xl font-bold text-on-surface">
-                  {myQuotes?.filter(q => {
-                    const validUntil = new Date(q.validUntil);
-                    const thirtyDaysFromNow = new Date();
-                    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-                    return validUntil <= thirtyDaysFromNow;
-                  }).length || 0}
+                <p className="text-sm text-gray-600">Ofertas Vencidas</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {myQuotes?.filter(q => getQuoteStatus(q).status === 'expired').length || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-yellow-600" />
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Cotizaciones</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {myQuotes?.length || 0}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Package className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </CardContent>
@@ -261,9 +300,14 @@ export default function SupplierPricing() {
                       {new Date(quote.validUntil).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={quote.status === 'active' ? 'default' : 'secondary'}>
-                        {quote.status === 'active' ? 'Activa' : 'Inactiva'}
-                      </Badge>
+                      {(() => {
+                        const statusInfo = getQuoteStatus(quote);
+                        return (
+                          <Badge variant={statusInfo.variant}>
+                            {statusInfo.label}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm">
