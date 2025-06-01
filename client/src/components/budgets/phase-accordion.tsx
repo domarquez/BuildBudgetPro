@@ -19,8 +19,9 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Eye } from "lucide-react";
 import { formatCurrency, calculateSubtotal } from "@/lib/utils";
+import ActivityDetailDialog from "@/components/activity-detail-dialog";
 import type { ActivityWithPhase } from "@shared/schema";
 
 interface BudgetItemData {
@@ -157,43 +158,61 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
                       <Label className="text-sm font-medium text-gray-700">
                         Actividad
                       </Label>
-                      <Select
-                        value={item.activityId > 0 ? item.activityId.toString() : ""}
-                        onValueChange={(value) => {
-                          console.log('=== SELECT TRIGGERED ===', value);
-                          const activityId = parseInt(value);
-                          
-                          // Update activity first
-                          updateBudgetItem(item.id, 'activityId', activityId);
-                          
-                          // Find the selected activity and auto-fill price
-                          const selectedActivity = activities?.find(a => a.id === activityId);
-                          console.log('Selected activity data:', selectedActivity);
-                          
-                          if (selectedActivity?.unitPrice) {
-                            const priceValue = parseFloat(selectedActivity.unitPrice);
-                            console.log('Price value parsed:', priceValue);
-                            if (priceValue > 0) {
-                              console.log('Setting unit price to:', priceValue);
-                              // Use setTimeout to ensure the activity update is processed first
-                              setTimeout(() => {
-                                updateBudgetItem(item.id, 'unitPrice', priceValue);
-                              }, 50);
+                      <div className="flex gap-2">
+                        <Select
+                          value={item.activityId > 0 ? item.activityId.toString() : ""}
+                          onValueChange={(value) => {
+                            console.log('=== SELECT TRIGGERED ===', value);
+                            const activityId = parseInt(value);
+                            
+                            // Update activity first
+                            updateBudgetItem(item.id, 'activityId', activityId);
+                            
+                            // Find the selected activity and auto-fill price
+                            const selectedActivity = activities?.find(a => a.id === activityId);
+                            console.log('Selected activity data:', selectedActivity);
+                            
+                            if (selectedActivity?.unitPrice) {
+                              const priceValue = parseFloat(selectedActivity.unitPrice);
+                              console.log('Price value parsed:', priceValue);
+                              if (priceValue > 0) {
+                                console.log('Setting unit price to:', priceValue);
+                                // Use setTimeout to ensure the activity update is processed first
+                                setTimeout(() => {
+                                  updateBudgetItem(item.id, 'unitPrice', priceValue);
+                                }, 50);
+                              }
                             }
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar actividad" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {activities?.map((activity) => (
-                            <SelectItem key={activity.id} value={activity.id.toString()}>
-                              {activity.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar actividad" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {activities?.map((activity) => (
+                              <SelectItem key={activity.id} value={activity.id.toString()}>
+                                {activity.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {item.activity && item.activity.name.includes("ANÁLISIS DE PRECIOS UNITARIOS") && (
+                          <ActivityDetailDialog
+                            activityId={item.activityId}
+                            activityName={item.activity.name}
+                            unitPrice={item.activity.unitPrice}
+                          >
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="shrink-0"
+                              title="Ver desglose de APU"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </ActivityDetailDialog>
+                        )}
+                      </div>
                     </div>
 
                     <div className="lg:col-span-2">
