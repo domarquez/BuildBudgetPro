@@ -48,7 +48,19 @@ export default function ImportCompanies() {
     formData.append("pdf", selectedFile);
 
     try {
-      const response = await apiRequest("POST", "/api/extract-pdf-text", formData);
+      const response = await fetch("/api/extract-pdf-text", {
+        method: "POST",
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error en el servidor");
+      }
+
       const data = await response.json();
       setExtractedText(data.text);
       
@@ -57,9 +69,10 @@ export default function ImportCompanies() {
         description: "PDF procesado correctamente. Ahora puedes analizar las empresas.",
       });
     } catch (error) {
+      console.error("Error extracting PDF:", error);
       toast({
         title: "Error",
-        description: "No se pudo extraer el texto del PDF",
+        description: error instanceof Error ? error.message : "No se pudo extraer el texto del PDF",
         variant: "destructive",
       });
     } finally {
