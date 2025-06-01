@@ -278,6 +278,31 @@ export default function BudgetForm({ budget, onClose }: BudgetFormProps) {
 
                     <FormField
                       control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ciudad</FormLabel>
+                          <FormControl>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Seleccione la ciudad" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {cityFactors.map((factor: any) => (
+                                  <SelectItem key={factor.id} value={factor.city}>
+                                    {factor.city} - {factor.country}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name="startDate"
                       render={({ field }) => (
                         <FormItem>

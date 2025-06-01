@@ -638,6 +638,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Geographic price adjustments
+  app.post("/api/calculate-geographic-adjustment", requireAuth, async (req, res) => {
+    try {
+      const { basePrice, city, country = "Bolivia" } = req.body;
+      if (!basePrice || !city) {
+        return res.status(400).json({ message: "Base price and city are required" });
+      }
+      
+      const { applyGeographicPriceAdjustment } = await import("./city-price-calculator");
+      const adjustment = await applyGeographicPriceAdjustment(basePrice, city, country);
+      
+      if (!adjustment) {
+        return res.status(404).json({ message: "City price factor not found" });
+      }
+      
+      res.json(adjustment);
+    } catch (error) {
+      console.error("Error calculating geographic adjustment:", error);
+      res.status(500).json({ message: "Failed to calculate geographic adjustment" });
+    }
+  });
+
+  app.get("/api/city-price-info/:city", requireAuth, async (req, res) => {
+    try {
+      const { city } = req.params;
+      const { country = "Bolivia" } = req.query;
+      
+      const { getCityPriceInfo } = await import("./city-price-calculator");
+      const info = await getCityPriceInfo(city, country as string);
+      
+      if (!info) {
+        return res.status(404).json({ message: "City price information not found" });
+      }
+      
+      res.json(info);
+    } catch (error) {
+      console.error("Error fetching city price info:", error);
+      res.status(500).json({ message: "Failed to fetch city price info" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
