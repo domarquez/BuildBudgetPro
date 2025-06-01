@@ -76,7 +76,7 @@ export default function BudgetDetails() {
               {budget.project.name}
             </h1>
             <p className="text-gray-600">
-              {budget.phase.name} • Presupuesto #{budget.id}
+              {budget.phase ? budget.phase.name : "Multifase"} • Presupuesto #{budget.id}
             </p>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function BudgetDetails() {
             </div>
             <div>
               <p className="text-sm text-gray-600">Fase de Construcción</p>
-              <p className="font-medium">{budget.phase.name}</p>
+              <p className="font-medium">{budget.phase ? budget.phase.name : "Multifase"}</p>
             </div>
           </CardContent>
         </Card>

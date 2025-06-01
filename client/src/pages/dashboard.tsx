@@ -203,7 +203,7 @@ export default function Dashboard() {
                         {budget.project.name}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {budget.phase.name} • {formatRelativeTime(budget.createdAt!)}
+                        {budget.phase ? budget.phase.name : "Multifase"} • {formatRelativeTime(budget.createdAt!)}
                       </p>
                     </div>
                   </div>
