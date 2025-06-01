@@ -68,7 +68,7 @@ export default function CityFactors() {
     description: "",
   });
 
-  const { data: factors = [], isLoading } = useQuery({
+  const { data: factors = [], isLoading } = useQuery<CityPriceFactor[]>({
     queryKey: ["/api/city-price-factors"],
   });
 
@@ -104,17 +104,14 @@ export default function CityFactors() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: CityFactorFormData }) => {
+      const { materialsFormatted, laborFormatted, equipmentFormatted, transportFormatted, ...rest } = data;
       const payload = {
-        ...data,
-        materialsFactor: parseFloat(data.materialsFormatted),
-        laborFactor: parseFloat(data.laborFormatted),
-        equipmentFactor: parseFloat(data.equipmentFormatted),
-        transportFactor: parseFloat(data.transportFormatted),
+        ...rest,
+        materialsFactor: parseFloat(materialsFormatted),
+        laborFactor: parseFloat(laborFormatted),
+        equipmentFactor: parseFloat(equipmentFormatted),
+        transportFactor: parseFloat(transportFormatted),
       };
-      delete payload.materialsFormatted;
-      delete payload.laborFormatted;
-      delete payload.equipmentFormatted;
-      delete payload.transportFormatted;
       return apiRequest(`/api/city-price-factors/${id}`, "PATCH", payload);
     },
     onSuccess: () => {

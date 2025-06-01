@@ -20,6 +20,7 @@ import {
   Settings,
   Construction,
   DollarSign,
+  MapPin,
 } from "lucide-react";
 
 const menuItems = [
@@ -60,6 +61,11 @@ const settingsItems = [
     title: "Configuración de Precios",
     url: "/price-settings",
     icon: DollarSign,
+  },
+  {
+    title: "Factores por Ciudad",
+    url: "/city-factors",
+    icon: MapPin,
   },
   {
     title: "Configuración",
