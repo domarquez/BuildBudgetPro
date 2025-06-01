@@ -1,6 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { AuthService, requireAuth, requireAdmin } from "./auth";
 import { 
   insertMaterialSchema,

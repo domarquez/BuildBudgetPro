@@ -33,6 +33,8 @@ export default function SupplierRegistration() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   // Get current user's supplier company
   const { data: company, isLoading } = useQuery({
@@ -115,11 +117,80 @@ export default function SupplierRegistration() {
     },
   });
 
-  const onSubmit = (data: SupplierCompanyForm) => {
+  // Handle logo upload
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "El archivo es demasiado grande. Máximo 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Solo se permiten archivos de imagen.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLogoFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setLogoPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onSubmit = async (data: SupplierCompanyForm) => {
+    let logoUrl = (company as any)?.logoUrl;
+
+    // Upload logo if a new file is selected
+    if (logoFile) {
+      const formData = new FormData();
+      formData.append('logo', logoFile);
+
+      try {
+        const response = await fetch('/api/upload/logo', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al subir el logo');
+        }
+
+        const result = await response.json();
+        logoUrl = result.logoUrl;
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Error al subir el logo. Intenta de nuevo.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    const submissionData = {
+      ...data,
+      logoUrl
+    };
+
     if (company) {
-      updateMutation.mutate(data);
+      updateMutation.mutate(submissionData);
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(submissionData);
     }
   };
 
@@ -424,6 +495,69 @@ export default function SupplierRegistration() {
                       </FormItem>
                     )}
                   />
+                </div>
+
+                {/* Logo Upload Section */}
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                    <Upload className="h-5 w-5" />
+                    Logotipo de la Empresa
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    {(logoPreview || (company as any)?.logoUrl) && (
+                      <div className="flex items-center gap-4">
+                        <img 
+                          src={logoPreview || (company as any).logoUrl} 
+                          alt={logoPreview ? "Vista previa" : "Logo actual"}
+                          className="w-20 h-20 object-cover rounded-lg border"
+                        />
+                        <div>
+                          <p className="text-sm text-gray-600">
+                            {logoPreview ? "Vista previa" : "Logo actual"}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {logoPreview ? "Archivo seleccionado para subir" : "Sube una nueva imagen para reemplazarlo"}
+                          </p>
+                          {logoPreview && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setLogoPreview(null);
+                                setLogoFile(null);
+                              }}
+                              className="mt-2"
+                            >
+                              Cancelar
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!isReadOnly && (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          className="hidden"
+                          id="logo-upload"
+                        />
+                        <label htmlFor="logo-upload" className="cursor-pointer">
+                          <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600">
+                            Haz clic para subir tu logotipo
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            PNG, JPG hasta 5MB
+                          </p>
+                        </label>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {(!company || isEditing) && (
