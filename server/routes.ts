@@ -414,11 +414,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sistema de publicidad (versión simplificada)
+  // Sistema de publicidad (get random active advertisement)
   app.get("/api/public/advertisement", async (req, res) => {
     try {
-      // Por ahora retornar null hasta que se implemente completamente
-      res.json(null);
+      const randomAd = await storage.getRandomActiveAdvertisement();
+      res.json(randomAd);
     } catch (error) {
       console.error("Error fetching advertisement:", error);
       res.status(500).json({ message: "Failed to fetch advertisement" });

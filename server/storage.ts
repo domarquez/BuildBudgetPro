@@ -172,6 +172,7 @@ export interface IStorage {
   deleteCompanyAdvertisement(id: number): Promise<void>;
   incrementAdvertisementViews(id: number): Promise<void>;
   incrementAdvertisementClicks(id: number): Promise<void>;
+  getRandomActiveAdvertisement(): Promise<AdvertisementWithSupplier | null>;
 
   // Configuración del sistema (TODO: implementar completamente)
   // getSystemSetting(key: string): Promise<string | null>;
@@ -1081,6 +1082,39 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(companyAdvertisements.id, id));
+  }
+
+  async getRandomActiveAdvertisement(): Promise<AdvertisementWithSupplier | null> {
+    const activeAds = await db
+      .select()
+      .from(companyAdvertisements)
+      .leftJoin(supplierCompanies, eq(companyAdvertisements.supplierId, supplierCompanies.id))
+      .where(
+        and(
+          eq(companyAdvertisements.isActive, true),
+          sql`(${companyAdvertisements.endDate} IS NULL OR ${companyAdvertisements.endDate} > NOW())`
+        )
+      );
+
+    if (activeAds.length === 0) {
+      return null;
+    }
+
+    // Get random advertisement
+    const randomIndex = Math.floor(Math.random() * activeAds.length);
+    const randomAd = activeAds[randomIndex];
+
+    if (!randomAd.company_advertisements || !randomAd.supplier_companies) {
+      return null;
+    }
+
+    // Increment view count
+    await this.incrementAdvertisementViews(randomAd.company_advertisements.id);
+
+    return {
+      ...randomAd.company_advertisements,
+      supplier: randomAd.supplier_companies
+    };
   }
 }
 

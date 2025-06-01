@@ -31,6 +31,7 @@ import type { Material, MaterialCategory, SupplierCompany, AdvertisementWithSupp
 export default function PublicView() {
   const [activeTab, setActiveTab] = useState<"materials" | "suppliers">("materials");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showAd, setShowAd] = useState(true);
 
   // Consultas públicas sin autenticación
@@ -74,9 +75,11 @@ export default function PublicView() {
     }, 10000); // Mostrar nueva publicidad después de 10 segundos
   };
 
-  const filteredMaterials = materials?.filter(material =>
-    material.name.toLowerCase().includes(searchQuery.toLowerCase())
-  ).slice(0, 20) || []; // Limitar a 20 para usuarios no registrados
+  const filteredMaterials = materials?.filter(material => {
+    const matchesSearch = material.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || material.categoryId.toString() === selectedCategory;
+    return matchesSearch && matchesCategory;
+  }).slice(0, 20) || []; // Limitar a 20 para usuarios no registrados
 
   const filteredSuppliers = suppliers?.filter(supplier =>
     supplier.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -209,18 +212,55 @@ export default function PublicView() {
           </Button>
         </div>
 
-        {/* Búsqueda */}
+        {/* Búsqueda y Filtros */}
         <Card>
           <CardContent className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                type="text"
-                placeholder={`Buscar ${activeTab === "materials" ? "materiales" : "proveedores"}...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+            <div className="space-y-4">
+              {/* Barra de búsqueda */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder={`Buscar ${activeTab === "materials" ? "materiales" : "proveedores"}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Filtros por categoría (solo para materiales) */}
+              {activeTab === "materials" && categories && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Filtrar por categoría:
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedCategory("all")}
+                      className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                        selectedCategory === "all"
+                          ? "bg-primary text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      Todas las categorías
+                    </button>
+                    {categories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => setSelectedCategory(category.id.toString())}
+                        className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                          selectedCategory === category.id.toString()
+                            ? "bg-primary text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                      >
+                        {category.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
