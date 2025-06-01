@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
-import BudgetForm from "@/components/budgets/budget-form";
+import MultiphaseBudgetForm from "@/components/budgets/multi-phase-budget-form";
 import type { BudgetWithProject } from "@shared/schema";
 
 export default function Budgets() {
@@ -266,7 +266,7 @@ export default function Budgets() {
 
       {/* Budget Form Modal */}
       {showForm && (
-        <BudgetForm
+        <MultiphaseBudgetForm
           budget={editingBudget}
           onClose={handleFormClose}
         />
