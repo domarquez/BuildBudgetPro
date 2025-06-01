@@ -50,7 +50,7 @@ export default function Budgets() {
 
   const deleteProjectMutation = useMutation({
     mutationFn: async (projectId: number) => {
-      await apiRequest(`/api/projects/${projectId}`, "DELETE");
+      await apiRequest("DELETE", `/api/projects/${projectId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
