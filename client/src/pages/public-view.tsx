@@ -113,36 +113,7 @@ export default function PublicView() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Aviso de Plan Premium */}
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
-          <div className="flex items-start space-x-4">
-            <Crown className="w-8 h-8 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1" />
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
-                🚀 Funcionalidades Completas Próximamente de Pago
-              </h3>
-              <p className="text-amber-700 dark:text-amber-300 mb-4">
-                Actualmente puedes explorar materiales y proveedores de forma gratuita. 
-                Pronto lanzaremos nuestro plan premium con funcionalidades completas:
-              </p>
-              <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1 mb-4">
-                <li>• Creación ilimitada de proyectos y presupuestos</li>
-                <li>• Precios personalizados y cálculos APU completos</li>
-                <li>• Generación de PDFs profesionales</li>
-                <li>• Acceso a toda la base de datos de materiales</li>
-                <li>• Herramientas avanzadas para constructores</li>
-              </ul>
-              <div className="flex space-x-3">
-                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
-                  Notificarme del Lanzamiento
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => window.location.href = "/register"}>
-                  Registrarse Gratis Ahora
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+
 
         {/* Publicidad */}
         {advertisement && showAd && (
@@ -438,6 +409,37 @@ export default function PublicView() {
             )}
           </div>
         )}
+
+        {/* Aviso de Plan Premium - Movido al final */}
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 border border-amber-200 dark:border-amber-800 rounded-lg p-6 mt-8">
+          <div className="flex items-start space-x-4">
+            <Crown className="w-8 h-8 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1" />
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                🚀 Funcionalidades Completas Próximamente de Pago
+              </h3>
+              <p className="text-amber-700 dark:text-amber-300 mb-4">
+                Actualmente puedes explorar materiales y proveedores de forma gratuita. 
+                Pronto lanzaremos nuestro plan premium con funcionalidades completas:
+              </p>
+              <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1 mb-4">
+                <li>• Creación ilimitada de proyectos y presupuestos</li>
+                <li>• Precios personalizados y cálculos APU completos</li>
+                <li>• Generación de PDFs profesionales</li>
+                <li>• Acceso a toda la base de datos de materiales</li>
+                <li>• Herramientas avanzadas para constructores</li>
+              </ul>
+              <div className="flex space-x-3">
+                <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+                  Notificarme del Lanzamiento
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => window.location.href = "/register"}>
+                  Registrarse Gratis Ahora
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
