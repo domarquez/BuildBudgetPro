@@ -131,14 +131,23 @@ export default function MultiphaseBudgetForm({ budget, onClose }: MultiphaseBudg
   // Crear proyecto
   const createProjectMutation = useMutation({
     mutationFn: async (data: ProjectFormData) => {
-      const response = await apiRequest("POST", "/api/projects", {
-        ...data,
-        equipmentPercentage: parseFloat(data.equipmentPercentage),
-        administrativePercentage: parseFloat(data.administrativePercentage),
-        utilityPercentage: parseFloat(data.utilityPercentage),
-        taxPercentage: parseFloat(data.taxPercentage),
-        socialChargesPercentage: parseFloat(data.socialChargesPercentage),
-      });
+      const projectData = {
+        name: data.name,
+        client: data.client || null,
+        location: data.location || null,
+        city: data.city || null,
+        country: data.country || "Bolivia",
+        startDate: data.startDate || null,
+        equipmentPercentage: parseFloat(data.equipmentPercentage || "5.00"),
+        administrativePercentage: parseFloat(data.administrativePercentage || "8.00"),
+        utilityPercentage: parseFloat(data.utilityPercentage || "15.00"),
+        taxPercentage: parseFloat(data.taxPercentage || "3.09"),
+        socialChargesPercentage: parseFloat(data.socialChargesPercentage || "71.18"),
+      };
+      
+      console.log("Enviando datos del proyecto:", projectData);
+      
+      const response = await apiRequest("POST", "/api/projects", projectData);
       return response.json();
     },
     onSuccess: (project) => {
