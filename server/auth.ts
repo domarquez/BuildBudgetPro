@@ -159,7 +159,16 @@ export const requireAdmin = async (req: any, res: any, next: any) => {
 
 export const requireSupplier = async (req: any, res: any, next: any) => {
   await requireAuth(req, res, () => {
-    if (req.user.userType !== 'supplier') {
+    console.log('requireSupplier middleware - User data:', {
+      id: req.user.id,
+      username: req.user.username,
+      userType: req.user.userType,
+      user_type: req.user.user_type,
+      allFields: Object.keys(req.user)
+    });
+    
+    if (req.user.userType !== 'supplier' && req.user.user_type !== 'supplier') {
+      console.log('Access denied - UserType:', req.user.userType, 'User_type:', req.user.user_type);
       return res.status(403).json({ message: 'Access denied - Not a supplier' });
     }
     next();
