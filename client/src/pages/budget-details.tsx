@@ -66,10 +66,13 @@ export default function BudgetDetails() {
       doc.line(margin, yPosition, pageWidth - margin, yPosition);
       yPosition += 8;
 
-      // Items del presupuesto con detalles expandidos
+      // Items del presupuesto con detalles
       let totalGeneral = 0;
-      budgetItems.forEach((item, index) => {
-        if (yPosition > 250) {
+      
+      for (let index = 0; index < budgetItems.length; index++) {
+        const item = budgetItems[index];
+        
+        if (yPosition > 230) {
           doc.addPage();
           yPosition = 30;
           // Repetir encabezado en nueva página
@@ -94,61 +97,130 @@ export default function BudgetDetails() {
         doc.setFontSize(8);
         doc.text(`${(index + 1).toString().padStart(2, '0')}`, margin, yPosition);
         
-        // Limpiar nombre de la actividad removiendo prefijos repetitivos
+        // Limpiar nombre de la actividad
         let activityName = item.activity?.name || 'Sin descripcion';
         activityName = activityName.replace(/^ANÁLISIS DE PRECIOS UNITARIOS \(APU\) DE:\s*/i, '');
         activityName = activityName.replace(/^APU DE:\s*/i, '');
         
-        const maxCharsPerLine = 40;
-        if (activityName.length > maxCharsPerLine) {
-          const words = activityName.split(' ');
-          let currentLine = '';
-          let lineCount = 0;
-          
-          words.forEach(word => {
-            if ((currentLine + word).length > maxCharsPerLine) {
-              doc.text(currentLine.trim(), margin + 15, yPosition + (lineCount * 5));
-              currentLine = word + ' ';
-              lineCount++;
-            } else {
-              currentLine += word + ' ';
-            }
-          });
-          
-          if (currentLine.trim()) {
-            doc.text(currentLine.trim(), margin + 15, yPosition + (lineCount * 5));
-          }
-          
-          yPosition += Math.max(1, lineCount) * 5;
-        } else {
-          doc.text(activityName, margin + 15, yPosition);
+        if (activityName.length > 40) {
+          activityName = activityName.substring(0, 40) + '...';
         }
-
+        
+        doc.text(activityName, margin + 15, yPosition);
         doc.text(item.activity?.unit || 'und', margin + 110, yPosition);
         doc.text(quantity.toFixed(2), margin + 125, yPosition);
         doc.text(unitPrice.toFixed(2), margin + 145, yPosition);
         doc.text(subtotal.toFixed(2), margin + 170, yPosition);
         yPosition += 12;
 
-        // Agregar análisis de precio unitario (APU simulado)
-        doc.setFontSize(7);
-        doc.text('    * Materiales: 60%', margin + 20, yPosition);
-        doc.text(`Bs ${(unitPrice * 0.6).toFixed(2)}`, margin + 145, yPosition);
+        // Obtener composición de la actividad
+        try {
+          const response = await fetch(`/api/activities/${item.activity?.id}/composition`);
+          if (response.ok) {
+            const composition = await response.json();
+            
+            doc.setFontSize(7);
+            doc.text('    COMPOSICION DE PRECIO UNITARIO:', margin + 20, yPosition);
+            yPosition += 5;
+            
+            // Mostrar materiales
+            if (composition.materials && composition.materials.length > 0) {
+              doc.text('    • MATERIALES:', margin + 25, yPosition);
+              yPosition += 4;
+              
+              for (const material of composition.materials.slice(0, 3)) { // Limitar a 3 materiales
+                const materialCost = material.quantity * material.unitPrice;
+                const matDesc = material.description.length > 35 ? 
+                  material.description.substring(0, 35) + '...' : material.description;
+                doc.text(`      - ${matDesc}`, margin + 30, yPosition);
+                doc.text(`${material.quantity} ${material.unit}`, margin + 100, yPosition);
+                doc.text(`Bs ${materialCost.toFixed(2)}`, margin + 145, yPosition);
+                yPosition += 4;
+              }
+              if (composition.materials.length > 3) {
+                doc.text(`      ... y ${composition.materials.length - 3} materiales mas`, margin + 30, yPosition);
+                yPosition += 4;
+              }
+            }
+            
+            // Mostrar mano de obra
+            if (composition.labor && composition.labor.length > 0) {
+              yPosition += 2;
+              doc.text('    • MANO DE OBRA:', margin + 25, yPosition);
+              yPosition += 4;
+              
+              for (const labor of composition.labor.slice(0, 2)) { // Limitar a 2 elementos
+                const laborCost = labor.quantity * labor.unitPrice;
+                const labDesc = labor.description.length > 35 ? 
+                  labor.description.substring(0, 35) + '...' : labor.description;
+                doc.text(`      - ${labDesc}`, margin + 30, yPosition);
+                doc.text(`${labor.quantity} ${labor.unit}`, margin + 100, yPosition);
+                doc.text(`Bs ${laborCost.toFixed(2)}`, margin + 145, yPosition);
+                yPosition += 4;
+              }
+              if (composition.labor.length > 2) {
+                doc.text(`      ... y ${composition.labor.length - 2} especialidades mas`, margin + 30, yPosition);
+                yPosition += 4;
+              }
+            }
+            
+            // Mostrar herramientas
+            if (composition.tools && composition.tools.length > 0) {
+              yPosition += 2;
+              doc.text('    • HERRAMIENTAS Y EQUIPOS:', margin + 25, yPosition);
+              yPosition += 4;
+              
+              for (const tool of composition.tools.slice(0, 2)) { // Limitar a 2 elementos
+                const toolCost = tool.quantity * tool.unitPrice;
+                const toolDesc = tool.description.length > 35 ? 
+                  tool.description.substring(0, 35) + '...' : tool.description;
+                doc.text(`      - ${toolDesc}`, margin + 30, yPosition);
+                doc.text(`${tool.quantity} ${tool.unit}`, margin + 100, yPosition);
+                doc.text(`Bs ${toolCost.toFixed(2)}`, margin + 145, yPosition);
+                yPosition += 4;
+              }
+              if (composition.tools.length > 2) {
+                doc.text(`      ... y ${composition.tools.length - 2} herramientas mas`, margin + 30, yPosition);
+                yPosition += 4;
+              }
+            }
+          } else {
+            // Análisis estimado si no hay composición
+            doc.setFontSize(7);
+            doc.text('    ANALISIS ESTIMADO:', margin + 20, yPosition);
+            yPosition += 4;
+            doc.text('    • Materiales: 60%', margin + 25, yPosition);
+            doc.text(`Bs ${(unitPrice * 0.6).toFixed(2)}`, margin + 145, yPosition);
+            yPosition += 4;
+            doc.text('    • Mano de obra: 25%', margin + 25, yPosition);
+            doc.text(`Bs ${(unitPrice * 0.25).toFixed(2)}`, margin + 145, yPosition);
+            yPosition += 4;
+            doc.text('    • Equipos: 15%', margin + 25, yPosition);
+            doc.text(`Bs ${(unitPrice * 0.15).toFixed(2)}`, margin + 145, yPosition);
+            yPosition += 4;
+          }
+        } catch (error) {
+          console.error('Error obteniendo composición:', error);
+          // Análisis estimado en caso de error
+          doc.setFontSize(7);
+          doc.text('    ANALISIS ESTIMADO:', margin + 20, yPosition);
+          yPosition += 4;
+          doc.text('    • Materiales: 60%', margin + 25, yPosition);
+          doc.text(`Bs ${(unitPrice * 0.6).toFixed(2)}`, margin + 145, yPosition);
+          yPosition += 4;
+          doc.text('    • Mano de obra: 25%', margin + 25, yPosition);
+          doc.text(`Bs ${(unitPrice * 0.25).toFixed(2)}`, margin + 145, yPosition);
+          yPosition += 4;
+          doc.text('    • Equipos: 15%', margin + 25, yPosition);
+          doc.text(`Bs ${(unitPrice * 0.15).toFixed(2)}`, margin + 145, yPosition);
+          yPosition += 4;
+        }
+        
         yPosition += 4;
-        doc.text('    * Mano de obra: 25%', margin + 20, yPosition);
-        doc.text(`Bs ${(unitPrice * 0.25).toFixed(2)}`, margin + 145, yPosition);
-        yPosition += 4;
-        doc.text('    * Equipos y herramientas: 10%', margin + 20, yPosition);
-        doc.text(`Bs ${(unitPrice * 0.1).toFixed(2)}`, margin + 145, yPosition);
-        yPosition += 4;
-        doc.text('    * Gastos generales: 5%', margin + 20, yPosition);
-        doc.text(`Bs ${(unitPrice * 0.05).toFixed(2)}`, margin + 145, yPosition);
-        yPosition += 8;
-
         // Línea separadora entre items
         doc.line(margin, yPosition, pageWidth - margin, yPosition);
         yPosition += 5;
-      });
+      }
 
       // Resumen financiero
       yPosition += 10;
@@ -161,8 +233,8 @@ export default function BudgetDetails() {
       doc.text(`Bs ${totalGeneral.toFixed(2)}`, margin + 140, yPosition);
       yPosition += 6;
 
-      // Calcular impuestos y totales (usando porcentajes del proyecto si están disponibles)
-      const iva = totalGeneral * 0.13; // IVA 13% Bolivia
+      // Calcular IVA
+      const iva = totalGeneral * 0.13;
       const totalConIva = totalGeneral + iva;
 
       doc.text('IVA (13%):', margin + 20, yPosition);
