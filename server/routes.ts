@@ -434,6 +434,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Import complete data from SQL file (empresas, herramientas, mano de obra)
+  app.post("/api/import-complete-data", requireAdmin, async (req, res) => {
+    try {
+      const { importCompleteDataFromSQL } = await import("./import-complete-data");
+      const result = await importCompleteDataFromSQL();
+      res.json(result);
+    } catch (error) {
+      console.error("Error importing complete data:", error);
+      res.status(500).json({ message: "Failed to import complete data" });
+    }
+  });
+
   // Activity Compositions
   app.get("/api/activity-compositions", requireAuth, async (req, res) => {
     try {

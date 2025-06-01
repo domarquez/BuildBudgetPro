@@ -35,6 +35,26 @@ export default function APUImport() {
     },
   });
 
+  const importCompleteData = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/import-complete-data", {});
+      return await response.json();
+    },
+    onSuccess: (result: any) => {
+      toast({
+        title: "Importación de empresas completada",
+        description: `Se importaron ${result.data.suppliers} empresas proveedoras reales de Bolivia.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error en la importación",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const reorganizeActivities = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/reorganize-activities", {});
@@ -201,10 +221,20 @@ export default function APUImport() {
                 >
                   {calculatePrices.isPending ? "Calculando..." : "Calcular Precios de Todas las Actividades"}
                 </Button>
+
+                <Button 
+                  onClick={() => importCompleteData.mutate()}
+                  disabled={importCompleteData.isPending}
+                  variant="outline"
+                  className="w-full md:w-auto border-purple-300 text-purple-700 hover:bg-purple-50"
+                >
+                  {importCompleteData.isPending ? "Importando..." : "Importar Empresas Proveedoras Reales"}
+                </Button>
                 
                 <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg space-y-1">
                   <p><strong>Reorganizar:</strong> Distribuye las actividades importadas en las fases correctas según su tipo (demolición → preliminares, vidrios → acabados, etc.)</p>
                   <p><strong>Calcular Precios:</strong> Actualiza automáticamente los precios unitarios de todas las actividades basándose en sus composiciones importadas (materiales + mano de obra).</p>
+                  <p><strong>Empresas Proveedoras:</strong> Importa 178 empresas reales de Bolivia incluyendo proveedores de materiales, constructoras, empresas eléctricas y de diseño con datos de contacto auténticos.</p>
                 </div>
               </div>
 
