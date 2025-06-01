@@ -1635,6 +1635,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PDF text extraction route
+  app.post("/api/extract-pdf-text", requireAuth, upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No se proporcionó archivo PDF" });
+      }
+
+      const pdfParse = require('pdf-parse');
+      const pdfBuffer = req.file.buffer;
+      
+      const data = await pdfParse(pdfBuffer);
+      
+      res.json({ 
+        text: data.text,
+        pages: data.numpages,
+        info: data.info
+      });
+    } catch (error) {
+      console.error("Error extracting PDF text:", error);
+      res.status(500).json({ message: "Error al extraer texto del PDF" });
+    }
+  });
+
+  // Bulk company import route
+  app.post("/api/import-companies-bulk", requireAuth, async (req, res) => {
+    try {
+      const { companies } = req.body;
+      const userId = (req as any).user?.id;
+
+      if (!Array.isArray(companies) || companies.length === 0) {
+        return res.status(400).json({ message: "No se proporcionaron empresas para importar" });
+      }
+
+      let imported = 0;
+      let errors = 0;
+
+      for (const companyData of companies) {
+        try {
+          // Create user for the company first
+          const username = companyData.name.toLowerCase()
+            .replace(/[^a-z0-9]/g, '_')
+            .substring(0, 50);
+          
+          let finalUsername = username;
+          let counter = 1;
+          
+          // Ensure unique username
+          while (await storage.getUserByUsername(finalUsername)) {
+            finalUsername = `${username}_${counter}`;
+            counter++;
+          }
+
+          const newUser = await storage.createUser({
+            username: finalUsername,
+            email: companyData.email || `${finalUsername}@example.com`,
+            password: await bcrypt.hash("defaultpassword123", 10),
+            role: "user",
+            userType: "supplier"
+          });
+
+          // Create supplier company
+          await storage.createSupplierCompany({
+            userId: newUser.id,
+            companyName: companyData.name,
+            businessType: companyData.businessType || "General",
+            description: companyData.services || "",
+            address: companyData.address || "",
+            city: companyData.city || "La Paz",
+            phone: companyData.phone || "",
+            website: companyData.website || "",
+            speciality: companyData.businessType || "General"
+          });
+
+          imported++;
+        } catch (error) {
+          console.error(`Error importing company ${companyData.name}:`, error);
+          errors++;
+        }
+      }
+
+      res.json({ 
+        imported,
+        errors,
+        total: companies.length,
+        message: `Se importaron ${imported} empresas correctamente${errors > 0 ? `, ${errors} errores` : ''}`
+      });
+    } catch (error) {
+      console.error("Error in bulk import:", error);
+      res.status(500).json({ message: "Error al importar empresas" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

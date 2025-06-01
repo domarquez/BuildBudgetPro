@@ -28,6 +28,7 @@ import {
   Wrench,
   Users,
   Camera,
+  Upload,
 } from "lucide-react";
 
 const menuItems = [
@@ -114,6 +115,11 @@ const adminItems = [
     title: "Gestionar Actividades",
     url: "/admin/activities",
     icon: Shield,
+  },
+  {
+    title: "Importar Empresas",
+    url: "/import-companies",
+    icon: Upload,
   },
 ];
 
