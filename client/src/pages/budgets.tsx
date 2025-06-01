@@ -180,7 +180,7 @@ export default function Budgets() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">
-                            {budget.phase.name}
+                            {budget.phase ? budget.phase.name : "Multifase"}
                           </Badge>
                         </TableCell>
                         <TableCell className="font-semibold">
