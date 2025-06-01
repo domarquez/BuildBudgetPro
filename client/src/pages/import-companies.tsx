@@ -268,19 +268,23 @@ export default function ImportCompanies() {
               </div>
             )}
             
-            <div className="border-t pt-4">
-              <Label htmlFor="manual-text">Texto del Catálogo</Label>
-              <p className="text-xs text-gray-600 mb-2">
-                Copia el texto completo del PDF y pégalo aquí
-              </p>
-              <Textarea
-                id="manual-text"
-                value={extractedText}
-                onChange={(e) => setExtractedText(e.target.value)}
-                placeholder="Pega aquí el texto del catálogo de empresas..."
-                className="min-h-[300px] text-sm font-mono"
-              />
-            </div>
+            {extractedText && (
+              <div className="border-t pt-4">
+                <Label htmlFor="extracted-text">Texto Extraído del PDF</Label>
+                <Textarea
+                  id="extracted-text"
+                  value={extractedText}
+                  onChange={(e) => setExtractedText(e.target.value)}
+                  className="min-h-[300px] text-sm font-mono"
+                  readOnly={extractedText.includes("Error al extraer") ? false : true}
+                />
+                {extractedText.includes("Error al extraer") && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Puedes editar este texto o pegar el contenido correcto del PDF
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 

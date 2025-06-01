@@ -1650,38 +1650,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PDF upload route - stores PDF for manual text extraction
+  // PDF text extraction route
   app.post("/api/extract-pdf-text", requireAuth, uploadPDF.single('pdf'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No se proporcionó archivo PDF" });
       }
 
-      // Guardar PDF en directorio uploads para acceso posterior
-      const fs = await import('fs');
-      const path = await import('path');
+      console.log("Processing PDF file:", req.file.originalname, "Size:", req.file.size);
       
-      const uploadsDir = path.join(process.cwd(), 'uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+      try {
+        // Intentar importar pdf-parse con diferentes métodos
+        let pdfParse;
+        try {
+          pdfParse = (await import('pdf-parse')).default;
+        } catch (importError) {
+          console.log("Import method 1 failed, trying require...");
+          pdfParse = require('pdf-parse');
+        }
+        
+        if (!pdfParse) {
+          throw new Error("No se pudo cargar la librería de procesamiento PDF");
+        }
+
+        console.log("PDF parser loaded successfully");
+        
+        // Procesar el PDF desde el buffer
+        const data = await pdfParse(req.file.buffer, {
+          // Opciones para mejorar la extracción
+          max: 0, // Sin límite de páginas
+          version: 'v1.10.100', // Versión específica
+        });
+        
+        console.log("PDF processed successfully. Pages:", data.numpages, "Text length:", data.text.length);
+        
+        if (!data.text || data.text.trim().length === 0) {
+          return res.json({
+            text: "No se pudo extraer texto del PDF. El archivo podría estar protegido o ser una imagen escaneada.",
+            pages: data.numpages || 0,
+            info: { 
+              title: req.file.originalname,
+              size: req.file.size
+            }
+          });
+        }
+        
+        res.json({ 
+          text: data.text,
+          pages: data.numpages,
+          info: { 
+            title: req.file.originalname,
+            size: req.file.size,
+            info: data.info
+          }
+        });
+        
+      } catch (pdfError) {
+        console.error("PDF processing error:", pdfError);
+        
+        // Guardar PDF para revisión manual si falla la extracción automática
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        
+        const fileName = `pdf_${Date.now()}_${req.file.originalname}`;
+        const filePath = path.join(uploadsDir, fileName);
+        fs.writeFileSync(filePath, req.file.buffer);
+        
+        res.json({
+          text: `Error al extraer texto automáticamente del PDF "${req.file.originalname}".\n\nEl archivo se guardó para procesamiento manual.\n\nPor favor:\n1. Abre el PDF original\n2. Copia todo el texto\n3. Pégalo en el área de texto para continuar`,
+          pages: "Error",
+          info: { 
+            title: req.file.originalname,
+            size: req.file.size,
+            error: pdfError.message,
+            savedPath: fileName
+          }
+        });
       }
       
-      const fileName = `pdf_${Date.now()}_${req.file.originalname}`;
-      const filePath = path.join(uploadsDir, fileName);
-      fs.writeFileSync(filePath, req.file.buffer);
-      
-      res.json({ 
-        text: `PDF "${req.file.originalname}" cargado exitosamente.\n\nPara continuar:\n1. Abre el PDF en tu computadora\n2. Selecciona todo el texto (Ctrl+A)\n3. Copia el texto (Ctrl+C)\n4. Pega el texto en el área de texto manual\n\nEsto garantiza la mejor extracción de texto del documento.`,
-        pages: "Desconocido",
-        info: { 
-          title: req.file.originalname,
-          size: req.file.size,
-          uploadPath: fileName
-        }
-      });
-      
     } catch (error) {
-      console.error("Error processing PDF:", error);
+      console.error("General error processing PDF:", error);
       res.status(500).json({ message: "Error al procesar PDF: " + (error as Error).message });
     }
   });
