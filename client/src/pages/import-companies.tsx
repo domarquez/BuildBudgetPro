@@ -268,23 +268,30 @@ export default function ImportCompanies() {
               </div>
             )}
             
-            {extractedText && (
-              <div className="border-t pt-4">
-                <Label htmlFor="extracted-text">Texto Extraído del PDF</Label>
-                <Textarea
-                  id="extracted-text"
-                  value={extractedText}
-                  onChange={(e) => setExtractedText(e.target.value)}
-                  className="min-h-[300px] text-sm font-mono"
-                  readOnly={extractedText.includes("Error al extraer") ? false : true}
-                />
-                {extractedText.includes("Error al extraer") && (
-                  <p className="text-xs text-amber-600 mt-1">
-                    Puedes editar este texto o pegar el contenido correcto del PDF
-                  </p>
-                )}
-              </div>
-            )}
+            <div className="border-t pt-4">
+              <Label htmlFor="manual-text">Importación Manual - Pega el texto del catálogo</Label>
+              <p className="text-xs text-gray-600 mb-2">
+                Copia todo el texto del catálogo y pégalo aquí. El sistema detectará automáticamente empresas, direcciones, teléfonos y rubros.
+              </p>
+              <Textarea
+                id="manual-text"
+                value={extractedText}
+                onChange={(e) => setExtractedText(e.target.value)}
+                placeholder="Pega aquí el texto completo del catálogo de empresas...
+
+Ejemplo:
+CONSTRUCTORA ABC S.R.L.
+Av. América 1234, La Paz
+Tel: 2-234-5678 | contacto@abc.com.bo
+Especialistas en construcción y materiales
+
+FERRETERÍA CENTRAL
+Calle Comercio 567, Santa Cruz  
+Teléf: 3-345-6789
+Venta de herramientas y ferretería en general"
+                className="min-h-[400px] text-sm"
+              />
+            </div>
           </CardContent>
         </Card>
 
