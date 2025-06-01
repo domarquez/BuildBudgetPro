@@ -478,6 +478,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get APU calculation for a specific activity
+  app.get("/api/activities/:id/apu-calculation", async (req, res) => {
+    try {
+      const activityId = Number(req.params.id);
+      const projectId = req.query.projectId ? Number(req.query.projectId) : undefined;
+      
+      const { calculateAPUPrice } = await import("./apu-calculator");
+      const calculation = await calculateAPUPrice(activityId, projectId);
+      
+      res.json(calculation);
+    } catch (error) {
+      console.error("Error calculating APU:", error);
+      res.status(500).json({ message: "Failed to calculate APU" });
+    }
+  });
+
   // Price settings routes (Admin only)
   app.get("/api/price-settings", requireAuth, async (req, res) => {
     try {

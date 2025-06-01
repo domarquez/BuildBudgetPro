@@ -49,6 +49,16 @@ export default function ActivityDetailDialog({
     enabled: open && activityId > 0,
   });
 
+  const { data: apuCalculation, isLoading: calculationLoading } = useQuery({
+    queryKey: ["/api/activities", activityId, "apu-calculation"],
+    queryFn: async () => {
+      const response = await fetch(`/api/activities/${activityId}/apu-calculation`);
+      if (!response.ok) throw new Error('Failed to fetch APU calculation');
+      return response.json();
+    },
+    enabled: open && activityId > 0,
+  });
+
   const priceValue = parseFloat(unitPrice || "0");
 
   // Group compositions by type
@@ -77,35 +87,126 @@ export default function ActivityDetailDialog({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Price Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Resumen de Precio
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Materiales</p>
-                  <p className="font-semibold text-blue-600">{formatCurrency(materialsTotal)}</p>
+          {/* APU Calculation Summary */}
+          {apuCalculation && !calculationLoading && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Análisis de Precios Unitarios
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  {/* 1. Materiales */}
+                  <div className="border-b pb-2">
+                    <div className="flex justify-between font-medium">
+                      <span>1. MATERIALES</span>
+                      <span>{formatCurrency(apuCalculation.materialsTotal)}</span>
+                    </div>
+                  </div>
+                  
+                  {/* 2. Mano de Obra */}
+                  <div className="border-b pb-2">
+                    <div className="flex justify-between font-medium mb-1">
+                      <span>2. MANO DE OBRA</span>
+                      <span></span>
+                    </div>
+                    <div className="ml-4 space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span>Total mano de obra</span>
+                        <span>{formatCurrency(apuCalculation.laborTotal)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Cargas sociales (55.00%)</span>
+                        <span>{formatCurrency(apuCalculation.breakdown.laborCharges)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>I.V.A. de M.O. y cargas sociales (14.94%)</span>
+                        <span>{formatCurrency(apuCalculation.breakdown.laborIVA)}</span>
+                      </div>
+                      <div className="flex justify-between font-medium text-sm">
+                        <span>Total mano de obra</span>
+                        <span>{formatCurrency(apuCalculation.laborWithCharges + apuCalculation.breakdown.laborIVA)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 3. Equipos */}
+                  <div className="border-b pb-2">
+                    <div className="flex justify-between font-medium mb-1">
+                      <span>3. EQUIPO, MAQUINARIA Y HERRAMIENTAS</span>
+                      <span></span>
+                    </div>
+                    <div className="ml-4 space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span>Total equipos</span>
+                        <span>{formatCurrency(apuCalculation.equipmentTotal)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Herramientas (5.00%)</span>
+                        <span>{formatCurrency(apuCalculation.breakdown.tools)}</span>
+                      </div>
+                      <div className="flex justify-between font-medium text-sm">
+                        <span>Total equipo, maquinaria y herramientas</span>
+                        <span>{formatCurrency(apuCalculation.equipmentWithTools)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 4. Gastos Generales */}
+                  <div className="border-b pb-2">
+                    <div className="flex justify-between font-medium">
+                      <span>4. GASTOS GENERALES Y ADMINISTRATIVOS</span>
+                      <span></span>
+                    </div>
+                    <div className="ml-4 text-xs">
+                      <div className="flex justify-between font-medium">
+                        <span>Gastos generales (8.00%)</span>
+                        <span>{formatCurrency(apuCalculation.administrativeCost)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 5. Utilidad */}
+                  <div className="border-b pb-2">
+                    <div className="flex justify-between font-medium">
+                      <span>5. UTILIDAD</span>
+                      <span></span>
+                    </div>
+                    <div className="ml-4 text-xs">
+                      <div className="flex justify-between font-medium">
+                        <span>Utilidad (15.00%)</span>
+                        <span>{formatCurrency(apuCalculation.utilityCost)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 6. Impuestos */}
+                  <div className="border-b pb-2">
+                    <div className="flex justify-between font-medium">
+                      <span>6. IMPUESTOS</span>
+                      <span></span>
+                    </div>
+                    <div className="ml-4 text-xs">
+                      <div className="flex justify-between font-medium">
+                        <span>IT (3.09%)</span>
+                        <span>{formatCurrency(apuCalculation.taxCost)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Total Final */}
+                  <div className="bg-blue-50 p-3 rounded-lg mt-3">
+                    <div className="flex justify-between text-base font-bold">
+                      <span>Total Precio Unitario</span>
+                      <span>{formatCurrency(apuCalculation.totalUnitPrice)}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Mano de Obra</p>
-                  <p className="font-semibold text-green-600">{formatCurrency(laborTotal)}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Equipos</p>
-                  <p className="font-semibold text-orange-600">{formatCurrency(equipmentTotal)}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Precio Total</p>
-                  <p className="font-semibold text-lg">{formatCurrency(priceValue)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {isLoading ? (
             <div className="space-y-4">
