@@ -1657,85 +1657,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No se proporcionó archivo PDF" });
       }
 
-      // Simular contenido extraído del PDF de empresas bolivianas
-      const extractedContent = `
-GUÍA DE PROVEEDORES DE CONSTRUCCIÓN - BOLIVIA
-
-ACTIV Aluminium
-LPZ.: Av. Armenia N° 510, esquina Laja
-(591) 2) 2284418 - 2284419
-aluminiosactiv@hotmail.com
-www.activaluminio.com
-Importa y Distribuye Perfiles de aluminio "INDALUM"
-Realiza diseño, presupuesto: Carpintería de aluminio, Vidrio templado
-
-AYUDANTE DE TU HOGAR
-(591) 75221344
-contacto@ayudantedetuhogar.com
-www.ayudantedetuhogar.com
-Aplicación y página web con la intención de crear una conexión rápida y segura entre los expertos y clientes que necesitan ayuda en diferentes ámbitos del hogar
-
-BARRIENTOS SERAN
-LPZ.: Obrajes esq. Av. Hernando Siles esq. calle 15
-Edif. Britannia Piso 7 Of. 78-80
-(591) 71535532 - 73248995
-(591) 2) 2792377
-info@barrientosseran.com
-consultivos@barrientosseran.com
-www.barrientosseran.com
-Asistencia técnica especializada servicio de Post - Tasado en Puertas y Edificios
-Provisión de Materiales: Archelas sistema Freyssinet, Cable de pretensado, Vainas metálicas corrugadas
-
-BAU-FUHRER
-LPZ.: Av. José Ballivián N° 10 Viacha - La Paz
-(591) 70616576 - 77502762
-hanns.romer@baufuhrer.com
-www.baufuhrer.com
-Constructora Bau-fuhrer
-Nuestros Servicios: Vial: Pavimentos rígidos, flexibles, enlosados, mantenimiento viales
-Construcción: Mampostería hidráulica, metálicas, montajes industriales, y otros
-Supervisión de obras y elaboración de proyectos
-
-CERABOL CERAMICA
-Sta. Cruz: Carretera Nueva a Camiri Km. 3
-(591 3) 332-9435 • (591) 721-48330
-Suc. 1: Av. Cristo Redentor entre 5° y 6° anillo
-(591 3) 345-1177
-Suc. 2: Av. Fital esq. 4to anillo
-(591 3) 346-2315 • 346-6050
-ventas@cerabol.com
-www.cerabol.com
-Cerámica Antideslizante, Pisos y Revestimientos
-
-CERATECH S.R.L.
-La Paz: Av. Ballivián N° 657, casi esq. 15
-Edif. Sigma Planta Baja, Calacoto
-(591 2) 2791069 • 2795024 • 2797532
-ceratech@hotmail.com
-www.construex.com.bo
-Shingle - Teja Americana
-Representantes de TAMKO (Roofing Products) en Bolivia
-Distribuidores autorizados
-Distribuidores americanas, Porcelanato y Tableros: OSB/ Aglomerado / Multilaminado
-
-DORADO
-El ALTO Fábrica: Carretera a Viacha Km. 15
-(591 2) 2800495 • (591) 77284877 - 77570471
-Agencia Laja Gta.: Av. Mario Mercado N° 3005
-CURVA DORADO
-(591) 79530471
-juliocesar@ceramicadorado.com
-www.ceramicadorado.com
-Ladrillos Tejas, Complementos para Losas, Viguetas Prefabricadas
-Complementos Plastiforme, Calaminas Galvanizadas y de colores a medida del Cliente, Ladrillo Molido
-      `;
-
-      res.json({ 
-        text: extractedContent,
-        pages: 1,
-        info: { title: "Guía de Proveedores" }
-      });
+      const pdfParse = (await import('pdf-parse')).default;
+      const pdfBuffer = req.file.buffer;
       
+      const data = await pdfParse(pdfBuffer);
+      
+      res.json({ 
+        text: data.text,
+        pages: data.numpages,
+        info: data.info
+      });
     } catch (error) {
       console.error("Error extracting PDF text:", error);
       res.status(500).json({ message: "Error al extraer texto del PDF" });
