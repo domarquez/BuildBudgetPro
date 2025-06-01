@@ -94,8 +94,11 @@ export default function BudgetDetails() {
         doc.setFontSize(8);
         doc.text(`${(index + 1).toString().padStart(2, '0')}`, margin, yPosition);
         
-        // Dividir nombre largo en múltiples líneas
-        const activityName = item.activity?.name || 'Sin descripcion';
+        // Limpiar nombre de la actividad removiendo prefijos repetitivos
+        let activityName = item.activity?.name || 'Sin descripcion';
+        activityName = activityName.replace(/^ANÁLISIS DE PRECIOS UNITARIOS \(APU\) DE:\s*/i, '');
+        activityName = activityName.replace(/^APU DE:\s*/i, '');
+        
         const maxCharsPerLine = 40;
         if (activityName.length > maxCharsPerLine) {
           const words = activityName.split(' ');
