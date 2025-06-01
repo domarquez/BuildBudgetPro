@@ -164,13 +164,14 @@ export interface IStorage {
   updateMaterialSupplierPrice(id: number, price: Partial<InsertMaterialSupplierPrice>): Promise<MaterialSupplierPrice>;
   deleteMaterialSupplierPrice(id: number): Promise<void>;
 
-  // Sistema de publicidad (TODO: implementar completamente)
-  // getActiveAdvertisements(): Promise<AdvertisementWithSupplier[]>;
-  // getRandomAdvertisement(): Promise<AdvertisementWithSupplier | null>;
-  // createAdvertisement(data: InsertCompanyAdvertisement): Promise<CompanyAdvertisement>;
-  // updateAdvertisementViews(adId: number): Promise<void>;
-  // updateAdvertisementClicks(adId: number): Promise<void>;
-  // getAdvertisementsBySupplier(supplierId: number): Promise<CompanyAdvertisement[]>;
+  // Company Advertisements
+  getCompanyAdvertisements(supplierId: number): Promise<CompanyAdvertisement[]>;
+  getCompanyAdvertisement(id: number): Promise<CompanyAdvertisement | undefined>;
+  createCompanyAdvertisement(ad: InsertCompanyAdvertisement): Promise<CompanyAdvertisement>;
+  updateCompanyAdvertisement(id: number, ad: Partial<InsertCompanyAdvertisement>): Promise<CompanyAdvertisement>;
+  deleteCompanyAdvertisement(id: number): Promise<void>;
+  incrementAdvertisementViews(id: number): Promise<void>;
+  incrementAdvertisementClicks(id: number): Promise<void>;
 
   // Configuración del sistema (TODO: implementar completamente)
   // getSystemSetting(key: string): Promise<string | null>;
@@ -1004,6 +1005,67 @@ export class DatabaseStorage implements IStorage {
 
   async deleteActivityCompositionsByActivity(activityId: number): Promise<void> {
     await db.delete(activityCompositions).where(eq(activityCompositions.activityId, activityId));
+  }
+
+  // Company Advertisements
+  async getCompanyAdvertisements(supplierId: number): Promise<CompanyAdvertisement[]> {
+    return await db
+      .select()
+      .from(companyAdvertisements)
+      .where(eq(companyAdvertisements.supplierId, supplierId))
+      .orderBy(desc(companyAdvertisements.createdAt));
+  }
+
+  async getCompanyAdvertisement(id: number): Promise<CompanyAdvertisement | undefined> {
+    const [advertisement] = await db
+      .select()
+      .from(companyAdvertisements)
+      .where(eq(companyAdvertisements.id, id));
+    return advertisement || undefined;
+  }
+
+  async createCompanyAdvertisement(ad: InsertCompanyAdvertisement): Promise<CompanyAdvertisement> {
+    const [created] = await db
+      .insert(companyAdvertisements)
+      .values(ad)
+      .returning();
+    return created;
+  }
+
+  async updateCompanyAdvertisement(id: number, ad: Partial<InsertCompanyAdvertisement>): Promise<CompanyAdvertisement> {
+    const [updated] = await db
+      .update(companyAdvertisements)
+      .set({
+        ...ad,
+        updatedAt: new Date()
+      })
+      .where(eq(companyAdvertisements.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCompanyAdvertisement(id: number): Promise<void> {
+    await db.delete(companyAdvertisements).where(eq(companyAdvertisements.id, id));
+  }
+
+  async incrementAdvertisementViews(id: number): Promise<void> {
+    await db
+      .update(companyAdvertisements)
+      .set({
+        viewCount: sql`${companyAdvertisements.viewCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(companyAdvertisements.id, id));
+  }
+
+  async incrementAdvertisementClicks(id: number): Promise<void> {
+    await db
+      .update(companyAdvertisements)
+      .set({
+        clickCount: sql`${companyAdvertisements.clickCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(companyAdvertisements.id, id));
   }
 }
 
