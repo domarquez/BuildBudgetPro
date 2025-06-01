@@ -21,6 +21,8 @@ import {
   Construction,
   DollarSign,
   MapPin,
+  Building2,
+  Store,
 } from "lucide-react";
 
 const menuItems = [
