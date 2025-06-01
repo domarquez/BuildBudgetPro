@@ -23,6 +23,8 @@ import {
   MapPin,
   Building2,
   Store,
+  Wrench,
+  Users,
 } from "lucide-react";
 
 const menuItems = [
@@ -40,6 +42,16 @@ const menuItems = [
     title: "Actividades",
     url: "/activities",
     icon: Combine,
+  },
+  {
+    title: "Herramientas",
+    url: "/tools",
+    icon: Wrench,
+  },
+  {
+    title: "Mano de Obra",
+    url: "/labor",
+    icon: Users,
   },
   {
     title: "Presupuestos",

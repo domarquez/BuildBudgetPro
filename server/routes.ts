@@ -10,7 +10,9 @@ import {
   insertActivityCompositionSchema,
   insertCityPriceFactorSchema,
   insertSupplierCompanySchema,
-  insertMaterialSupplierPriceSchema
+  insertMaterialSupplierPriceSchema,
+  insertToolSchema,
+  insertLaborCategorySchema
 } from "@shared/schema";
 import { z } from "zod";
 

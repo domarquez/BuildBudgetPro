@@ -14,6 +14,8 @@ import APUImport from "@/pages/apu-import";
 import CityFactors from "@/pages/city-factors";
 import Suppliers from "@/pages/suppliers";
 import SupplierRegistration from "@/pages/supplier-registration";
+import Tools from "@/pages/tools";
+import Labor from "@/pages/labor";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import NotFound from "@/pages/not-found";
@@ -61,6 +63,8 @@ function AuthenticatedLayout() {
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/materials" component={Materials} />
               <Route path="/activities" component={Activities} />
+              <Route path="/tools" component={Tools} />
+              <Route path="/labor" component={Labor} />
               <Route path="/budgets" component={Budgets} />
               <Route path="/budgets/:id" component={BudgetDetails} />
               <Route path="/price-settings" component={PriceSettings} />
