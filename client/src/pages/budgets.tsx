@@ -31,7 +31,8 @@ import {
   Home,
   Building2,
   FolderRoot,
-  Trash2
+  Trash2,
+  Eye
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
@@ -200,6 +201,15 @@ export default function Budgets() {
                         </TableCell>
                         <TableCell>
                           <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => window.location.href = `/budget-details/${budget.id}`}
+                              className="text-blue-600 hover:text-blue-800"
+                              title="Ver detalles del presupuesto"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
