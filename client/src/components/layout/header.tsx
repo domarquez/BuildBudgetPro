@@ -34,9 +34,12 @@ export default function AppHeader() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Construction className="w-4 h-4 text-white" />
             </div>
-            <h1 className="text-xl font-semibold text-on-surface hidden sm:block">
-              MICA
-            </h1>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-semibold text-on-surface">
+                MICA
+              </h1>
+              <p className="text-xs text-gray-600">Cómputos y Presupuestos</p>
+            </div>
           </div>
         </div>
         
