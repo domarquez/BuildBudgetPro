@@ -12,55 +12,8 @@ export default function BudgetDetails() {
   const { id } = useParams();
   const budgetId = Number(id);
 
-  const handleGeneratePDF = async () => {
-    if (!budget || !budgetItems) {
-      alert('No hay datos disponibles para generar el PDF');
-      return;
-    }
-
-    try {
-      // Importar dinámicamente para evitar errores de tipos
-      const { generateBudgetPDF } = await import('@/lib/pdfGenerator');
-      
-      const pdfData: any = {
-        budget: {
-          id: budget.id,
-          total: typeof budget.total === 'string' ? parseFloat(budget.total) : budget.total,
-          status: budget.status,
-          createdAt: budget.createdAt ? budget.createdAt.toString() : new Date().toISOString(),
-          project: {
-            name: budget.project?.name || 'Proyecto Sin Nombre',
-            description: (budget.project as any)?.client || undefined,
-            location: budget.project?.location || undefined,
-            clientName: (budget.project as any)?.client || undefined
-          }
-        },
-        items: budgetItems.map(item => ({
-          id: item.id,
-          quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity,
-          unitPrice: typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice,
-          subtotal: typeof item.subtotal === 'string' ? parseFloat(item.subtotal) : item.subtotal,
-          activity: {
-            name: item.activity?.name || 'Actividad',
-            unit: item.activity?.unit || 'unidad',
-            phase: {
-              name: (item.activity as any)?.phase?.name || 'Sin fase'
-            }
-          }
-        })),
-        creator: {
-          name: 'Arquitecto/Ingeniero',
-          company: 'MICA - Construcciones',
-          email: 'contacto@mica.bo',
-          phone: '+591 70000000'
-        }
-      };
-
-      generateBudgetPDF(pdfData);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error al generar el PDF. Por favor intenta de nuevo.');
-    }
+  const handleGeneratePDF = () => {
+    alert('Funcionalidad de PDF próximamente disponible. Por ahora es gratuita, pero en el futuro será premium.');
   };
 
   const { data: budget, isLoading: budgetLoading } = useQuery<BudgetWithProject>({
