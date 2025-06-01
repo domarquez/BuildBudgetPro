@@ -1480,6 +1480,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No supplier company found for user" });
       }
       
+      console.log("Creating advertisement with data:", {
+        ...req.body,
+        supplierId: company.id
+      });
+      
       const adData = insertCompanyAdvertisementSchema.parse({
         ...req.body,
         supplierId: company.id
@@ -1489,6 +1494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(advertisement);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Advertisement validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid advertisement data", errors: error.errors });
       }
       console.error("Error creating advertisement:", error);
