@@ -1690,7 +1690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const newUser = await storage.createUser({
             username: finalUsername,
             email: companyData.email || `${finalUsername}@example.com`,
-            password: await bcrypt.hash("defaultpassword123", 10),
+            password: await AuthService.hashPassword("defaultpassword123"),
             role: "user",
             userType: "supplier"
           });
