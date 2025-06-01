@@ -7,10 +7,33 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Phone, MessageCircle, Globe, Facebook, MapPin, Star, Crown } from "lucide-react";
 
+// Función para convertir códigos de especialidad en etiquetas legibles
+const getSpecialityLabel = (speciality: string): string => {
+  const specialities: Record<string, string> = {
+    acero: "Acero para Construcción",
+    aluminio: "Aluminio",
+    cemento: "Cemento y Hormigón",
+    agua: "Agua y Saneamiento",
+    electricos: "Materiales Eléctricos",
+    ceramicos: "Cerámicos y Pisos",
+    maderas: "Maderas",
+    pinturas: "Pinturas y Acabados",
+    plomeria: "Plomería y Gasfitería",
+    prefabricados: "Elementos Prefabricados",
+    herramientas: "Herramientas y Equipos",
+    seguridad: "Seguridad Industrial",
+    aislantes: "Materiales Aislantes",
+    vidrios: "Vidrios y Cristales",
+    general: "General/Varios"
+  };
+  return specialities[speciality] || speciality;
+};
+
 export default function Suppliers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCity, setFilterCity] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [filterSpeciality, setFilterSpeciality] = useState("");
 
   const { data: suppliers, isLoading } = useQuery({
     queryKey: ["/api/supplier-companies"],
@@ -21,12 +44,14 @@ export default function Suppliers() {
                          supplier.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCity = !filterCity || supplier.city === filterCity;
     const matchesType = !filterType || supplier.businessType === filterType;
+    const matchesSpeciality = !filterSpeciality || supplier.speciality === filterSpeciality;
     
-    return matchesSearch && matchesCity && matchesType;
+    return matchesSearch && matchesCity && matchesType && matchesSpeciality;
   }) || [];
 
-  const cities = [...new Set(suppliers?.map((s: any) => s.city).filter(Boolean))];
-  const businessTypes = [...new Set(suppliers?.map((s: any) => s.businessType).filter(Boolean))];
+  const cities = Array.from(new Set(suppliers?.map((s: any) => s.city).filter(Boolean) || []));
+  const businessTypes = Array.from(new Set(suppliers?.map((s: any) => s.businessType).filter(Boolean) || []));
+  const specialities = Array.from(new Set(suppliers?.map((s: any) => s.speciality).filter(Boolean) || []));
 
   if (isLoading) {
     return (
@@ -90,6 +115,19 @@ export default function Suppliers() {
             ))}
           </select>
 
+          <select
+            className="px-3 py-2 border border-gray-300 rounded-md"
+            value={filterSpeciality}
+            onChange={(e) => setFilterSpeciality(e.target.value)}
+          >
+            <option value="">Todas las especialidades</option>
+            {specialities.map(speciality => (
+              <option key={speciality} value={speciality}>
+                {getSpecialityLabel(speciality)}
+              </option>
+            ))}
+          </select>
+
           <div className="text-sm text-gray-600 flex items-center">
             {filteredSuppliers.length} empresas encontradas
           </div>
@@ -111,14 +149,21 @@ export default function Suppliers() {
                     )}
                   </CardTitle>
                   <CardDescription className="mt-2">
-                    {supplier.businessType && (
-                      <Badge variant="outline" className="mb-2">
-                        {supplier.businessType === 'wholesaler' ? 'Mayorista' :
-                         supplier.businessType === 'retailer' ? 'Minorista' :
-                         supplier.businessType === 'manufacturer' ? 'Fabricante' :
-                         supplier.businessType === 'distributor' ? 'Distribuidor' : supplier.businessType}
-                      </Badge>
-                    )}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {supplier.businessType && (
+                        <Badge variant="outline">
+                          {supplier.businessType === 'wholesaler' ? 'Mayorista' :
+                           supplier.businessType === 'retailer' ? 'Minorista' :
+                           supplier.businessType === 'manufacturer' ? 'Fabricante' :
+                           supplier.businessType === 'distributor' ? 'Distribuidor' : supplier.businessType}
+                        </Badge>
+                      )}
+                      {supplier.speciality && (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                          {getSpecialityLabel(supplier.speciality)}
+                        </Badge>
+                      )}
+                    </div>
                     {supplier.description && (
                       <p className="text-sm text-gray-600 mt-2 line-clamp-3">
                         {supplier.description}
