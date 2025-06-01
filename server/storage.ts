@@ -1092,17 +1092,18 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(companyAdvertisements.isActive, true),
-          sql`(${companyAdvertisements.endDate} IS NULL OR ${companyAdvertisements.endDate} > NOW())`
+          sql`(${companyAdvertisements.endDate} IS NULL OR ${companyAdvertisements.endDate} > NOW())`,
+          sql`(${companyAdvertisements.startDate} IS NULL OR ${companyAdvertisements.startDate} <= NOW())`
         )
-      );
+      )
+      .orderBy(sql`RANDOM()`);
 
     if (activeAds.length === 0) {
       return null;
     }
 
-    // Get random advertisement
-    const randomIndex = Math.floor(Math.random() * activeAds.length);
-    const randomAd = activeAds[randomIndex];
+    // Get first random result (already randomized by SQL)
+    const randomAd = activeAds[0];
 
     if (!randomAd.company_advertisements || !randomAd.supplier_companies) {
       return null;

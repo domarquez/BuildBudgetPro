@@ -155,37 +155,50 @@ export default function PublicView() {
             >
               <X className="w-3 h-3" />
             </Button>
-            <CardContent 
-              className="p-6 cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-900/50 transition-colors"
-              onClick={handleAdClick}
-            >
-              <div className="flex items-center space-x-4">
-                {advertisement.imageUrl && (
+            <CardContent className="p-0">
+              <div 
+                className="cursor-pointer group"
+                onClick={handleAdClick}
+              >
+                {/* Imagen destacada grande */}
+                <div className="relative h-48 w-full overflow-hidden">
                   <img 
                     src={advertisement.imageUrl} 
                     alt={advertisement.title}
-                    className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                )}
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="font-semibold text-lg text-blue-900 dark:text-blue-100">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  
+                  {/* Información superpuesta en la imagen */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                    <h3 className="font-bold text-xl mb-1 drop-shadow-lg">
                       {advertisement.title}
                     </h3>
+                    <p className="text-blue-200 text-sm font-medium mb-1 drop-shadow">
+                      {advertisement.supplier.companyName} • {advertisement.supplier.city}
+                    </p>
+                    {advertisement.description && (
+                      <p className="text-white/90 text-sm drop-shadow line-clamp-2">
+                        {advertisement.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Barra inferior con estadísticas */}
+                <div className="p-3 bg-white dark:bg-gray-800 flex items-center justify-between">
+                  <div className="flex items-center space-x-4 text-sm">
+                    <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-400">
+                      <Eye className="w-4 h-4" />
+                      <span>{advertisement.viewCount} vistas</span>
+                    </div>
                     <Badge variant="secondary" className="text-xs">
-                      Publicidad
+                      {advertisement.adType === "featured" ? "Destacado" : "Promoción"}
                     </Badge>
                   </div>
-                  <p className="text-blue-800 dark:text-blue-200 mb-2">
-                    {advertisement.description}
-                  </p>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                    {advertisement.supplier.companyName} - {advertisement.supplier.city}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
-                  <Eye className="w-4 h-4" />
-                  <span className="text-sm">{advertisement.viewCount}</span>
+                  <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                    Toca para más información →
+                  </div>
                 </div>
               </div>
             </CardContent>
