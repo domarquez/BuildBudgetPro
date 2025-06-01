@@ -160,23 +160,25 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
                       <Select
                         value={item.activityId > 0 ? item.activityId.toString() : ""}
                         onValueChange={(value) => {
+                          console.log('=== SELECT TRIGGERED ===', value);
                           const activityId = parseInt(value);
-                          const selectedActivity = activities?.find(a => a.id === activityId);
-                          console.log('Activity selected:', { 
-                            activityId, 
-                            activity: selectedActivity?.name,
-                            unitPrice: selectedActivity?.unitPrice 
-                          });
                           
-                          // Update the activity
+                          // Update activity first
                           updateBudgetItem(item.id, 'activityId', activityId);
                           
-                          // Auto-fill price if available
+                          // Find the selected activity and auto-fill price
+                          const selectedActivity = activities?.find(a => a.id === activityId);
+                          console.log('Selected activity data:', selectedActivity);
+                          
                           if (selectedActivity?.unitPrice) {
                             const priceValue = parseFloat(selectedActivity.unitPrice);
+                            console.log('Price value parsed:', priceValue);
                             if (priceValue > 0) {
-                              console.log('Auto-filling price:', priceValue);
-                              updateBudgetItem(item.id, 'unitPrice', priceValue);
+                              console.log('Setting unit price to:', priceValue);
+                              // Use setTimeout to ensure the activity update is processed first
+                              setTimeout(() => {
+                                updateBudgetItem(item.id, 'unitPrice', priceValue);
+                              }, 50);
                             }
                           }
                         }}
