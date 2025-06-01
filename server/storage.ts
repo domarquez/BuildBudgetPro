@@ -10,6 +10,8 @@ import {
   priceSettings,
   activityCompositions,
   cityPriceFactors,
+  supplierCompanies,
+  materialSupplierPrices,
   type User, 
   type InsertUser,
   type MaterialCategory,
@@ -35,7 +37,13 @@ import {
   type ActivityComposition,
   type InsertActivityComposition,
   type CityPriceFactor,
-  type InsertCityPriceFactor
+  type InsertCityPriceFactor,
+  type SupplierCompany,
+  type InsertSupplierCompany,
+  type SupplierCompanyWithUser,
+  type MaterialSupplierPrice,
+  type InsertMaterialSupplierPrice,
+  type MaterialWithSupplierPrices
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, like, ilike, and } from "drizzle-orm";

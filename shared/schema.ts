@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   firstName: text("first_name"),
   lastName: text("last_name"),
   role: text("role").notNull().default("user"), // 'admin', 'user'
+  userType: text("user_type").notNull().default("architect"), // 'architect', 'constructor', 'supplier'
   isActive: boolean("is_active").notNull().default(true),
   city: text("city"),
   country: text("country").default("Bolivia"),
@@ -124,6 +125,46 @@ export const cityPriceFactors = pgTable("city_price_factors", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const supplierCompanies = pgTable("supplier_companies", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  companyName: text("company_name").notNull(),
+  businessType: text("business_type"), // 'wholesaler', 'retailer', 'manufacturer', 'distributor'
+  description: text("description"),
+  address: text("address"),
+  city: text("city"),
+  country: text("country").default("Bolivia"),
+  phone: text("phone"),
+  whatsapp: text("whatsapp"),
+  website: text("website"),
+  facebook: text("facebook"),
+  logoUrl: text("logo_url"),
+  imageUrls: text("image_urls").array(),
+  membershipType: text("membership_type").notNull().default("free"), // 'free', 'premium'
+  membershipExpiresAt: timestamp("membership_expires_at"),
+  isActive: boolean("is_active").notNull().default(true),
+  isVerified: boolean("is_verified").notNull().default(false),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
+  reviewCount: integer("review_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const materialSupplierPrices = pgTable("material_supplier_prices", {
+  id: serial("id").primaryKey(),
+  materialId: integer("material_id").notNull().references(() => materials.id),
+  supplierId: integer("supplier_id").notNull().references(() => supplierCompanies.id),
+  price: decimal("price", { precision: 12, scale: 4 }).notNull(),
+  currency: text("currency").notNull().default("BOB"),
+  minimumQuantity: decimal("minimum_quantity", { precision: 10, scale: 2 }).default("1.00"),
+  leadTimeDays: integer("lead_time_days").default(0),
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  validUntil: timestamp("valid_until"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const constructionPhasesRelations = relations(constructionPhases, ({ many }) => ({
   activities: many(activities),
@@ -185,6 +226,32 @@ export const budgetItemsRelations = relations(budgetItems, ({ one }) => ({
   activity: one(activities, {
     fields: [budgetItems.activityId],
     references: [activities.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ one }) => ({
+  supplierCompany: one(supplierCompanies, {
+    fields: [users.id],
+    references: [supplierCompanies.userId],
+  }),
+}));
+
+export const supplierCompaniesRelations = relations(supplierCompanies, ({ one, many }) => ({
+  user: one(users, {
+    fields: [supplierCompanies.userId],
+    references: [users.id],
+  }),
+  materialPrices: many(materialSupplierPrices),
+}));
+
+export const materialSupplierPricesRelations = relations(materialSupplierPrices, ({ one }) => ({
+  material: one(materials, {
+    fields: [materialSupplierPrices.materialId],
+    references: [materials.id],
+  }),
+  supplier: one(supplierCompanies, {
+    fields: [materialSupplierPrices.supplierId],
+    references: [supplierCompanies.id],
   }),
 }));
 
@@ -258,6 +325,21 @@ export const insertCityPriceFactorSchema = createInsertSchema(cityPriceFactors).
   updatedAt: true,
 });
 
+export const insertSupplierCompanySchema = createInsertSchema(supplierCompanies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMaterialSupplierPriceSchema = createInsertSchema(materialSupplierPrices).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true,
+}).extend({
+  price: z.union([z.string(), z.number()]).transform(val => String(val)),
+  minimumQuantity: z.union([z.string(), z.number()]).transform(val => String(val)),
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -306,5 +388,22 @@ export type ActivityWithCompositions = Activity & {
   phase: ConstructionPhase;
   compositions: (ActivityComposition & {
     material?: Material;
+  })[];
+};
+
+export type SupplierCompany = typeof supplierCompanies.$inferSelect;
+export type InsertSupplierCompany = z.infer<typeof insertSupplierCompanySchema>;
+
+export type MaterialSupplierPrice = typeof materialSupplierPrices.$inferSelect;
+export type InsertMaterialSupplierPrice = z.infer<typeof insertMaterialSupplierPriceSchema>;
+
+export type SupplierCompanyWithUser = SupplierCompany & {
+  user: User;
+};
+
+export type MaterialWithSupplierPrices = Material & {
+  category: MaterialCategory;
+  supplierPrices: (MaterialSupplierPrice & {
+    supplier: SupplierCompany;
   })[];
 };

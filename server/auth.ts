@@ -46,6 +46,7 @@ export class AuthService {
     password: string;
     firstName?: string;
     lastName?: string;
+    userType?: string;
   }): Promise<{ user: User; token: string }> {
     // Check if username already exists
     const existingUsername = await storage.getUserByUsername(userData.username);
@@ -70,6 +71,7 @@ export class AuthService {
       firstName: userData.firstName || null,
       lastName: userData.lastName || null,
       role: 'user', // Default role
+      userType: userData.userType || 'architect',
       isActive: true,
     };
 
