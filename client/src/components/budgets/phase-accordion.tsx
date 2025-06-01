@@ -159,9 +159,27 @@ export default function PhaseAccordion({ phaseId }: PhaseAccordionProps) {
                       </Label>
                       <Select
                         value={item.activityId > 0 ? item.activityId.toString() : ""}
-                        onValueChange={(value) => 
-                          updateBudgetItem(item.id, 'activityId', parseInt(value))
-                        }
+                        onValueChange={(value) => {
+                          const activityId = parseInt(value);
+                          const selectedActivity = activities?.find(a => a.id === activityId);
+                          console.log('Activity selected:', { 
+                            activityId, 
+                            activity: selectedActivity?.name,
+                            unitPrice: selectedActivity?.unitPrice 
+                          });
+                          
+                          // Update the activity
+                          updateBudgetItem(item.id, 'activityId', activityId);
+                          
+                          // Auto-fill price if available
+                          if (selectedActivity?.unitPrice) {
+                            const priceValue = parseFloat(selectedActivity.unitPrice);
+                            if (priceValue > 0) {
+                              console.log('Auto-filling price:', priceValue);
+                              updateBudgetItem(item.id, 'unitPrice', priceValue);
+                            }
+                          }
+                        }}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar actividad" />
