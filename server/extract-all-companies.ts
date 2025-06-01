@@ -99,71 +99,81 @@ export async function extractAndImportAllCompanies() {
     
     console.log(`✅ Parseadas ${empresas.length} empresas válidas`);
     
-    // Importar todas las empresas
+    // Importar todas las empresas en lotes
     let importedCount = 0;
     let errorCount = 0;
+    const batchSize = 10;
     
-    for (const empresa of empresas) {
-      try {
-        // Crear usuario para la empresa
-        const username = empresa.Empresa.toLowerCase()
-          .replace(/[^a-z0-9]/g, '_')
-          .replace(/_+/g, '_')
-          .slice(0, 50);
-        
-        const email = empresa.Email || `${username}@empresa.com`;
-        const password = await bcrypt.hash('empresa123', 10);
-        
-        // Verificar si el usuario ya existe
-        const existingUser = await storage.getUserByUsername(username);
-        let userId: number;
-        
-        if (!existingUser) {
-          const [newUser] = await db.insert(users).values({
-            username,
-            email,
-            password,
-            firstName: empresa.Empresa.split(' ')[0],
-            lastName: empresa.Empresa.split(' ').slice(1).join(' ') || '',
-            role: 'user',
-            userType: 'supplier',
-            isActive: true,
-            city: 'Santa Cruz',
-            country: 'Bolivia'
-          }).returning();
-          userId = newUser.id;
-        } else {
-          userId = existingUser.id;
+    for (let i = 0; i < empresas.length; i += batchSize) {
+      const batch = empresas.slice(i, i + batchSize);
+      console.log(`Procesando lote ${Math.floor(i/batchSize) + 1}/${Math.ceil(empresas.length/batchSize)}: empresas ${i + 1}-${Math.min(i + batchSize, empresas.length)}`);
+      
+      for (const empresa of batch) {
+        try {
+          // Crear usuario para la empresa
+          const username = empresa.Empresa.toLowerCase()
+            .replace(/[^a-z0-9]/g, '_')
+            .replace(/_+/g, '_')
+            .slice(0, 50);
+          
+          const email = empresa.Email || `${username}@empresa.com`;
+          
+          // Verificar si el usuario ya existe por username o email
+          const existingUser = await storage.getUserByUsername(username) || 
+                              await storage.getUserByEmail(email);
+          let userId: number;
+          
+          if (!existingUser) {
+            const password = await bcrypt.hash('empresa123', 10);
+            const [newUser] = await db.insert(users).values({
+              username,
+              email,
+              password,
+              firstName: empresa.Empresa.split(' ')[0],
+              lastName: empresa.Empresa.split(' ').slice(1).join(' ') || '',
+              role: 'user',
+              userType: 'supplier',
+              isActive: true,
+              city: 'Santa Cruz',
+              country: 'Bolivia'
+            }).returning();
+            userId = newUser.id;
+          } else {
+            userId = existingUser.id;
+          }
+          
+          // Verificar si ya existe la empresa proveedora
+          const existingCompany = await storage.getSupplierCompanyByUser(userId);
+          
+          if (!existingCompany) {
+            await db.insert(supplierCompanies).values({
+              userId,
+              companyName: empresa.Empresa,
+              businessType: getBusinessType(empresa.IdRubro),
+              description: `Empresa especializada en ${empresa.IdRubro.toLowerCase()} con años de experiencia en el mercado boliviano.`,
+              address: cleanAddress(empresa.Direccion),
+              city: 'Santa Cruz',
+              country: 'Bolivia',
+              phone: extractPhoneFromAddress(empresa.Direccion),
+              whatsapp: extractPhoneFromAddress(empresa.Direccion),
+              website: empresa.Url || '',
+              facebook: '',
+              membershipType: Math.random() > 0.7 ? 'premium' : 'free',
+              isActive: true,
+              isVerified: true,
+              rating: '4.2',
+              reviewCount: Math.floor(Math.random() * 50) + 5
+            });
+            importedCount++;
+            console.log(`✅ Importada: ${empresa.Empresa}`);
+          } else {
+            console.log(`⚠️ Ya existe: ${empresa.Empresa}`);
+          }
+          
+        } catch (error) {
+          console.log(`❌ Error importando empresa ${empresa.Empresa}:`, error);
+          errorCount++;
         }
-        
-        // Verificar si ya existe la empresa proveedora
-        const existingCompany = await storage.getSupplierCompanyByUser(userId);
-        
-        if (!existingCompany) {
-          await db.insert(supplierCompanies).values({
-            userId,
-            companyName: empresa.Empresa,
-            businessType: getBusinessType(empresa.IdRubro),
-            description: `Empresa especializada en ${empresa.IdRubro.toLowerCase()} con años de experiencia en el mercado boliviano.`,
-            address: cleanAddress(empresa.Direccion),
-            city: 'Santa Cruz',
-            country: 'Bolivia',
-            phone: extractPhoneFromAddress(empresa.Direccion),
-            whatsapp: extractPhoneFromAddress(empresa.Direccion),
-            website: empresa.Url || '',
-            facebook: '',
-            membershipType: Math.random() > 0.7 ? 'premium' : 'free',
-            isActive: true,
-            isVerified: true,
-            rating: '4.2',
-            reviewCount: Math.floor(Math.random() * 50) + 5
-          });
-          importedCount++;
-        }
-        
-      } catch (error) {
-        console.log(`Error importando empresa ${empresa.Empresa}:`, error);
-        errorCount++;
       }
     }
     
