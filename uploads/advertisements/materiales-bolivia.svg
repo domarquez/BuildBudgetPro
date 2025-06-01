@@ -1,0 +1,45 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="400" fill="url(#bgGrad2)" rx="20"/>
+  
+  <!-- Truck/delivery icon -->
+  <g transform="translate(50, 120)">
+    <!-- Truck body -->
+    <rect x="80" y="60" width="180" height="80" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" rx="5"/>
+    
+    <!-- Truck cab -->
+    <rect x="20" y="80" width="70" height="60" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" rx="5"/>
+    
+    <!-- Windows -->
+    <rect x="30" y="90" width="15" height="12" fill="#dc2626"/>
+    <rect x="50" y="90" width="15" height="12" fill="#dc2626"/>
+    
+    <!-- Wheels -->
+    <circle cx="60" cy="160" r="15" fill="#374151" stroke="#1f2937" stroke-width="2"/>
+    <circle cx="200" cy="160" r="15" fill="#374151" stroke="#1f2937" stroke-width="2"/>
+    <circle cx="240" cy="160" r="15" fill="#374151" stroke="#1f2937" stroke-width="2"/>
+    
+    <!-- Cargo -->
+    <rect x="90" y="70" width="30" height="30" fill="#dc2626"/>
+    <rect x="130" y="70" width="30" height="30" fill="#dc2626"/>
+    <rect x="170" y="70" width="30" height="30" fill="#dc2626"/>
+    <rect x="210" y="70" width="30" height="30" fill="#dc2626"/>
+    
+    <!-- Stack of materials -->
+    <rect x="90" y="100" width="160" height="25" fill="#f59e0b"/>
+    <text x="170" y="115" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">CEMENTO</text>
+  </g>
+  
+  <!-- Company name -->
+  <text x="200" y="290" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="white">MATERIALES</text>
+  <text x="200" y="320" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="white">BOLIVIA</text>
+  <text x="200" y="345" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">S.R.L.</text>
+  <text x="200" y="370" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#fed7d7">Distribución y Calidad</text>
+</svg>
