@@ -17,12 +17,12 @@ export default function BudgetDetails() {
   };
 
   const { data: budget, isLoading: budgetLoading } = useQuery<BudgetWithProject>({
-    queryKey: ["/api/budgets", budgetId],
+    queryKey: [`/api/budgets/${budgetId}`],
     enabled: !!budgetId,
   });
 
   const { data: budgetItems, isLoading: itemsLoading } = useQuery<BudgetItemWithActivity[]>({
-    queryKey: ["/api/budget-items", budgetId],
+    queryKey: [`/api/budgets/${budgetId}/items`],
     enabled: !!budgetId,
   });
 
