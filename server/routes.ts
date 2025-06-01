@@ -521,6 +521,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calculate and update all activity prices
+  app.post("/api/calculate-all-prices", requireAuth, async (req, res) => {
+    try {
+      const { updateActivityPricesFromCompositions } = await import("./price-calculator");
+      const result = await updateActivityPricesFromCompositions();
+      res.json(result);
+    } catch (error) {
+      console.error("Error calculating all activity prices:", error);
+      res.status(500).json({ 
+        message: "Error calculating activity prices",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

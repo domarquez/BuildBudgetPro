@@ -33,6 +33,7 @@ export const activities = pgTable("activities", {
   name: text("name").notNull(),
   unit: text("unit").notNull(),
   description: text("description"),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).default("0"),
 });
 
 export const materials = pgTable("materials", {

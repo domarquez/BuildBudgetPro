@@ -60,8 +60,32 @@ export default function APUImport() {
     importAPU.mutate();
   };
 
+  const calculatePrices = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/calculate-all-prices", {});
+      return await response.json();
+    },
+    onSuccess: (result: any) => {
+      toast({
+        title: "Cálculo de precios completado",
+        description: `Se actualizaron ${result.updated} precios de actividades. ${result.errors} errores.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error en el cálculo de precios",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleReorganize = () => {
     reorganizeActivities.mutate();
+  };
+
+  const handleCalculatePrices = () => {
+    calculatePrices.mutate();
   };
 
   return (
