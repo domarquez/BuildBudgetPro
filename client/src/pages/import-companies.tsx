@@ -233,7 +233,7 @@ export default function ImportCompanies() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="pdf-file">Opción A: Archivo PDF</Label>
+              <Label htmlFor="pdf-file">Archivo PDF del Catálogo</Label>
               <Input
                 id="pdf-file"
                 type="file"
@@ -242,7 +242,7 @@ export default function ImportCompanies() {
                 className="mt-1"
               />
               <p className="text-xs text-blue-600 mt-1">
-                Sube tu PDF y extrae el texto automáticamente
+                Carga tu PDF y luego copia el texto desde el documento
               </p>
             </div>
             
@@ -263,45 +263,24 @@ export default function ImportCompanies() {
                   className="mt-2 w-full"
                   size="sm"
                 >
-                  {isProcessing ? "Extrayendo..." : "Extraer Texto"}
+                  {isProcessing ? "Procesando..." : "Procesar PDF"}
                 </Button>
               </div>
             )}
             
             <div className="border-t pt-4">
-              <Label htmlFor="manual-text">Opción B: Copiar y pegar texto del PDF</Label>
+              <Label htmlFor="manual-text">Texto del Catálogo</Label>
               <p className="text-xs text-gray-600 mb-2">
-                Abre tu PDF, selecciona todo el texto (Ctrl+A) y pégalo aquí
+                Copia el texto completo del PDF y pégalo aquí
               </p>
               <Textarea
                 id="manual-text"
                 value={extractedText}
                 onChange={(e) => setExtractedText(e.target.value)}
                 placeholder="Pega aquí el texto del catálogo de empresas..."
-                className="min-h-[200px] text-sm"
+                className="min-h-[300px] text-sm font-mono"
               />
             </div>
-
-            <Button 
-              onClick={() => {
-                if (extractedText.trim()) {
-                  toast({
-                    title: "Texto ingresado",
-                    description: "Ahora puedes analizar las empresas",
-                  });
-                } else {
-                  toast({
-                    title: "Falta texto",
-                    description: "Por favor ingresa el texto del catálogo",
-                    variant: "destructive",
-                  });
-                }
-              }}
-              disabled={!extractedText.trim()}
-              className="w-full"
-            >
-              2. Confirmar Texto
-            </Button>
           </CardContent>
         </Card>
 
