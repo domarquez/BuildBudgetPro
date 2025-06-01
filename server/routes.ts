@@ -1650,7 +1650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PDF processing route - simplified approach
+  // PDF text extraction using pdfjs-dist
   app.post("/api/extract-pdf-text", requireAuth, uploadPDF.single('pdf'), async (req, res) => {
     try {
       if (!req.file) {
@@ -1659,77 +1659,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Processing PDF file:", req.file.originalname, "Size:", req.file.size);
       
-      // Guardar PDF para acceso
-      const fs = await import('fs');
-      const path = await import('path');
-      
-      const uploadsDir = path.join(process.cwd(), 'uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      
-      const fileName = `pdf_${Date.now()}_${req.file.originalname}`;
-      const filePath = path.join(uploadsDir, fileName);
-      fs.writeFileSync(filePath, req.file.buffer);
-      
-      // Intentar extracción de texto con método simplificado
       try {
-        // Verificar si el PDF contiene texto extraíble examinando el buffer
-        const bufferText = req.file.buffer.toString('binary');
-        const hasTextContent = bufferText.includes('/Contents') && bufferText.includes('stream');
+        const pdfjs = await import('pdfjs-dist/legacy/build/pdf.js');
         
-        if (!hasTextContent) {
+        // Configurar worker
+        pdfjs.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/legacy/build/pdf.worker.js';
+        
+        // Cargar el PDF
+        const loadingTask = pdfjs.getDocument({ data: req.file.buffer });
+        const pdf = await loadingTask.promise;
+        
+        console.log(`PDF loaded. Pages: ${pdf.numPages}`);
+        
+        let fullText = '';
+        
+        // Extraer texto de todas las páginas
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          
+          const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          if (pageText) {
+            fullText += pageText + '\n';
+          }
+        }
+        
+        console.log(`Text extraction completed. Length: ${fullText.length}`);
+        
+        if (fullText.trim().length === 0) {
           return res.json({
-            text: `El PDF "${req.file.originalname}" parece ser una imagen escaneada sin texto extraíble.\n\nPara continuar:\n1. Abre el PDF\n2. Selecciona y copia todo el texto visible\n3. Pega el texto en el área de abajo\n\nEsto permitirá procesar correctamente la información de las empresas.`,
-            pages: "Imagen escaneada",
+            text: `El PDF "${req.file.originalname}" no contiene texto extraíble.\n\nPuede ser una imagen escaneada. Para continuar:\n\n1. Abre el PDF en tu computadora\n2. Selecciona todo el texto visible (Ctrl+A)\n3. Copia el texto (Ctrl+C)\n4. Pega el texto en el área de abajo`,
+            pages: pdf.numPages,
             info: { 
               title: req.file.originalname,
               size: req.file.size,
-              type: "scanned"
+              type: "no_text"
             }
           });
         }
         
-        // Buscar texto simple en el buffer usando patrones básicos
-        const textMatches = bufferText.match(/\((.*?)\)/g);
-        if (textMatches && textMatches.length > 10) {
-          const extractedText = textMatches
-            .map(match => match.replace(/[()]/g, ''))
-            .filter(text => text.length > 2 && /[a-zA-Z]/.test(text))
-            .join('\n');
-          
-          if (extractedText.length > 100) {
-            return res.json({
-              text: extractedText,
-              pages: 1,
-              info: { 
-                title: req.file.originalname,
-                size: req.file.size,
-                method: "simple_extraction"
-              }
-            });
-          }
-        }
-        
-        // Si no se puede extraer automáticamente, solicitar entrada manual
-        res.json({
-          text: `PDF "${req.file.originalname}" cargado correctamente.\n\nPara obtener los mejores resultados:\n1. Abre el PDF en tu computadora\n2. Selecciona todo el texto (Ctrl+A)\n3. Copia el texto (Ctrl+C)\n4. Pega el texto completo abajo\n\nEsto garantiza que se capture toda la información de las empresas.`,
-          pages: "Manual",
+        res.json({ 
+          text: fullText.trim(),
+          pages: pdf.numPages,
           info: { 
             title: req.file.originalname,
             size: req.file.size,
-            savedPath: fileName
+            method: "pdfjs_extraction"
           }
         });
         
-      } catch (extractionError) {
-        console.error("Text extraction error:", extractionError);
+      } catch (pdfError) {
+        console.error("PDF processing error:", pdfError);
+        
+        // Guardar PDF para acceso manual
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        
+        const fileName = `pdf_${Date.now()}_${req.file.originalname}`;
+        const filePath = path.join(uploadsDir, fileName);
+        fs.writeFileSync(filePath, req.file.buffer);
+        
         res.json({
-          text: `PDF "${req.file.originalname}" recibido.\n\nExtracción automática no disponible.\n\nPor favor copia y pega el texto del PDF en el área de abajo para continuar con la importación de empresas.`,
-          pages: "Manual",
+          text: `Error procesando PDF "${req.file.originalname}".\n\nArchivo guardado para revisión manual.\n\nPara continuar:\n1. Abre el PDF original\n2. Copia todo el texto\n3. Pégalo en el área de abajo`,
+          pages: "Error",
           info: { 
             title: req.file.originalname,
             size: req.file.size,
+            error: (pdfError as Error).message,
             savedPath: fileName
           }
         });
