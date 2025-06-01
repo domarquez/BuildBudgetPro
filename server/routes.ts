@@ -1020,7 +1020,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const quotes = await storage.getSupplierPrices(company.id);
-      res.json(quotes);
+      
+      // Add status field for frontend compatibility
+      const quotesWithStatus = quotes.map(quote => ({
+        ...quote,
+        status: quote.isActive ? 'active' : 'inactive'
+      }));
+      
+      res.json(quotesWithStatus);
     } catch (error) {
       console.error("Error fetching supplier quotes:", error);
       res.status(500).json({ message: "Failed to fetch quotes" });
