@@ -17,6 +17,7 @@ import { Building2, Phone, Globe, Facebook, MessageCircle, MapPin, Upload } from
 const supplierCompanySchema = z.object({
   companyName: z.string().min(2, "Nombre de empresa es requerido"),
   businessType: z.string().optional(),
+  speciality: z.string().optional(),
   description: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
@@ -43,6 +44,7 @@ export default function SupplierRegistration() {
     defaultValues: {
       companyName: (company as any)?.companyName || "",
       businessType: (company as any)?.businessType || "",
+      speciality: (company as any)?.speciality || "",
       description: (company as any)?.description || "",
       address: (company as any)?.address || "",
       city: (company as any)?.city || "",
@@ -59,6 +61,7 @@ export default function SupplierRegistration() {
       form.reset({
         companyName: (company as any).companyName || "",
         businessType: (company as any).businessType || "",
+        speciality: (company as any).speciality || "",
         description: (company as any).description || "",
         address: (company as any).address || "",
         city: (company as any).city || "",
@@ -213,6 +216,45 @@ export default function SupplierRegistration() {
                             <SelectItem value="retailer">Minorista</SelectItem>
                             <SelectItem value="manufacturer">Fabricante</SelectItem>
                             <SelectItem value="distributor">Distribuidor</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="speciality"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Rubro/Especialidad</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          disabled={isReadOnly}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona tu especialidad" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="acero">Acero para Construcción</SelectItem>
+                            <SelectItem value="aluminio">Aluminio</SelectItem>
+                            <SelectItem value="cemento">Cemento y Hormigón</SelectItem>
+                            <SelectItem value="agua">Agua y Saneamiento</SelectItem>
+                            <SelectItem value="electricos">Materiales Eléctricos</SelectItem>
+                            <SelectItem value="ceramicos">Cerámicos y Pisos</SelectItem>
+                            <SelectItem value="maderas">Maderas</SelectItem>
+                            <SelectItem value="pinturas">Pinturas y Acabados</SelectItem>
+                            <SelectItem value="plomeria">Plomería y Gasfitería</SelectItem>
+                            <SelectItem value="prefabricados">Elementos Prefabricados</SelectItem>
+                            <SelectItem value="herramientas">Herramientas y Equipos</SelectItem>
+                            <SelectItem value="seguridad">Seguridad Industrial</SelectItem>
+                            <SelectItem value="aislantes">Materiales Aislantes</SelectItem>
+                            <SelectItem value="vidrios">Vidrios y Cristales</SelectItem>
+                            <SelectItem value="general">General/Varios</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

@@ -133,6 +133,7 @@ export const supplierCompanies = pgTable("supplier_companies", {
   userId: integer("user_id").notNull().references(() => users.id),
   companyName: text("company_name").notNull(),
   businessType: text("business_type"), // 'wholesaler', 'retailer', 'manufacturer', 'distributor'
+  speciality: text("speciality"), // 'acero', 'aluminio', 'cemento', 'agua', 'electricos', 'ceramicos', etc.
   description: text("description"),
   address: text("address"),
   city: text("city"),
