@@ -122,6 +122,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Activity Compositions
+  app.get("/api/activity-compositions/:activityId", async (req, res) => {
+    try {
+      const activityId = Number(req.params.activityId);
+      const compositions = await storage.getActivityCompositionsByActivity(activityId);
+      res.json(compositions);
+    } catch (error) {
+      console.error("Error fetching activity compositions:", error);
+      res.status(500).json({ message: "Failed to fetch activity compositions" });
+    }
+  });
+
   // Materials
   app.get("/api/materials", async (req, res) => {
     try {
