@@ -134,9 +134,57 @@ export default function ImportCompanies() {
           currentCompany.city = cityFound;
         }
 
-        // Si no es información específica, probablemente es descripción de servicios
-        if (!phoneMatch && !emailMatch && !websiteMatch && !currentCompany.address && !currentCompany.services) {
-          currentCompany.services = line;
+        // Detectar productos y servicios específicos
+        const servicePatterns = [
+          /(?:especialistas?|expertos?)\s+en\s+(.+)/i,
+          /(?:venta|distribución|fabricación|instalación|reparación)\s+de\s+(.+)/i,
+          /(?:servicios?|productos?)\s*:?\s*(.+)/i,
+          /(?:ofrecemos|brindamos|proporcionamos)\s+(.+)/i,
+          /•\s*(.+)/,  // puntos de lista
+          /-\s*(.+)/,  // guiones de lista
+          /\*\s*(.+)/   // asteriscos de lista
+        ];
+
+        let serviceFound = false;
+        for (const pattern of servicePatterns) {
+          const match = line.match(pattern);
+          if (match && match[1] && match[1].length > 5) {
+            const service = match[1].trim();
+            if (currentCompany.services) {
+              currentCompany.services += " | " + service;
+            } else {
+              currentCompany.services = service;
+            }
+            serviceFound = true;
+            break;
+          }
+        }
+
+        // Si no se detectó como servicio específico, pero parece descripción de negocio
+        if (!serviceFound && !phoneMatch && !emailMatch && !websiteMatch && 
+            !currentCompany.address && line.length > 10 && line.length < 150) {
+          
+          // Verificar si contiene palabras indicadoras de servicios/productos
+          const businessKeywords = [
+            'materiales', 'construcción', 'venta', 'distribución', 'instalación',
+            'reparación', 'mantenimiento', 'asesoría', 'consultoría', 'diseño',
+            'fabricación', 'importación', 'comercialización', 'alquiler',
+            'cemento', 'acero', 'madera', 'herramientas', 'pintura', 'cerámica',
+            'ladrillos', 'bloques', 'arena', 'grava', 'tubería', 'cables',
+            'pisos', 'azulejos', 'sanitarios', 'grifería', 'iluminación'
+          ];
+          
+          const hasBusinessKeywords = businessKeywords.some(keyword => 
+            line.toLowerCase().includes(keyword)
+          );
+          
+          if (hasBusinessKeywords) {
+            if (currentCompany.services) {
+              currentCompany.services += " | " + line;
+            } else {
+              currentCompany.services = line;
+            }
+          }
         }
       }
     }
@@ -169,12 +217,65 @@ export default function ImportCompanies() {
   const detectBusinessType = (name: string, services: string): string => {
     const text = (name + " " + services).toLowerCase();
     
-    if (text.includes("construcción") || text.includes("constructora")) return "Construcción";
-    if (text.includes("ferretería") || text.includes("herramientas")) return "Ferretería";
-    if (text.includes("materiales") || text.includes("cemento") || text.includes("acero")) return "Distribución";
-    if (text.includes("arquitectura") || text.includes("diseño")) return "Arquitectura";
-    if (text.includes("ingeniería")) return "Ingeniería";
-    if (text.includes("consultoría")) return "Consultoría";
+    // Categorías específicas por productos/servicios
+    const categories = [
+      {
+        type: "Cerámica y Revestimientos",
+        keywords: ["cerámica", "ceramicos", "azulejos", "revestimientos", "pisos", "porcelanato", "baldosas", "enchapes"]
+      },
+      {
+        type: "Acero y Metales", 
+        keywords: ["acero", "hierro", "metal", "soldadura", "estructuras metálicas", "perfiles", "tubería metálica", "fierro"]
+      },
+      {
+        type: "Madera y Carpintería",
+        keywords: ["madera", "maderas", "carpintería", "muebles", "tableros", "contrachapado", "aglomerado"]
+      },
+      {
+        type: "Ferretería y Herramientas",
+        keywords: ["ferretería", "herramientas", "clavos", "tornillos", "pintura", "brochas", "martillos", "taladros"]
+      },
+      {
+        type: "Materiales de Construcción",
+        keywords: ["materiales", "cemento", "ladrillos", "bloques", "arena", "grava", "agregados", "hormigón", "concreto"]
+      },
+      {
+        type: "Instalaciones Eléctricas",
+        keywords: ["eléctrico", "electricidad", "cables", "instalaciones eléctricas", "tableros eléctricos", "luminarias"]
+      },
+      {
+        type: "Instalaciones Sanitarias", 
+        keywords: ["sanitarios", "plomería", "grifería", "tuberías", "conexiones", "desagües", "agua potable"]
+      },
+      {
+        type: "Construcción y Obras",
+        keywords: ["construcción", "constructora", "obras", "edificación", "infraestructura", "proyectos"]
+      },
+      {
+        type: "Arquitectura y Diseño",
+        keywords: ["arquitectura", "diseño", "planos", "proyectos arquitectónicos", "diseño interior"]
+      },
+      {
+        type: "Ingeniería y Consultoría",
+        keywords: ["ingeniería", "consultoría", "asesoría técnica", "supervisión", "estudios"]
+      },
+      {
+        type: "Distribución y Comercialización",
+        keywords: ["distribuidora", "distribución", "mayorista", "comercialización", "importación", "representaciones"]
+      },
+      {
+        type: "Alquiler y Servicios",
+        keywords: ["alquiler", "renta", "servicios", "mantenimiento", "reparación", "transporte"]
+      }
+    ];
+    
+    // Buscar la categoría más específica
+    for (const category of categories) {
+      const matchCount = category.keywords.filter(keyword => text.includes(keyword)).length;
+      if (matchCount > 0) {
+        return category.type;
+      }
+    }
     
     return "General";
   };
