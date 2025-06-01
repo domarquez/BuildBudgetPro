@@ -385,12 +385,16 @@ export const insertMaterialSupplierPriceSchema = createInsertSchema(materialSupp
   leadTimeDays: z.number().optional(),
   description: z.string().optional(),
   isActive: z.boolean().optional(),
+  validUntil: z.union([z.string(), z.date()]).transform(val => 
+    typeof val === 'string' ? new Date(val) : val
+  ).optional(),
 }).partial({
   minimumQuantity: true,
   currency: true,
   leadTimeDays: true,
   description: true,
   isActive: true,
+  validUntil: true,
 });
 
 export const insertToolSchema = createInsertSchema(tools).omit({
