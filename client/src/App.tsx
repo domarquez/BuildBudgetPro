@@ -91,6 +91,7 @@ function AuthenticatedLayout() {
               <Route path="/import-companies" component={ImportCompanies} />
         <Route path="/review-companies" component={ReviewCompanies} />
         <Route path="/simple-import" component={SimpleImport} />
+              <Route path="/admin-materials" component={AdminMaterials} />
               <Route path="/marketplace" component={Marketplace} />
               <Route component={NotFound} />
             </Switch>

@@ -126,6 +126,11 @@ const adminItems = [
     url: "/simple-import",
     icon: Building2,
   },
+  {
+    title: "Gestión de Precios",
+    url: "/admin-materials",
+    icon: DollarSign,
+  },
 ];
 
 export default function AppSidebar() {
