@@ -346,6 +346,15 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async updateMaterialPrice(id: number, price: number): Promise<Material> {
+    const [updated] = await db
+      .update(materials)
+      .set({ price: price.toFixed(2), lastUpdated: new Date() })
+      .where(eq(materials.id, id))
+      .returning();
+    return updated;
+  }
+
   async deleteMaterial(id: number): Promise<void> {
     await db.delete(materials).where(eq(materials.id, id));
   }

@@ -23,6 +23,7 @@ import CompanyAdvertising from "@/pages/company-advertising";
 import ImportCompanies from "@/pages/import-companies";
 import ReviewCompanies from "@/pages/review-companies";
 import SimpleImport from "@/pages/simple-import";
+import AdminMaterials from "@/pages/admin-materials";
 import Marketplace from "@/pages/marketplace";
 import Login from "@/pages/login";
 import Register from "@/pages/register";

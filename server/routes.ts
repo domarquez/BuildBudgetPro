@@ -818,6 +818,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin material price update
+  app.put("/api/admin/materials/:id/price", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const materialId = Number(req.params.id);
+      const { price } = req.body;
+      
+      if (!price || price <= 0) {
+        return res.status(400).json({ message: "Invalid price" });
+      }
+
+      const updatedMaterial = await storage.updateMaterialPrice(materialId, price);
+      res.json(updatedMaterial);
+    } catch (error) {
+      console.error("Error updating material price:", error);
+      res.status(500).json({ message: "Failed to update material price" });
+    }
+  });
+
   // APU Import and Calculation
   app.post("/api/import-apu", requireAuth, async (req, res) => {
     try {
