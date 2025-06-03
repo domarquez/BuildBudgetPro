@@ -50,6 +50,11 @@ const menuItems = [
     icon: Combine,
   },
   {
+    title: "Actividades Personalizadas",
+    url: "/custom-activities",
+    icon: Settings,
+  },
+  {
     title: "Herramientas",
     url: "/tools",
     icon: Wrench,
