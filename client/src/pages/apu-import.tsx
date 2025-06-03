@@ -129,16 +129,16 @@ export default function APUImport() {
           <CardContent>
             <div className="space-y-4">
               <p className="text-gray-700">
-                El sistema extraerá automáticamente análisis de precios unitarios reales desde insucons.com
+                El sistema extraerá automáticamente análisis de precios unitarios reales desde la base de datos MICAA
                 y los vinculará con las actividades existentes en tu base de datos.
               </p>
               
               <div className="grid grid-cols-1 gap-4">
                 <div className="border rounded-lg p-4">
-                  <h3 className="font-semibold text-gray-900">Fuente de Datos: insucons.com</h3>
+                  <h3 className="font-semibold text-gray-900">Fuente de Datos: Sistema MICAA</h3>
                   <p className="text-sm text-gray-600 mt-1">
                     Se accederá directamente a la base de datos de análisis de precios unitarios
-                    de insucons.com para obtener composiciones actualizadas con:
+                    del sistema MICAA para obtener composiciones actualizadas con:
                   </p>
                   <ul className="text-sm text-gray-600 mt-2 space-y-1">
                     <li>• Materiales con cantidades y precios específicos</li>
