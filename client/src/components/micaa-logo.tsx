@@ -27,51 +27,39 @@ export function MicaaLogo({
     xl: "text-3xl"
   };
 
-  // SVG del logo MICAA basado en el constructor con casco
+  // SVG del logo MICAA minimalista y profesional
   const ConstructorIcon = () => (
     <svg 
-      viewBox="0 0 64 64" 
+      viewBox="0 0 24 24" 
       className={`${sizeClasses[size]} ${className}`}
       fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      {/* Casco de seguridad */}
-      <path 
-        d="M16 18 C16 14, 20 10, 32 10 C44 10, 48 14, 48 18 L48 26 C48 28, 46 30, 44 30 L20 30 C18 30, 16 28, 16 26 Z" 
-        fill="#FFD700" 
-        stroke="#E6B800" 
-        strokeWidth="1"
-      />
+      {/* Casco de seguridad - parte superior */}
+      <path d="M6 8c0-2.5 2.5-5 6-5s6 2.5 6 5v3c0 .5-.5 1-1 1H7c-.5 0-1-.5-1-1V8z" />
       
       {/* Visera del casco */}
-      <path 
-        d="M14 26 L50 26 C50 24, 48 22, 46 22 L18 22 C16 22, 14 24, 14 26 Z" 
-        fill="#F4C430"
-      />
+      <path d="M4 11h16" />
       
-      {/* Cara del constructor */}
-      <circle cx="32" cy="36" r="10" fill="#FDBCB4" stroke="#E3A082" strokeWidth="1"/>
+      {/* Línea central del casco */}
+      <path d="M9 8h6" />
       
-      {/* Ojos */}
-      <circle cx="28" cy="34" r="1.5" fill="#2C3E50"/>
-      <circle cx="36" cy="34" r="1.5" fill="#2C3E50"/>
+      {/* Cabeza */}
+      <circle cx="12" cy="15" r="2.5" />
       
-      {/* Sonrisa */}
-      <path d="M28 38 Q32 42, 36 38" stroke="#E74C3C" strokeWidth="1.5" fill="none"/>
+      {/* Camisa/uniforme */}
+      <path d="M8 18v3c0 .5.5 1 1 1h6c.5 0 1-.5 1-1v-3" />
       
-      {/* Camisa de constructor */}
-      <rect x="20" y="46" width="24" height="12" rx="2" fill="#2C5530" stroke="#1E3A24" strokeWidth="1"/>
+      {/* Corbata */}
+      <path d="M12 18v4" />
+      <path d="M11 19l1-1 1 1" />
       
-      {/* Brazos */}
-      <rect x="14" y="48" width="6" height="8" rx="3" fill="#FDBCB4" stroke="#E3A082" strokeWidth="1"/>
-      <rect x="44" y="48" width="6" height="8" rx="3" fill="#FDBCB4" stroke="#E3A082" strokeWidth="1"/>
-      
-      {/* Herramientas en el cinturón */}
-      <rect x="22" y="54" width="2" height="4" fill="#8B4513"/>
-      <rect x="26" y="54" width="2" height="4" fill="#C0C0C0"/>
-      <rect x="30" y="54" width="2" height="4" fill="#FFD700"/>
-      
-      {/* Reflejo en el casco para darle brillo */}
-      <ellipse cx="26" cy="20" rx="4" ry="2" fill="#FFFFFF" opacity="0.3"/>
+      {/* Brazos/mangas */}
+      <path d="M8 18l-2 2v2" />
+      <path d="M16 18l2 2v2" />
     </svg>
   );
 
@@ -79,7 +67,7 @@ export function MicaaLogo({
     <div className={`flex items-center space-x-2 ${className}`}>
       <ConstructorIcon />
       {showText && (
-        <span className={`font-bold text-orange-600 dark:text-orange-400 ${textSizes[size]} ${textClassName}`}>
+        <span className={`font-bold text-gray-700 dark:text-gray-200 ${textSizes[size]} ${textClassName}`}>
           MICAA
         </span>
       )}
