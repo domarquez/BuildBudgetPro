@@ -15,7 +15,9 @@ import {
   Save, 
   X,
   Star,
-  StarOff
+  StarOff,
+  Copy,
+  Settings
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -158,6 +160,65 @@ export default function ActivityBreakdown({
     return originalQuantity * newPrice;
   };
 
+  const copyToCustomActivities = useMutation({
+    mutationFn: async () => {
+      if (!composition) throw new Error('No composition data');
+      
+      const customActivities = JSON.parse(localStorage.getItem('userCustomActivities') || '[]');
+      const newActivity = {
+        id: `custom_${Date.now()}`,
+        originalActivityId: activityId,
+        customName: `${activityName} (Personalizada)`,
+        originalName: activityName,
+        unit: "m2", // Default unit, user can modify
+        description: `Copia personalizada de ${activityName}`,
+        materials: composition.materials?.map((mat: any, index: number) => ({
+          id: `mat_${Date.now()}_${index}`,
+          description: mat.description,
+          unit: mat.unit,
+          quantity: mat.quantity,
+          unitPrice: mat.unitPrice,
+          total: mat.total
+        })) || [],
+        labor: composition.labor?.map((lab: any, index: number) => ({
+          id: `lab_${Date.now()}_${index}`,
+          description: lab.description,
+          unit: lab.unit,
+          quantity: lab.quantity,
+          unitPrice: lab.unitPrice,
+          total: lab.total
+        })) || [],
+        equipment: composition.equipment?.map((eq: any, index: number) => ({
+          id: `eq_${Date.now()}_${index}`,
+          description: eq.description,
+          unit: eq.unit,
+          quantity: eq.quantity,
+          unitPrice: eq.unitPrice,
+          total: eq.total
+        })) || [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      customActivities.push(newActivity);
+      localStorage.setItem('userCustomActivities', JSON.stringify(customActivities));
+      return newActivity;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Actividad copiada",
+        description: "La actividad se ha copiado a tu lista personalizada y puedes editarla completamente",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "No se pudo copiar la actividad",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <Card className="mb-4">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -168,12 +229,25 @@ export default function ActivityBreakdown({
                 {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 <CardTitle className="text-lg">{activityName}</CardTitle>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-600">
-                  {quantity} unidades × {formatCurrency(unitPrice)}
-                </div>
-                <div className="text-lg font-bold text-primary">
-                  {formatCurrency(subtotal)}
+              <div className="flex items-center gap-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToCustomActivities.mutate()}
+                  disabled={copyToCustomActivities.isPending || !composition}
+                  className="gap-2"
+                  title="Copiar esta actividad a tu lista personalizada para editarla"
+                >
+                  <Copy className="w-4 h-4" />
+                  {copyToCustomActivities.isPending ? "Copiando..." : "Copiar y Personalizar"}
+                </Button>
+                <div className="text-right">
+                  <div className="text-sm text-gray-600">
+                    {quantity} unidades × {formatCurrency(unitPrice)}
+                  </div>
+                  <div className="text-lg font-bold text-primary">
+                    {formatCurrency(subtotal)}
+                  </div>
                 </div>
               </div>
             </div>

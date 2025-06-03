@@ -31,6 +31,7 @@ import Marketplace from "@/pages/marketplace";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import PublicView from "@/pages/public-view";
+import CustomActivities from "@/pages/custom-activities";
 import NotFound from "@/pages/not-found";
 import AppSidebar from "@/components/layout/sidebar";
 import AppHeader from "@/components/layout/header";
@@ -78,6 +79,7 @@ function AuthenticatedLayout() {
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/materials" component={Materials} />
               <Route path="/activities" component={Activities} />
+              <Route path="/custom-activities" component={CustomActivities} />
               <Route path="/admin/activities" component={ActivityManager} />
               <Route path="/tools" component={Tools} />
               <Route path="/labor" component={Labor} />
