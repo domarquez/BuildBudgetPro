@@ -12,9 +12,17 @@ export default function AdminDatabase() {
     try {
       setIsExporting(true);
       
+      // Get authentication token
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
       // Call the export endpoint
       const response = await fetch('/api/admin/export-database', {
         method: 'GET',
+        headers,
         credentials: 'include',
       });
 
