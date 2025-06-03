@@ -35,11 +35,11 @@ export default function Suppliers() {
   const [filterType, setFilterType] = useState("");
   const [filterSpeciality, setFilterSpeciality] = useState("");
 
-  const { data: suppliers, isLoading } = useQuery({
+  const { data: suppliers = [], isLoading } = useQuery({
     queryKey: ["/api/supplier-companies"],
   });
 
-  const filteredSuppliers = suppliers?.filter((supplier: any) => {
+  const filteredSuppliers = suppliers.filter((supplier: any) => {
     const matchesSearch = supplier.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          supplier.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCity = !filterCity || supplier.city === filterCity;
@@ -140,15 +140,29 @@ export default function Suppliers() {
           <Card key={supplier.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    {supplier.companyName}
-                    {supplier.membershipType === 'premium' && (
-                      <Crown className="h-4 w-4 text-yellow-500" />
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    {supplier.logoUrl ? (
+                      <img 
+                        src={supplier.logoUrl} 
+                        alt={supplier.companyName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Building2 className="w-6 h-6 text-gray-400" />
                     )}
-                  </CardTitle>
-                  <CardDescription className="mt-2">
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="flex items-center gap-2">
+                      {supplier.companyName}
+                      {supplier.membershipType === 'premium' && (
+                        <Crown className="h-4 w-4 text-yellow-500" />
+                      )}
+                    </CardTitle>
+                  </div>
+                </div>
+              </div>
+              <CardDescription className="mt-2">
                     <div className="flex flex-wrap gap-2 mb-2">
                       {supplier.businessType && (
                         <Badge variant="outline">
@@ -170,8 +184,6 @@ export default function Suppliers() {
                       </p>
                     )}
                   </CardDescription>
-                </div>
-              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
