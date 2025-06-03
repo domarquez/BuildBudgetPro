@@ -77,8 +77,8 @@ export default function ActivityCompositionEditor({
   const [newItem, setNewItem] = useState({
     description: "",
     unit: "",
-    quantity: 0,
-    unitPrice: 0
+    quantity: 1,
+    unitPrice: 1
   });
   const { toast } = useToast();
 
@@ -106,7 +106,10 @@ export default function ActivityCompositionEditor({
   };
 
   const addMaterial = () => {
-    if (!newItem.description.trim() || !newItem.unit.trim() || newItem.quantity <= 0 || newItem.unitPrice <= 0) {
+    const quantity = Number(newItem.quantity) || 0;
+    const unitPrice = Number(newItem.unitPrice) || 0;
+    
+    if (!newItem.description.trim() || !newItem.unit.trim() || quantity <= 0 || unitPrice <= 0) {
       toast({
         title: "Error",
         description: "Todos los campos son obligatorios y deben ser válidos",
@@ -119,9 +122,9 @@ export default function ActivityCompositionEditor({
       id: `mat_${Date.now()}`,
       description: newItem.description.trim(),
       unit: newItem.unit.trim(),
-      quantity: newItem.quantity,
-      unitPrice: newItem.unitPrice,
-      total: calculateTotal(newItem.quantity, newItem.unitPrice)
+      quantity: quantity,
+      unitPrice: unitPrice,
+      total: calculateTotal(quantity, unitPrice)
     };
 
     setEditedActivity(prev => ({
@@ -133,7 +136,10 @@ export default function ActivityCompositionEditor({
   };
 
   const addLabor = () => {
-    if (!newItem.description.trim() || !newItem.unit.trim() || newItem.quantity <= 0 || newItem.unitPrice <= 0) {
+    const quantity = Number(newItem.quantity) || 0;
+    const unitPrice = Number(newItem.unitPrice) || 0;
+    
+    if (!newItem.description.trim() || !newItem.unit.trim() || quantity <= 0 || unitPrice <= 0) {
       toast({
         title: "Error",
         description: "Todos los campos son obligatorios y deben ser válidos",
@@ -146,9 +152,9 @@ export default function ActivityCompositionEditor({
       id: `lab_${Date.now()}`,
       description: newItem.description.trim(),
       unit: newItem.unit.trim(),
-      quantity: newItem.quantity,
-      unitPrice: newItem.unitPrice,
-      total: calculateTotal(newItem.quantity, newItem.unitPrice)
+      quantity: quantity,
+      unitPrice: unitPrice,
+      total: calculateTotal(quantity, unitPrice)
     };
 
     setEditedActivity(prev => ({
@@ -160,7 +166,10 @@ export default function ActivityCompositionEditor({
   };
 
   const addEquipment = () => {
-    if (!newItem.description.trim() || !newItem.unit.trim() || newItem.quantity <= 0 || newItem.unitPrice <= 0) {
+    const quantity = Number(newItem.quantity) || 0;
+    const unitPrice = Number(newItem.unitPrice) || 0;
+    
+    if (!newItem.description.trim() || !newItem.unit.trim() || quantity <= 0 || unitPrice <= 0) {
       toast({
         title: "Error",
         description: "Todos los campos son obligatorios y deben ser válidos",
@@ -173,9 +182,9 @@ export default function ActivityCompositionEditor({
       id: `eq_${Date.now()}`,
       description: newItem.description.trim(),
       unit: newItem.unit.trim(),
-      quantity: newItem.quantity,
-      unitPrice: newItem.unitPrice,
-      total: calculateTotal(newItem.quantity, newItem.unitPrice)
+      quantity: quantity,
+      unitPrice: unitPrice,
+      total: calculateTotal(quantity, unitPrice)
     };
 
     setEditedActivity(prev => ({
@@ -265,8 +274,8 @@ export default function ActivityCompositionEditor({
     setNewItem({
       description: "",
       unit: "",
-      quantity: 0,
-      unitPrice: 0
+      quantity: 1,
+      unitPrice: 1
     });
   };
 

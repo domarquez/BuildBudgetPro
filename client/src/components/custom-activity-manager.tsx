@@ -134,7 +134,8 @@ export default function CustomActivityManager({ onActivitySelect }: CustomActivi
         description: "Tu actividad personalizada se ha actualizado exitosamente",
       });
       setEditingActivity(null);
-      queryClient.invalidateQueries({ queryKey: ['customActivities'] });
+      // Force a re-render by updating the component state
+      window.location.reload();
     },
     onError: () => {
       toast({
