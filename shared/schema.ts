@@ -53,9 +53,11 @@ export const materials = pgTable("materials", {
 export const userMaterialPrices = pgTable("user_material_prices", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  materialId: integer("material_id").notNull().references(() => materials.id),
-  customPrice: decimal("custom_price", { precision: 10, scale: 2 }).notNull(),
-  reason: text("reason"), // Motivo del cambio de precio
+  originalMaterialName: text("original_material_name").notNull(), // Nombre original del material
+  customMaterialName: text("custom_material_name").notNull(), // Nombre personalizado por el usuario
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  unit: text("unit").notNull(),
+  reason: text("reason"), // Motivo del cambio de precio/nombre
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -482,6 +484,8 @@ export const insertUserMaterialPriceSchema = createInsertSchema(userMaterialPric
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  price: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
 export const insertCompanyAdvertisementSchema = createInsertSchema(companyAdvertisements).omit({

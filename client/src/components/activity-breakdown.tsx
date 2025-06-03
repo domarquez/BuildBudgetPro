@@ -63,6 +63,7 @@ export default function ActivityBreakdown({
   const [isOpen, setIsOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<number | null>(null);
   const [tempPrice, setTempPrice] = useState<string>("");
+  const [tempName, setTempName] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -72,9 +73,10 @@ export default function ActivityBreakdown({
   });
 
   const savePriceMutation = useMutation({
-    mutationFn: async ({ materialName, newPrice, unit }: { materialName: string; newPrice: number; unit: string }) => {
+    mutationFn: async ({ materialName, customName, newPrice, unit }: { materialName: string; customName: string; newPrice: number; unit: string }) => {
       return apiRequest("POST", "/api/user-material-prices", {
-        materialName,
+        originalMaterialName: materialName,
+        customMaterialName: customName,
         price: newPrice,
         unit
       });
@@ -98,12 +100,13 @@ export default function ActivityBreakdown({
     },
   });
 
-  const handleEditPrice = (index: number, currentPrice: number) => {
+  const handleEditPrice = (index: number, currentPrice: number, currentName: string) => {
     setEditingMaterial(index);
     setTempPrice(currentPrice.toString());
+    setTempName(currentName);
   };
 
-  const handleSavePrice = (materialName: string, unit: string) => {
+  const handleSavePrice = (originalMaterialName: string, unit: string) => {
     const newPrice = parseFloat(tempPrice);
     if (isNaN(newPrice) || newPrice <= 0) {
       toast({
@@ -114,12 +117,27 @@ export default function ActivityBreakdown({
       return;
     }
 
-    savePriceMutation.mutate({ materialName, newPrice, unit });
+    if (!tempName.trim()) {
+      toast({
+        title: "Error",
+        description: "El nombre del material no puede estar vacío",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    savePriceMutation.mutate({ 
+      materialName: originalMaterialName,
+      customName: tempName.trim(),
+      newPrice, 
+      unit 
+    });
   };
 
   const handleCancelEdit = () => {
     setEditingMaterial(null);
     setTempPrice("");
+    setTempName("");
   };
 
   const calculateNewTotal = (originalQuantity: number, newPrice: number) => {
@@ -175,31 +193,42 @@ export default function ActivityBreakdown({
                           </div>
                           <div className="flex items-center gap-3">
                             {editingMaterial === index ? (
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={tempPrice}
-                                  onChange={(e) => setTempPrice(e.target.value)}
-                                  className="w-24 h-8"
-                                  placeholder="Precio"
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleSavePrice(material.description, material.unit)}
-                                  disabled={savePriceMutation.isPending}
-                                  className="h-8 px-2"
-                                >
-                                  <Save className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={handleCancelEdit}
-                                  className="h-8 px-2"
-                                >
-                                  <X className="w-3 h-3" />
-                                </Button>
+                              <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="text"
+                                    value={tempName}
+                                    onChange={(e) => setTempName(e.target.value)}
+                                    className="w-48 h-8"
+                                    placeholder="Nombre personalizado"
+                                  />
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={tempPrice}
+                                    onChange={(e) => setTempPrice(e.target.value)}
+                                    className="w-24 h-8"
+                                    placeholder="Precio"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleSavePrice(material.description, material.unit)}
+                                    disabled={savePriceMutation.isPending}
+                                    className="h-8 px-2"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleCancelEdit}
+                                    className="h-8 px-2"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </Button>
+                                </div>
                               </div>
                             ) : (
                               <div className="flex items-center gap-2">
@@ -212,9 +241,9 @@ export default function ActivityBreakdown({
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => handleEditPrice(index, material.unitPrice)}
+                                  onClick={() => handleEditPrice(index, material.unitPrice, material.description)}
                                   className="h-8 px-2"
-                                  title="Editar precio y guardar en lista personalizada"
+                                  title="Editar nombre y precio personalizado"
                                 >
                                   <Edit3 className="w-3 h-3" />
                                 </Button>
