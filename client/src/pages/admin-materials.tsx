@@ -122,7 +122,7 @@ export default function AdminMaterials() {
   const filteredMaterials = materials.filter((material: Material) => {
     const matchesSearch = material.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          material.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || material.categoryId.toString() === selectedCategory;
+    const matchesCategory = !selectedCategory || selectedCategory === "all" || material.categoryId.toString() === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -222,7 +222,7 @@ export default function AdminMaterials() {
                 <SelectValue placeholder="Todas las categorías" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas las categorías</SelectItem>
+                <SelectItem value="all">Todas las categorías</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id.toString()}>
                     {category.name}
