@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ContactForm } from "@/components/contact-form";
 import { ConstructorGame } from "@/components/constructor-game";
 import { MicaaLogo } from "@/components/micaa-logo";
+import { BannerAd, SquareAd, MobileAd, ResponsiveAd, SidebarAd } from "@/components/ad-space";
 import {
   Table,
   TableBody,
@@ -126,6 +127,10 @@ export default function PublicView() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Sidebar Ad for Desktop */}
+      <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-40">
+        <SidebarAd />
+      </div>
       {/* Header Público */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -224,6 +229,9 @@ export default function PublicView() {
             </div>
           </div>
         )}
+
+        {/* Banner Ad después del header */}
+        <BannerAd />
 
         {/* Métricas Compactas del Sistema */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -345,6 +353,11 @@ export default function PublicView() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Square Ad entre métricas y gráficos */}
+        <div className="flex justify-center">
+          <SquareAd />
         </div>
 
         {/* Growth Chart */}
@@ -668,6 +681,11 @@ export default function PublicView() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Responsive Ad antes del juego */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ResponsiveAd />
       </div>
 
       {/* Juego Interactivo */}
