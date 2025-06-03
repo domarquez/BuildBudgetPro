@@ -94,6 +94,7 @@ function AuthenticatedLayout() {
               <Route path="/admin-materials" component={AdminMaterials} />
               <Route path="/admin-activities" component={ActivityManager} />
               <Route path="/marketplace" component={Marketplace} />
+              <Route path="/public" component={PublicView} />
               <Route component={NotFound} />
             </Switch>
           </main>
