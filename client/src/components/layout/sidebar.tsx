@@ -113,7 +113,7 @@ const settingsItems = [
 const adminItems = [
   {
     title: "Organizar Actividades",
-    url: "/admin-activities",
+    url: "/admin/activities",
     icon: Settings,
   },
   {
