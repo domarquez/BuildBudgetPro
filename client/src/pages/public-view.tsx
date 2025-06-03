@@ -30,7 +30,8 @@ import {
   Truck,
   TrendingUp,
   Combine,
-  BarChart3
+  BarChart3,
+  Mail
 } from "lucide-react";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { Material, MaterialCategory, SupplierCompany, AdvertisementWithSupplier } from "@shared/schema";
@@ -96,8 +97,8 @@ export default function PublicView() {
     // Abrir enlace si existe
     if (ad.linkUrl) {
       window.open(ad.linkUrl, '_blank');
-    } else if (ad.supplier.contactEmail) {
-      window.open(`mailto:${ad.supplier.contactEmail}`, '_blank');
+    } else if (ad.supplier.email) {
+      window.open(`mailto:${ad.supplier.email}`, '_blank');
     }
   };
 
@@ -128,13 +129,22 @@ export default function PublicView() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                MICA - Cómputos y Presupuestos
+                MICAA - Cómputos y Presupuestos
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
                 Explora materiales y proveedores de construcción en Bolivia
               </p>
             </div>
             <div className="flex space-x-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open('mailto:contacto@micaa.store?subject=Consulta%20MICAA&body=Envianos%20un%20mensaje%20con%20tus%20consultas%20o%20sugerencias', '_blank')}
+                className="flex items-center space-x-2"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Contacto</span>
+              </Button>
               <Button variant="outline" onClick={() => window.location.href = "/login"}>
                 Iniciar Sesión
               </Button>
@@ -660,6 +670,28 @@ export default function PublicView() {
           </div>
         </div>
       </div>
+
+      {/* Footer de Contacto */}
+      <footer className="bg-gray-800 dark:bg-gray-900 text-white py-8 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold mb-4">¿Tienes consultas o sugerencias?</h3>
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => window.open('mailto:contacto@micaa.store?subject=Consulta%20MICAA&body=Envianos%20un%20mensaje%20con%20tus%20consultas%20o%20sugerencias', '_blank')}
+              className="bg-transparent border-white text-white hover:bg-white hover:text-gray-800 flex items-center space-x-3 mx-auto"
+            >
+              <Mail className="w-5 h-5" />
+              <span>Envíanos un mensaje con tus consultas o sugerencias</span>
+            </Button>
+            <p className="text-gray-400 mt-4 text-sm">contacto@micaa.store</p>
+            <div className="mt-6 pt-6 border-t border-gray-700">
+              <p className="text-gray-500 text-sm">© 2025 MICAA. Sistema de Cómputos y Presupuestos para Bolivia.</p>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
