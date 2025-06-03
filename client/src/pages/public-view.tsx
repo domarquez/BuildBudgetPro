@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ContactForm } from "@/components/contact-form";
 import {
   Table,
   TableBody,
@@ -136,15 +137,11 @@ export default function PublicView() {
               </p>
             </div>
             <div className="flex space-x-3">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.open('mailto:contacto@micaa.store?subject=Consulta%20MICAA&body=Envianos%20un%20mensaje%20con%20tus%20consultas%20o%20sugerencias', '_blank')}
+              <ContactForm 
+                triggerText="Contacto"
+                triggerVariant="outline"
                 className="flex items-center space-x-2"
-              >
-                <Mail className="w-4 h-4" />
-                <span>Contacto</span>
-              </Button>
+              />
               <Button variant="outline" onClick={() => window.location.href = "/login"}>
                 Iniciar Sesión
               </Button>
@@ -676,16 +673,12 @@ export default function PublicView() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h3 className="text-xl font-semibold mb-4">¿Tienes consultas o sugerencias?</h3>
-            <Button 
-              variant="outline" 
-              size="lg"
-              onClick={() => window.open('mailto:contacto@micaa.store?subject=Consulta%20MICAA&body=Envianos%20un%20mensaje%20con%20tus%20consultas%20o%20sugerencias', '_blank')}
-              className="bg-transparent border-white text-white hover:bg-white hover:text-gray-800 flex items-center space-x-3 mx-auto"
-            >
-              <Mail className="w-5 h-5" />
-              <span>Envíanos un mensaje con tus consultas o sugerencias</span>
-            </Button>
-            <p className="text-gray-400 mt-4 text-sm">contacto@micaa.store</p>
+            <ContactForm 
+              triggerText="Envíanos un mensaje con tus consultas o sugerencias"
+              triggerVariant="outline"
+              className="bg-transparent border-white text-white hover:bg-white hover:text-gray-800 flex items-center space-x-3 mx-auto text-base px-6 py-3"
+            />
+            <p className="text-gray-400 mt-4 text-sm">Sistema interno de mensajería MICAA</p>
             <div className="mt-6 pt-6 border-t border-gray-700">
               <p className="text-gray-500 text-sm">© 2025 MICAA. Sistema de Cómputos y Presupuestos para Bolivia.</p>
             </div>
