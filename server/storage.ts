@@ -851,6 +851,22 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async getAllSupplierCompanies(): Promise<SupplierCompany[]> {
+    return await db
+      .select()
+      .from(supplierCompanies)
+      .orderBy(desc(supplierCompanies.membershipType), desc(supplierCompanies.createdAt));
+  }
+
+  async updateSupplierCompanyLogo(id: number, logoPath: string): Promise<SupplierCompany> {
+    const [updated] = await db
+      .update(supplierCompanies)
+      .set({ logoUrl: logoPath, updatedAt: new Date() })
+      .where(eq(supplierCompanies.id, id))
+      .returning();
+    return updated;
+  }
+
   async deleteSupplierCompany(id: number): Promise<void> {
     await db
       .update(supplierCompanies)

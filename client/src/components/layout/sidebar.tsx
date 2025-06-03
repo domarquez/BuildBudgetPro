@@ -123,6 +123,11 @@ const adminItems = [
     icon: Settings,
   },
   {
+    title: "Administrar Empresas",
+    url: "/admin/companies",
+    icon: Building2,
+  },
+  {
     title: "Importar Empresas",
     url: "/import-companies",
     icon: Upload,

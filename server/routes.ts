@@ -1905,6 +1905,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin company management routes
+  app.get("/api/admin/companies", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const companies = await storage.getAllSupplierCompanies();
+      res.json(companies);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+      res.status(500).json({ message: "Failed to fetch companies" });
+    }
+  });
+
+  app.put("/api/admin/companies/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const updatedCompany = await storage.updateSupplierCompany(companyId, updateData);
+      res.json(updatedCompany);
+    } catch (error) {
+      console.error("Error updating company:", error);
+      res.status(500).json({ message: "Failed to update company" });
+    }
+  });
+
+  app.post("/api/admin/companies/:id/logo", requireAuth, requireAdmin, upload.single('logo'), async (req, res) => {
+    try {
+      const companyId = parseInt(req.params.id);
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "No logo file provided" });
+      }
+
+      const logoPath = `/uploads/${req.file.filename}`;
+      await storage.updateSupplierCompanyLogo(companyId, logoPath);
+      
+      res.json({ logoPath });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      res.status(500).json({ message: "Failed to upload logo" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

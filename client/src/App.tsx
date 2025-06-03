@@ -24,6 +24,7 @@ import ImportCompanies from "@/pages/import-companies";
 import ReviewCompanies from "@/pages/review-companies";
 import SimpleImport from "@/pages/simple-import";
 import AdminMaterials from "@/pages/admin-materials";
+import AdminCompanies from "@/pages/admin-companies";
 import Marketplace from "@/pages/marketplace";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -93,6 +94,7 @@ function AuthenticatedLayout() {
         <Route path="/simple-import" component={SimpleImport} />
               <Route path="/admin-materials" component={AdminMaterials} />
               <Route path="/admin-activities" component={ActivityManager} />
+              <Route path="/admin/companies" component={AdminCompanies} />
               <Route path="/marketplace" component={Marketplace} />
               <Route path="/public" component={PublicView} />
               <Route component={NotFound} />
