@@ -48,33 +48,33 @@ export async function getKnownAPUs(): Promise<APUItem[]> {
       name: 'JABONERO',
       unit: 'PZA',
       price: 0,
-      url: 'https://www.insucons.com/analisis-precio-unitario/hh/artefactos-sanitarios/5/jabonero'
+      url: 'https://www.micaa.store/analisis-precio-unitario/hh/artefactos-sanitarios/5/jabonero'
     },
     {
       code: 'HO193',
       name: 'CIMIENTO DE HO AO',
       unit: 'M3',
       price: 0,
-      url: 'https://www.insucons.com/analisis-precio-unitario/hh/hormigones/193/cimiento-de-ho-ao'
+      url: 'https://www.micaa.store/analisis-precio-unitario/hh/hormigones/193/cimiento-de-ho-ao'
     },
     {
       code: 'ACCES001',
       name: 'ACCESORIOS DE BAÑO',
       unit: 'JGO',
       price: 525.41,
-      url: 'https://www.insucons.com/analisis-precio-unitario/hh/artefactos-sanitarios/1/accesorios-de-bano'
+      url: 'https://www.micaa.store/analisis-precio-unitario/hh/artefactos-sanitarios/1/accesorios-de-bano'
     }
   ];
 
-  console.log(`Usando ${knownAPUs.length} APUs conocidos de insucons.com`);
+  console.log(`Usando ${knownAPUs.length} APUs conocidos del sistema`);
   return knownAPUs;
 }
 
 // Función para obtener todos los grupos de APU
 export async function getAPUGroups(): Promise<APUGroup[]> {
   try {
-    console.log('Obteniendo grupos de APU desde insucons.com...');
-    const response = await axios.get('https://www.insucons.com/analisis-precio-unitario/hh/grupos', {
+    console.log('Obteniendo grupos de APU desde base de datos...');
+    const response = await axios.get('https://www.micaa.store/analisis-precio-unitario/hh/grupos', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',

@@ -83,7 +83,7 @@ async function findActivityByName(activityName: string) {
 
 // Función principal para importar APUs
 export async function importAPUCompositions() {
-  console.log("Iniciando importación COMPLETA de APUs desde insucons.com...");
+  console.log("Iniciando importación COMPLETA de APUs desde sistema MICAA...");
   
   try {
     // Obtener TODOS los grupos
@@ -215,8 +215,8 @@ export async function importAPUCompositions() {
     };
 
   } catch (error) {
-    console.error("Error en importación de insucons.com:", error);
-    throw new Error("Error accediendo a insucons.com. Verifica la conexión a internet.");
+    console.error("Error en importación del sistema MICAA:", error);
+    throw new Error("Error accediendo al sistema MICAA. Verifica la conexión a internet.");
   }
 }
 
