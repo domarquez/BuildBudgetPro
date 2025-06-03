@@ -885,20 +885,37 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAdvertisement(data: InsertCompanyAdvertisement): Promise<CompanyAdvertisement> {
+    // Ensure dates are properly formatted
+    const processedData = {
+      ...data,
+      startDate: data.startDate ? new Date(data.startDate) : null,
+      endDate: data.endDate ? new Date(data.endDate) : null,
+    };
+    
     const [created] = await db
       .insert(companyAdvertisements)
-      .values(data)
+      .values(processedData)
       .returning();
     return created;
   }
 
   async updateAdvertisement(id: number, data: Partial<InsertCompanyAdvertisement>): Promise<CompanyAdvertisement> {
-    // Remove any existing updatedAt and createdAt from the input to avoid conflicts
-    const { updatedAt, createdAt, ...updateData } = data;
+    // Process the data to ensure proper formatting
+    const processedData: any = { ...data };
+    delete processedData.updatedAt;
+    delete processedData.createdAt;
+    
+    // Convert string dates to Date objects if present
+    if (processedData.startDate) {
+      processedData.startDate = new Date(processedData.startDate);
+    }
+    if (processedData.endDate) {
+      processedData.endDate = new Date(processedData.endDate);
+    }
     
     const [updated] = await db
       .update(companyAdvertisements)
-      .set({ ...updateData, updatedAt: new Date() })
+      .set({ ...processedData, updatedAt: new Date() })
       .where(eq(companyAdvertisements.id, id))
       .returning();
     return updated;
