@@ -112,9 +112,9 @@ const settingsItems = [
 
 const adminItems = [
   {
-    title: "Gestionar Actividades",
-    url: "/admin/activities",
-    icon: Shield,
+    title: "Organizar Actividades",
+    url: "/admin-activities",
+    icon: Settings,
   },
   {
     title: "Importar Empresas",

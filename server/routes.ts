@@ -836,6 +836,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin activity phase update
+  app.put("/api/admin/activities/:id/phase", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const activityId = Number(req.params.id);
+      const { phaseId } = req.body;
+      
+      if (!phaseId) {
+        return res.status(400).json({ message: "Phase ID is required" });
+      }
+
+      const updatedActivity = await storage.updateActivityPhase(activityId, phaseId);
+      res.json(updatedActivity);
+    } catch (error) {
+      console.error("Error updating activity phase:", error);
+      res.status(500).json({ message: "Failed to update activity phase" });
+    }
+  });
+
+  // Bulk move activities
+  app.post("/api/admin/activities/bulk-move", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { fromPhaseId, toPhaseId, keyword } = req.body;
+      
+      if (!fromPhaseId || !toPhaseId || !keyword) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      const result = await storage.bulkMoveActivities(fromPhaseId, toPhaseId, keyword);
+      res.json(result);
+    } catch (error) {
+      console.error("Error bulk moving activities:", error);
+      res.status(500).json({ message: "Failed to bulk move activities" });
+    }
+  });
+
   // APU Import and Calculation
   app.post("/api/import-apu", requireAuth, async (req, res) => {
     try {

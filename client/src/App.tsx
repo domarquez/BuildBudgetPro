@@ -16,7 +16,7 @@ import Suppliers from "@/pages/suppliers";
 import SupplierRegistration from "@/pages/supplier-registration";
 import Tools from "@/pages/tools";
 import Labor from "@/pages/labor";
-import AdminActivities from "@/pages/admin-activities";
+import ActivityManager from "@/pages/admin-activities";
 import SupplierPricing from "@/pages/supplier-pricing";
 import SupplierDashboard from "@/pages/supplier-dashboard";
 import CompanyAdvertising from "@/pages/company-advertising";

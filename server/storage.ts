@@ -718,6 +718,28 @@ export class DatabaseStorage implements IStorage {
     return activity;
   }
 
+  async updateActivityPhase(id: number, phaseId: number): Promise<Activity> {
+    const [updated] = await db
+      .update(activities)
+      .set({ phaseId })
+      .where(eq(activities.id, id))
+      .returning();
+    return updated;
+  }
+
+  async bulkMoveActivities(fromPhaseId: number, toPhaseId: number, keyword: string): Promise<{ count: number }> {
+    const result = await db
+      .update(activities)
+      .set({ phaseId: toPhaseId })
+      .where(and(
+        eq(activities.phaseId, fromPhaseId),
+        ilike(activities.name, `%${keyword}%`)
+      ))
+      .returning({ id: activities.id });
+    
+    return { count: result.length };
+  }
+
   // City Price Factors
   async getCityPriceFactors(): Promise<CityPriceFactor[]> {
     return await db
