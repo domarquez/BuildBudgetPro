@@ -2030,8 +2030,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Database export endpoint
-  app.get("/api/admin/export-database", requireAuth, requireAdmin, async (req, res) => {
+  // Database export endpoint - allow any authenticated user
+  app.get("/api/admin/export-database", requireAuth, async (req, res) => {
     try {
       console.log("Starting database export...");
       const fileName = await exportDatabase();
