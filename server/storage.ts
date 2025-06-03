@@ -63,7 +63,7 @@ import {
   type InsertLaborCategory
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, like, ilike, and } from "drizzle-orm";
+import { eq, desc, sql, like, ilike, and, gte } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -619,6 +619,9 @@ export class DatabaseStorage implements IStorage {
     totalActivities: number;
     activeBudgets: number;
     totalProjectValue: number;
+    totalUsers: number;
+    totalSuppliers: number;
+    totalProjects: number;
   }> {
     const [materialCount] = await db
       .select({ count: sql<number>`count(*)` })
@@ -630,20 +633,111 @@ export class DatabaseStorage implements IStorage {
 
     const [budgetCount] = await db
       .select({ count: sql<number>`count(*)` })
-      .from(budgets)
-      .where(eq(budgets.status, 'active'));
+      .from(budgets);
 
     const [projectValue] = await db
       .select({ total: sql<number>`coalesce(sum(total), 0)` })
-      .from(budgets)
-      .where(eq(budgets.status, 'active'));
+      .from(budgets);
+
+    const [userCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users);
+
+    const [supplierCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(supplierCompanies)
+      .where(eq(supplierCompanies.isActive, true));
+
+    const [projectCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(projects);
 
     return {
       totalMaterials: materialCount.count,
       totalActivities: activityCount.count,
       activeBudgets: budgetCount.count,
-      totalProjectValue: Number(projectValue.total)
+      totalProjectValue: Number(projectValue.total),
+      totalUsers: userCount.count,
+      totalSuppliers: supplierCount.count,
+      totalProjects: projectCount.count,
     };
+  }
+
+  async getGrowthData(): Promise<Array<{
+    month: string;
+    users: number;
+    projects: number;
+    budgets: number;
+    suppliers: number;
+  }>> {
+    // Get data for the last 6 months
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const userGrowth = await db
+      .select({
+        month: sql<string>`TO_CHAR(${users.createdAt}, 'YYYY-MM')`,
+        count: sql<number>`count(*)`
+      })
+      .from(users)
+      .where(gte(users.createdAt, sixMonthsAgo))
+      .groupBy(sql`TO_CHAR(${users.createdAt}, 'YYYY-MM')`)
+      .orderBy(sql`TO_CHAR(${users.createdAt}, 'YYYY-MM')`);
+
+    const projectGrowth = await db
+      .select({
+        month: sql<string>`TO_CHAR(${projects.createdAt}, 'YYYY-MM')`,
+        count: sql<number>`count(*)`
+      })
+      .from(projects)
+      .where(gte(projects.createdAt, sixMonthsAgo))
+      .groupBy(sql`TO_CHAR(${projects.createdAt}, 'YYYY-MM')`)
+      .orderBy(sql`TO_CHAR(${projects.createdAt}, 'YYYY-MM')`);
+
+    const budgetGrowth = await db
+      .select({
+        month: sql<string>`TO_CHAR(${budgets.createdAt}, 'YYYY-MM')`,
+        count: sql<number>`count(*)`
+      })
+      .from(budgets)
+      .where(gte(budgets.createdAt, sixMonthsAgo))
+      .groupBy(sql`TO_CHAR(${budgets.createdAt}, 'YYYY-MM')`)
+      .orderBy(sql`TO_CHAR(${budgets.createdAt}, 'YYYY-MM')`);
+
+    const supplierGrowth = await db
+      .select({
+        month: sql<string>`TO_CHAR(${supplierCompanies.createdAt}, 'YYYY-MM')`,
+        count: sql<number>`count(*)`
+      })
+      .from(supplierCompanies)
+      .where(gte(supplierCompanies.createdAt, sixMonthsAgo))
+      .groupBy(sql`TO_CHAR(${supplierCompanies.createdAt}, 'YYYY-MM')`)
+      .orderBy(sql`TO_CHAR(${supplierCompanies.createdAt}, 'YYYY-MM')`);
+
+    // Create a map for each data type
+    const userMap = new Map(userGrowth.map(item => [item.month, item.count]));
+    const projectMap = new Map(projectGrowth.map(item => [item.month, item.count]));
+    const budgetMap = new Map(budgetGrowth.map(item => [item.month, item.count]));
+    const supplierMap = new Map(supplierGrowth.map(item => [item.month, item.count]));
+
+    // Generate last 6 months
+    const result = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthKey = date.toISOString().substring(0, 7);
+      const monthName = date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+      
+      result.push({
+        month: monthName,
+        users: userMap.get(monthKey) || 0,
+        projects: projectMap.get(monthKey) || 0,
+        budgets: budgetMap.get(monthKey) || 0,
+        suppliers: supplierMap.get(monthKey) || 0,
+      });
+    }
+
+    return result;
   }
 
   // Price Settings

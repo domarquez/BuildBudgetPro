@@ -164,6 +164,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/growth-data", async (req, res) => {
+    try {
+      const growthData = await storage.getGrowthData();
+      res.json(growthData);
+    } catch (error) {
+      console.error("Error fetching growth data:", error);
+      res.status(500).json({ message: "Failed to fetch growth data" });
+    }
+  });
+
   // Material Categories
   app.get("/api/material-categories", async (req, res) => {
     try {
