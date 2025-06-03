@@ -877,6 +877,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User material prices (personalized pricing)
+  app.post("/api/user-material-prices", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const validatedData = insertUserMaterialPriceSchema.parse({
+        ...req.body,
+        userId
+      });
+
+      const userPrice = await storage.createUserMaterialPrice(validatedData);
+      res.json(userPrice);
+    } catch (error) {
+      console.error("Error creating user material price:", error);
+      res.status(500).json({ message: "Failed to save material price" });
+    }
+  });
+
+  app.get("/api/user-material-prices", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const userPrices = await storage.getUserMaterialPrices(userId);
+      res.json(userPrices);
+    } catch (error) {
+      console.error("Error getting user material prices:", error);
+      res.status(500).json({ message: "Failed to get material prices" });
+    }
+  });
+
+  app.put("/api/user-material-prices/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const priceId = Number(req.params.id);
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { price } = req.body;
+      if (!price || price <= 0) {
+        return res.status(400).json({ message: "Invalid price" });
+      }
+
+      const updatedPrice = await storage.updateUserMaterialPrice(priceId, userId, price);
+      res.json(updatedPrice);
+    } catch (error) {
+      console.error("Error updating user material price:", error);
+      res.status(500).json({ message: "Failed to update material price" });
+    }
+  });
+
+  app.delete("/api/user-material-prices/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const priceId = Number(req.params.id);
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      await storage.deleteUserMaterialPrice(priceId, userId);
+      res.json({ message: "Material price deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user material price:", error);
+      res.status(500).json({ message: "Failed to delete material price" });
+    }
+  });
+
   // Bulk move activities
   app.post("/api/admin/activities/bulk-move", requireAuth, requireAdmin, async (req, res) => {
     try {

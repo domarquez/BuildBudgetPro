@@ -186,7 +186,7 @@ export default function ActivityBreakdown({
                                 />
                                 <Button
                                   size="sm"
-                                  onClick={() => handleSavePrice(material.description)}
+                                  onClick={() => handleSavePrice(material.description, material.unit)}
                                   disabled={savePriceMutation.isPending}
                                   className="h-8 px-2"
                                 >
@@ -256,7 +256,7 @@ export default function ActivityBreakdown({
                 )}
 
                 {/* Equipment Section */}
-                {composition.equipment.length > 0 && (
+                {composition.equipment && composition.equipment.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Wrench className="w-4 h-4 text-orange-600" />

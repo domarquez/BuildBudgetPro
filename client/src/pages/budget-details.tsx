@@ -466,7 +466,7 @@ export default function BudgetDetails() {
                   key={item.id}
                   activityId={item.activity.id}
                   activityName={item.activity.name}
-                  quantity={item.quantity}
+                  quantity={Number(item.quantity)}
                   unitPrice={Number(item.unitPrice)}
                   subtotal={Number(item.subtotal)}
                 />

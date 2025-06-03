@@ -168,6 +168,12 @@ export interface IStorage {
   updateMaterialSupplierPrice(id: number, price: Partial<InsertMaterialSupplierPrice>): Promise<MaterialSupplierPrice>;
   deleteMaterialSupplierPrice(id: number): Promise<void>;
 
+  // User Material Prices (personalized pricing)
+  getUserMaterialPrices(userId: number): Promise<UserMaterialPrice[]>;
+  createUserMaterialPrice(price: InsertUserMaterialPrice): Promise<UserMaterialPrice>;
+  updateUserMaterialPrice(id: number, userId: number, price: number): Promise<UserMaterialPrice>;
+  deleteUserMaterialPrice(id: number, userId: number): Promise<void>;
+
   // Company Advertisements
   getCompanyAdvertisements(supplierId: number): Promise<CompanyAdvertisement[]>;
   getCompanyAdvertisement(id: number): Promise<CompanyAdvertisement | undefined>;
@@ -1415,6 +1421,77 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(consultationMessages.createdAt))
       .limit(10);
+  }
+
+  // User Material Prices (personalized pricing)
+  async getUserMaterialPrices(userId: number): Promise<UserMaterialPrice[]> {
+    return await db
+      .select()
+      .from(userMaterialPrices)
+      .where(eq(userMaterialPrices.userId, userId))
+      .orderBy(desc(userMaterialPrices.updatedAt));
+  }
+
+  async createUserMaterialPrice(price: InsertUserMaterialPrice): Promise<UserMaterialPrice> {
+    // Check if user already has a price for this material
+    const [existing] = await db
+      .select()
+      .from(userMaterialPrices)
+      .where(
+        and(
+          eq(userMaterialPrices.userId, price.userId),
+          eq(userMaterialPrices.materialName, price.materialName)
+        )
+      );
+
+    if (existing) {
+      // Update existing price
+      const [updated] = await db
+        .update(userMaterialPrices)
+        .set({
+          price: price.price,
+          unit: price.unit,
+          updatedAt: new Date()
+        })
+        .where(eq(userMaterialPrices.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new price
+      const [newPrice] = await db
+        .insert(userMaterialPrices)
+        .values(price)
+        .returning();
+      return newPrice;
+    }
+  }
+
+  async updateUserMaterialPrice(id: number, userId: number, price: number): Promise<UserMaterialPrice> {
+    const [updated] = await db
+      .update(userMaterialPrices)
+      .set({
+        price,
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(userMaterialPrices.id, id),
+          eq(userMaterialPrices.userId, userId)
+        )
+      )
+      .returning();
+    return updated;
+  }
+
+  async deleteUserMaterialPrice(id: number, userId: number): Promise<void> {
+    await db
+      .delete(userMaterialPrices)
+      .where(
+        and(
+          eq(userMaterialPrices.id, id),
+          eq(userMaterialPrices.userId, userId)
+        )
+      );
   }
 }
 
