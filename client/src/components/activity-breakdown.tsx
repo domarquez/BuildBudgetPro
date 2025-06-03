@@ -66,6 +66,9 @@ export default function ActivityBreakdown({
   const [editingMaterial, setEditingMaterial] = useState<number | null>(null);
   const [tempPrice, setTempPrice] = useState<string>("");
   const [tempName, setTempName] = useState<string>("");
+  const [userPrices, setUserPrices] = useState(() => 
+    JSON.parse(localStorage.getItem('userMaterialPrices') || '[]')
+  );
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -76,8 +79,6 @@ export default function ActivityBreakdown({
 
   const savePriceMutation = useMutation({
     mutationFn: async ({ materialName, customName, newPrice, unit }: { materialName: string; customName: string; newPrice: number; unit: string }) => {
-      // For now, save to localStorage as a demo until backend is ready
-      const userPrices = JSON.parse(localStorage.getItem('userMaterialPrices') || '[]');
       const newEntry = {
         id: Date.now(),
         originalName: materialName,
@@ -88,14 +89,17 @@ export default function ActivityBreakdown({
       };
       
       // Update existing or add new
-      const existingIndex = userPrices.findIndex((p: any) => p.originalName === materialName);
+      const updatedPrices = [...userPrices];
+      const existingIndex = updatedPrices.findIndex((p: any) => p.originalName === materialName);
       if (existingIndex >= 0) {
-        userPrices[existingIndex] = newEntry;
+        updatedPrices[existingIndex] = newEntry;
       } else {
-        userPrices.push(newEntry);
+        updatedPrices.push(newEntry);
       }
       
-      localStorage.setItem('userMaterialPrices', JSON.stringify(userPrices));
+      // Update both localStorage and state
+      localStorage.setItem('userMaterialPrices', JSON.stringify(updatedPrices));
+      setUserPrices(updatedPrices);
       return newEntry;
     },
     onSuccess: () => {
@@ -321,10 +325,30 @@ export default function ActivityBreakdown({
                             ) : (
                               <div className="flex items-center gap-2">
                                 <div className="text-right">
-                                  <p className="font-medium">{formatCurrency(material.unitPrice)}</p>
-                                  <p className="text-sm text-gray-600">
-                                    Total: {formatCurrency(material.total)}
-                                  </p>
+                                  {(() => {
+                                    const userPrice = userPrices.find((p: any) => p.originalName === material.description);
+                                    const displayPrice = userPrice ? userPrice.price : material.unitPrice;
+                                    const displayName = userPrice ? userPrice.customName : material.description;
+                                    const calculatedTotal = calculateNewTotal(material.quantity, displayPrice);
+                                    
+                                    return (
+                                      <>
+                                        <div className="mb-1">
+                                          {userPrice && (
+                                            <div className="flex items-center gap-1">
+                                              <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                                              <span className="text-xs text-yellow-600 font-medium">Personalizado</span>
+                                            </div>
+                                          )}
+                                          <p className="font-medium text-sm">{displayName}</p>
+                                        </div>
+                                        <p className="font-medium">{formatCurrency(displayPrice)}</p>
+                                        <p className="text-sm text-gray-600">
+                                          Total: {formatCurrency(calculatedTotal)}
+                                        </p>
+                                      </>
+                                    );
+                                  })()}
                                 </div>
                                 <Button
                                   size="sm"
