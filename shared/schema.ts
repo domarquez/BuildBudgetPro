@@ -230,6 +230,21 @@ export const laborCategories = pgTable("labor_categories", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const consultationMessages = pgTable("consultation_messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  messageType: text("message_type").notNull().default("consulta"), // 'consulta', 'sugerencia'
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("pendiente"), // 'pendiente', 'leido', 'respondido'
+  adminResponse: text("admin_response"),
+  isPublic: boolean("is_public").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+});
+
 // Relations
 export const constructionPhasesRelations = relations(constructionPhases, ({ many }) => ({
   activities: many(activities),
@@ -341,6 +356,13 @@ export const materialSupplierPricesRelations = relations(materialSupplierPrices,
   supplier: one(supplierCompanies, {
     fields: [materialSupplierPrices.supplierId],
     references: [supplierCompanies.id],
+  }),
+}));
+
+export const consultationMessagesRelations = relations(consultationMessages, ({ one }) => ({
+  user: one(users, {
+    fields: [consultationMessages.userId],
+    references: [users.id],
   }),
 }));
 
@@ -483,6 +505,21 @@ export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit
   updatedAt: true,
 });
 
+export const insertConsultationMessageSchema = createInsertSchema(consultationMessages).omit({
+  id: true,
+  status: true,
+  adminResponse: true,
+  isPublic: true,
+  createdAt: true,
+  respondedAt: true,
+}).extend({
+  name: z.string().min(1, "El nombre es requerido"),
+  email: z.string().email("Email inválido"),
+  subject: z.string().min(1, "El asunto es requerido"),
+  message: z.string().min(10, "El mensaje debe tener al menos 10 caracteres"),
+  messageType: z.enum(["consulta", "sugerencia"]).default("consulta"),
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -579,4 +616,11 @@ export type ActivityCompositionWithDetails = ActivityComposition & {
   material?: Material;
   labor?: LaborCategory;
   tool?: Tool;
+};
+
+export type ConsultationMessage = typeof consultationMessages.$inferSelect;
+export type InsertConsultationMessage = z.infer<typeof insertConsultationMessageSchema>;
+
+export type ConsultationMessageWithUser = ConsultationMessage & {
+  user?: User;
 };

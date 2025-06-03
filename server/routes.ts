@@ -20,7 +20,8 @@ import {
   insertCompanyAdvertisementSchema,
   insertToolSchema,
   insertLaborCategorySchema,
-  insertActivitySchema
+  insertActivitySchema,
+  insertConsultationMessageSchema
 } from "@shared/schema";
 import { z } from "zod";
 
