@@ -17,6 +17,7 @@ import {
   systemSettings,
   tools,
   laborCategories,
+  consultationMessages,
   type User, 
   type InsertUser,
   type MaterialCategory,
@@ -60,7 +61,10 @@ import {
   type Tool,
   type InsertTool,
   type LaborCategory,
-  type InsertLaborCategory
+  type InsertLaborCategory,
+  type ConsultationMessage,
+  type InsertConsultationMessage,
+  type ConsultationMessageWithUser
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, like, ilike, and, gte } from "drizzle-orm";
@@ -182,6 +186,12 @@ export interface IStorage {
   getMaterialsPublic(): Promise<Material[]>;
   getMaterialCategoriesPublic(): Promise<MaterialCategory[]>;
   getSupplierCompaniesPublic(): Promise<SupplierCompany[]>;
+
+  // Sistema de mensajería interna
+  createConsultationMessage(message: InsertConsultationMessage): Promise<ConsultationMessage>;
+  getAllConsultationMessages(): Promise<ConsultationMessageWithUser[]>;
+  updateConsultationMessageStatus(id: number, status: string, adminResponse?: string): Promise<ConsultationMessage>;
+  getPublicConsultationMessages(): Promise<ConsultationMessage[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1351,6 +1361,60 @@ export class DatabaseStorage implements IStorage {
     }
 
     return result;
+  }
+
+  // Sistema de mensajería interna
+  async createConsultationMessage(message: InsertConsultationMessage): Promise<ConsultationMessage> {
+    const [created] = await db
+      .insert(consultationMessages)
+      .values(message)
+      .returning();
+    return created;
+  }
+
+  async getAllConsultationMessages(): Promise<ConsultationMessageWithUser[]> {
+    const results = await db
+      .select()
+      .from(consultationMessages)
+      .leftJoin(users, eq(consultationMessages.userId, users.id))
+      .orderBy(desc(consultationMessages.createdAt));
+
+    return results.map(row => ({
+      ...row.consultation_messages,
+      user: row.users || undefined
+    }));
+  }
+
+  async updateConsultationMessageStatus(id: number, status: string, adminResponse?: string): Promise<ConsultationMessage> {
+    const updateData: any = { 
+      status,
+      respondedAt: status === 'respondido' ? new Date() : null
+    };
+    
+    if (adminResponse) {
+      updateData.adminResponse = adminResponse;
+    }
+
+    const [updated] = await db
+      .update(consultationMessages)
+      .set(updateData)
+      .where(eq(consultationMessages.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getPublicConsultationMessages(): Promise<ConsultationMessage[]> {
+    return await db
+      .select()
+      .from(consultationMessages)
+      .where(
+        and(
+          eq(consultationMessages.isPublic, true),
+          eq(consultationMessages.status, 'respondido')
+        )
+      )
+      .orderBy(desc(consultationMessages.createdAt))
+      .limit(10);
   }
 }
 

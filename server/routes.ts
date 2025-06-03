@@ -2029,6 +2029,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Internal messaging system routes
+  app.post("/api/consultation-messages", async (req, res) => {
+    try {
+      const validatedData = insertConsultationMessageSchema.parse(req.body);
+      const message = await storage.createConsultationMessage(validatedData);
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Error creating consultation message:", error);
+      res.status(500).json({ message: "Failed to create consultation message" });
+    }
+  });
+
+  app.get("/api/admin/consultation-messages", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const messages = await storage.getAllConsultationMessages();
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching consultation messages:", error);
+      res.status(500).json({ message: "Failed to fetch consultation messages" });
+    }
+  });
+
+  app.patch("/api/admin/consultation-messages/:id/status", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, adminResponse } = req.body;
+      
+      const updatedMessage = await storage.updateConsultationMessageStatus(
+        parseInt(id), 
+        status, 
+        adminResponse
+      );
+      res.json(updatedMessage);
+    } catch (error) {
+      console.error("Error updating consultation message status:", error);
+      res.status(500).json({ message: "Failed to update consultation message status" });
+    }
+  });
+
+  app.get("/api/public/consultation-messages", async (req, res) => {
+    try {
+      const publicMessages = await storage.getPublicConsultationMessages();
+      res.json(publicMessages);
+    } catch (error) {
+      console.error("Error fetching public consultation messages:", error);
+      res.status(500).json({ message: "Failed to fetch public consultation messages" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
