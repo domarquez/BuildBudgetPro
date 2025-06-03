@@ -166,8 +166,8 @@ export default function PublicView() {
                       className="cursor-pointer group"
                       onClick={() => handleAdClick(ad)}
                     >
-                      {/* Imagen rectangular horizontal */}
-                      <div className="relative h-32 w-full overflow-hidden">
+                      {/* Imagen rectangular con mayor altura */}
+                      <div className="relative h-64 w-full overflow-hidden">
                         <img 
                           src={ad.imageUrl} 
                           alt={ad.title}
