@@ -7,6 +7,7 @@ import fs from "fs";
 import express from "express";
 import sharp from "sharp";
 import { AuthService, requireAuth, requireAdmin, requireSupplier } from "./auth";
+import { exportDatabase } from "./export-database";
 import { 
   insertMaterialSchema,
   insertProjectSchema,
@@ -2026,6 +2027,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading image:", error);
       res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
+  // Database export endpoint
+  app.get("/api/admin/export-database", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      console.log("Starting database export...");
+      const fileName = await exportDatabase();
+      
+      // Send the file as download
+      const filePath = path.join(process.cwd(), fileName);
+      res.download(filePath, fileName, (err) => {
+        if (err) {
+          console.error("Error downloading file:", err);
+          res.status(500).json({ message: "Error downloading export file" });
+        } else {
+          // Optionally delete the file after download
+          setTimeout(() => {
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+            }
+          }, 60000); // Delete after 1 minute
+        }
+      });
+    } catch (error) {
+      console.error("Error exporting database:", error);
+      res.status(500).json({ message: "Failed to export database: " + (error as Error).message });
     }
   });
 
