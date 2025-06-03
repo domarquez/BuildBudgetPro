@@ -1440,7 +1440,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(userMaterialPrices.userId, price.userId),
-          eq(userMaterialPrices.materialName, price.materialName)
+          eq(userMaterialPrices.originalMaterialName, price.originalMaterialName)
         )
       );
 
@@ -1449,8 +1449,10 @@ export class DatabaseStorage implements IStorage {
       const [updated] = await db
         .update(userMaterialPrices)
         .set({
+          customMaterialName: price.customMaterialName,
           price: price.price,
           unit: price.unit,
+          reason: price.reason,
           updatedAt: new Date()
         })
         .where(eq(userMaterialPrices.id, existing.id))

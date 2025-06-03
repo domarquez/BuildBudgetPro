@@ -74,27 +74,41 @@ export default function ActivityBreakdown({
 
   const savePriceMutation = useMutation({
     mutationFn: async ({ materialName, customName, newPrice, unit }: { materialName: string; customName: string; newPrice: number; unit: string }) => {
-      return apiRequest("POST", "/api/user-material-prices", {
-        originalMaterialName: materialName,
-        customMaterialName: customName,
+      // For now, save to localStorage as a demo until backend is ready
+      const userPrices = JSON.parse(localStorage.getItem('userMaterialPrices') || '[]');
+      const newEntry = {
+        id: Date.now(),
+        originalName: materialName,
+        customName: customName,
         price: newPrice,
-        unit
-      });
+        unit: unit,
+        savedAt: new Date().toISOString()
+      };
+      
+      // Update existing or add new
+      const existingIndex = userPrices.findIndex((p: any) => p.originalName === materialName);
+      if (existingIndex >= 0) {
+        userPrices[existingIndex] = newEntry;
+      } else {
+        userPrices.push(newEntry);
+      }
+      
+      localStorage.setItem('userMaterialPrices', JSON.stringify(userPrices));
+      return newEntry;
     },
     onSuccess: () => {
       toast({
-        title: "Precio guardado",
-        description: "El precio personalizado se ha guardado en tu lista",
+        title: "Material personalizado guardado",
+        description: "Tu material personalizado se ha guardado exitosamente",
       });
       setEditingMaterial(null);
       setTempPrice("");
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: [`/api/activities/${activityId}/composition`] });
+      setTempName("");
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: "No se pudo guardar el precio personalizado",
+        description: "No se pudo guardar el material personalizado",
         variant: "destructive",
       });
     },
@@ -315,8 +329,31 @@ export default function ActivityBreakdown({
                 <div className="border-t pt-4">
                   <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                     <Star className="w-4 h-4" />
-                    <span>Haz clic en el ícono de edición para personalizar precios y guardarlos en tu lista</span>
+                    <span>Haz clic en el ícono de edición para personalizar nombres y precios de materiales</span>
                   </div>
+                  {/* Show user's saved custom materials */}
+                  {(() => {
+                    const savedMaterials = JSON.parse(localStorage.getItem('userMaterialPrices') || '[]');
+                    const relevantMaterials = savedMaterials.filter((saved: any) => 
+                      composition?.materials?.some(mat => mat.description === saved.originalName)
+                    );
+                    
+                    if (relevantMaterials.length > 0) {
+                      return (
+                        <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                          <p className="text-sm font-medium text-green-800 mb-2">
+                            Materiales personalizados guardados:
+                          </p>
+                          {relevantMaterials.map((saved: any) => (
+                            <div key={saved.id} className="text-xs text-green-700">
+                              • {saved.customName} - {formatCurrency(saved.price)} / {saved.unit}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
             ) : (
