@@ -147,239 +147,7 @@ export default function PublicView() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="shadow-material">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Usuarios</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold text-on-surface">
-                      {formatNumber(stats?.totalUsers || 0)}
-                    </p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm">
-                <span className="text-green-600">Registrados</span>
-                <span className="text-gray-600 ml-2">en la plataforma</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-material">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Proyectos</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold text-on-surface">
-                      {formatNumber(stats?.totalProjects || 0)}
-                    </p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm">
-                <span className="text-green-600">En desarrollo</span>
-                <span className="text-gray-600 ml-2">y completados</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-material">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Presupuestos</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold text-on-surface">
-                      {formatNumber(stats?.activeBudgets || 0)}
-                    </p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Calculator className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm">
-                <span className="text-green-600">Creados</span>
-                <span className="text-gray-600 ml-2">en total</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-material">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Empresas Proveedoras</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold text-on-surface">
-                      {formatNumber(stats?.totalSuppliers || 0)}
-                    </p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Truck className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm">
-                <span className="text-green-600">Activas</span>
-                <span className="text-gray-600 ml-2">registradas</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Secondary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="shadow-material">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Materiales</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold text-on-surface">
-                      {formatNumber(stats?.totalMaterials || 0)}
-                    </p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Package className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm">
-                <span className="text-green-600">Disponibles</span>
-                <span className="text-gray-600 ml-2">en catálogo</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-material">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Actividades</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold text-on-surface">
-                      {formatNumber(stats?.totalActivities || 0)}
-                    </p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
-                  <Combine className="w-6 h-6 text-teal-600" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm">
-                <span className="text-green-600">Registradas</span>
-                <span className="text-gray-600 ml-2">disponibles</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-material">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Valor Total Proyectos</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-24 mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold text-on-surface">
-                      {formatCurrency(stats?.totalProjectValue || 0)}
-                    </p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-sm">
-                <span className="text-green-600">Valor acumulado</span>
-                <span className="text-gray-600 ml-2">de presupuestos</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Growth Chart */}
-        <Card className="shadow-material">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
-              Crecimiento del Sistema (Últimos 6 Meses)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {growthLoading ? (
-              <div className="h-64 flex items-center justify-center">
-                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-              </div>
-            ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={growthData || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="users" 
-                      stroke="#3B82F6" 
-                      strokeWidth={2}
-                      name="Usuarios"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="projects" 
-                      stroke="#F97316" 
-                      strokeWidth={2}
-                      name="Proyectos"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="budgets" 
-                      stroke="#10B981" 
-                      strokeWidth={2}
-                      name="Presupuestos"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="suppliers" 
-                      stroke="#8B5CF6" 
-                      strokeWidth={2}
-                      name="Proveedores"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-
-        {/* Publicidad Dual - Lado a Lado */}
+        {/* Publicidad Dual - Lado a Lado - Primero */}
         {advertisements && advertisements.length > 0 && showAd && (
           <div className="relative">
             <Button
@@ -447,6 +215,185 @@ export default function PublicView() {
             </div>
           </div>
         )}
+
+        {/* Métricas Compactas del Sistema */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          <Card className="shadow-material">
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center">
+                <Users className="w-6 h-6 text-primary mb-2" />
+                {statsLoading ? (
+                  <Skeleton className="h-6 w-12 mb-1" />
+                ) : (
+                  <p className="text-xl font-bold text-on-surface">
+                    {formatNumber(stats?.totalUsers || 0)}
+                  </p>
+                )}
+                <p className="text-xs text-gray-600">Usuarios</p>
+                <p className="text-xs text-green-600 mt-1">Registrados</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-material">
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center">
+                <Calculator className="w-6 h-6 text-green-600 mb-2" />
+                {statsLoading ? (
+                  <Skeleton className="h-6 w-12 mb-1" />
+                ) : (
+                  <p className="text-xl font-bold text-on-surface">
+                    {formatNumber(stats?.activeBudgets || 0)}
+                  </p>
+                )}
+                <p className="text-xs text-gray-600">Presupuestos</p>
+                <p className="text-xs text-green-600 mt-1">Creados</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-material">
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center">
+                <Building2 className="w-6 h-6 text-orange-600 mb-2" />
+                {statsLoading ? (
+                  <Skeleton className="h-6 w-12 mb-1" />
+                ) : (
+                  <p className="text-xl font-bold text-on-surface">
+                    {formatNumber(stats?.totalProjects || 0)}
+                  </p>
+                )}
+                <p className="text-xs text-gray-600">Proyectos</p>
+                <p className="text-xs text-green-600 mt-1">En desarrollo</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-material">
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center">
+                <Truck className="w-6 h-6 text-purple-600 mb-2" />
+                {statsLoading ? (
+                  <Skeleton className="h-6 w-12 mb-1" />
+                ) : (
+                  <p className="text-xl font-bold text-on-surface">
+                    {formatNumber(stats?.totalSuppliers || 0)}
+                  </p>
+                )}
+                <p className="text-xs text-gray-600">Proveedores</p>
+                <p className="text-xs text-green-600 mt-1">Activos</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-material">
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center">
+                <Package className="w-6 h-6 text-blue-600 mb-2" />
+                {statsLoading ? (
+                  <Skeleton className="h-6 w-12 mb-1" />
+                ) : (
+                  <p className="text-xl font-bold text-on-surface">
+                    {formatNumber(stats?.totalMaterials || 0)}
+                  </p>
+                )}
+                <p className="text-xs text-gray-600">Materiales</p>
+                <p className="text-xs text-green-600 mt-1">Disponibles</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-material">
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center">
+                <Combine className="w-6 h-6 text-teal-600 mb-2" />
+                {statsLoading ? (
+                  <Skeleton className="h-6 w-12 mb-1" />
+                ) : (
+                  <p className="text-xl font-bold text-on-surface">
+                    {formatNumber(stats?.totalActivities || 0)}
+                  </p>
+                )}
+                <p className="text-xs text-gray-600">Actividades</p>
+                <p className="text-xs text-green-600 mt-1">Registradas</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-material">
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center">
+                <TrendingUp className="w-6 h-6 text-yellow-600 mb-2" />
+                {statsLoading ? (
+                  <Skeleton className="h-6 w-16 mb-1" />
+                ) : (
+                  <p className="text-sm font-bold text-on-surface">
+                    {formatCurrency(stats?.totalProjectValue || 0).replace(' Bs', '')} Bs
+                  </p>
+                )}
+                <p className="text-xs text-gray-600">Valor Total</p>
+                <p className="text-xs text-green-600 mt-1">Acumulado</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Growth Chart */}
+        <Card className="shadow-material">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" />
+              Crecimiento del Sistema (Últimos 6 Meses)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {growthLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+              </div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={growthData || []}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="users" 
+                      stroke="#3B82F6" 
+                      strokeWidth={2}
+                      name="Usuarios"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="projects" 
+                      stroke="#F97316" 
+                      strokeWidth={2}
+                      name="Proyectos"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="budgets" 
+                      stroke="#10B981" 
+                      strokeWidth={2}
+                      name="Presupuestos"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="suppliers" 
+                      stroke="#8B5CF6" 
+                      strokeWidth={2}
+                      name="Proveedores"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Navegación por pestañas */}
         <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
