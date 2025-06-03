@@ -870,6 +870,44 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  // Advertisement management methods
+  async getAllAdvertisements(): Promise<(CompanyAdvertisement & { supplier: SupplierCompany })[]> {
+    const results = await db
+      .select()
+      .from(companyAdvertisements)
+      .leftJoin(supplierCompanies, eq(companyAdvertisements.supplierId, supplierCompanies.id))
+      .orderBy(desc(companyAdvertisements.createdAt));
+
+    return results.map(result => ({
+      ...result.company_advertisements!,
+      supplier: result.supplier_companies!
+    }));
+  }
+
+  async createAdvertisement(data: InsertCompanyAdvertisement): Promise<CompanyAdvertisement> {
+    const [created] = await db
+      .insert(companyAdvertisements)
+      .values(data)
+      .returning();
+    return created;
+  }
+
+  async updateAdvertisement(id: number, data: Partial<InsertCompanyAdvertisement>): Promise<CompanyAdvertisement> {
+    // Remove any existing updatedAt and createdAt from the input to avoid conflicts
+    const { updatedAt, createdAt, ...updateData } = data;
+    
+    const [updated] = await db
+      .update(companyAdvertisements)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(companyAdvertisements.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAdvertisement(id: number): Promise<void> {
+    await db.delete(companyAdvertisements).where(eq(companyAdvertisements.id, id));
+  }
+
   async deleteSupplierCompany(id: number): Promise<void> {
     await db
       .update(supplierCompanies)

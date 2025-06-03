@@ -128,6 +128,11 @@ const adminItems = [
     icon: Building2,
   },
   {
+    title: "Gestión de Publicidades",
+    url: "/admin/advertisements",
+    icon: Camera,
+  },
+  {
     title: "Importar Empresas",
     url: "/import-companies",
     icon: Upload,

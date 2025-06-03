@@ -1947,6 +1947,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin advertisements management routes
+  app.get("/api/admin/advertisements", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const advertisements = await storage.getAllAdvertisements();
+      res.json(advertisements);
+    } catch (error) {
+      console.error("Error fetching advertisements:", error);
+      res.status(500).json({ message: "Failed to fetch advertisements" });
+    }
+  });
+
+  app.post("/api/admin/advertisements", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const adData = req.body;
+      const advertisement = await storage.createAdvertisement(adData);
+      res.json(advertisement);
+    } catch (error) {
+      console.error("Error creating advertisement:", error);
+      res.status(500).json({ message: "Failed to create advertisement" });
+    }
+  });
+
+  app.put("/api/admin/advertisements/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const adId = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const updatedAd = await storage.updateAdvertisement(adId, updateData);
+      res.json(updatedAd);
+    } catch (error) {
+      console.error("Error updating advertisement:", error);
+      res.status(500).json({ message: "Failed to update advertisement" });
+    }
+  });
+
+  app.delete("/api/admin/advertisements/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const adId = parseInt(req.params.id);
+      await storage.deleteAdvertisement(adId);
+      res.json({ message: "Advertisement deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting advertisement:", error);
+      res.status(500).json({ message: "Failed to delete advertisement" });
+    }
+  });
+
+  app.post("/api/admin/advertisements/upload-image", requireAuth, requireAdmin, upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      const imagePath = `/uploads/${req.file.filename}`;
+      res.json({ imagePath });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
