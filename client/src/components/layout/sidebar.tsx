@@ -148,6 +148,11 @@ const adminItems = [
     url: "/admin-materials",
     icon: DollarSign,
   },
+  {
+    title: "Base de Datos",
+    url: "/admin/database",
+    icon: Shield,
+  },
 ];
 
 export default function AppSidebar() {
