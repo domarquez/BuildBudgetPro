@@ -81,32 +81,32 @@ export default function PublicView() {
     queryKey: ["/api/growth-data"],
   });
 
-  // Publicidad aleatoria
-  const { data: advertisement, refetch: refetchAd } = useQuery<AdvertisementWithSupplier>({
-    queryKey: ["/api/public/advertisement"],
+  // Publicidad dual lado a lado
+  const { data: advertisements, refetch: refetchAds } = useQuery<AdvertisementWithSupplier[]>({
+    queryKey: ["/api/public/dual-advertisements"],
     refetchInterval: 30000, // Cambiar cada 30 segundos
   });
 
-  const handleAdClick = async () => {
-    if (advertisement) {
-      // Registrar clic
-      await fetch(`/api/public/advertisement/${advertisement.id}/click`, {
-        method: 'POST'
-      });
-      
-      // Abrir enlace si existe
-      if (advertisement.linkUrl) {
-        window.open(advertisement.linkUrl, '_blank');
-      }
+  const handleAdClick = async (ad: AdvertisementWithSupplier) => {
+    // Registrar clic
+    await fetch(`/api/advertisements/${ad.id}/click`, {
+      method: 'POST'
+    });
+    
+    // Abrir enlace si existe
+    if (ad.linkUrl) {
+      window.open(ad.linkUrl, '_blank');
+    } else if (ad.supplier.contactEmail) {
+      window.open(`mailto:${ad.supplier.contactEmail}`, '_blank');
     }
   };
 
-  const handleCloseAd = () => {
+  const handleCloseAds = () => {
     setShowAd(false);
     setTimeout(() => {
       setShowAd(true);
-      refetchAd();
-    }, 10000); // Mostrar nueva publicidad después de 10 segundos
+      refetchAds();
+    }, 10000); // Mostrar nuevas publicidades después de 10 segundos
   };
 
   const filteredMaterials = materials?.filter(material => {
@@ -379,65 +379,73 @@ export default function PublicView() {
         </Card>
 
 
-        {/* Publicidad */}
-        {advertisement && showAd && (
-          <Card className="relative overflow-hidden border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+        {/* Publicidad Dual - Lado a Lado */}
+        {advertisements && advertisements.length > 0 && showAd && (
+          <div className="relative">
             <Button
               variant="ghost"
               size="icon"
               className="absolute top-2 right-2 z-10 h-6 w-6 rounded-full bg-black/20 hover:bg-black/40 text-white"
-              onClick={handleCloseAd}
+              onClick={handleCloseAds}
             >
               <X className="w-3 h-3" />
             </Button>
-            <CardContent className="p-0">
-              <div 
-                className="cursor-pointer group"
-                onClick={handleAdClick}
-              >
-                {/* Imagen destacada grande */}
-                <div className="relative h-48 w-full overflow-hidden">
-                  <img 
-                    src={advertisement.imageUrl} 
-                    alt={advertisement.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  
-                  {/* Información superpuesta en la imagen */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                    <h3 className="font-bold text-xl mb-1 drop-shadow-lg">
-                      {advertisement.title}
-                    </h3>
-                    <p className="text-blue-200 text-sm font-medium mb-1 drop-shadow">
-                      {advertisement.supplier.companyName} • {advertisement.supplier.city}
-                    </p>
-                    {advertisement.description && (
-                      <p className="text-white/90 text-sm drop-shadow line-clamp-2">
-                        {advertisement.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Barra inferior con estadísticas */}
-                <div className="p-3 bg-white dark:bg-gray-800 flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm">
-                    <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-400">
-                      <Eye className="w-4 h-4" />
-                      <span>{advertisement.viewCount} vistas</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {advertisements.slice(0, 2).map((ad, index) => (
+                <Card key={ad.id} className="relative overflow-hidden border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+                  <CardContent className="p-0">
+                    <div 
+                      className="cursor-pointer group"
+                      onClick={() => handleAdClick(ad)}
+                    >
+                      {/* Imagen rectangular horizontal */}
+                      <div className="relative h-32 w-full overflow-hidden">
+                        <img 
+                          src={ad.imageUrl} 
+                          alt={ad.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        
+                        {/* Información superpuesta en la imagen */}
+                        <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                          <h3 className="font-bold text-lg mb-1 drop-shadow-lg line-clamp-1">
+                            {ad.title}
+                          </h3>
+                          <p className="text-blue-200 text-xs font-medium drop-shadow">
+                            {ad.supplier.companyName}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Información inferior compacta */}
+                      <div className="p-3 bg-white dark:bg-gray-800">
+                        {ad.description && (
+                          <p className="text-gray-700 dark:text-gray-300 text-xs mb-2 line-clamp-2">
+                            {ad.description}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2 text-xs">
+                            <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-400">
+                              <Eye className="w-3 h-3" />
+                              <span>{ad.viewCount}</span>
+                            </div>
+                            <Badge variant="secondary" className="text-xs px-1 py-0">
+                              {ad.adType === "featured" ? "★" : "↗"}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            {ad.supplier.city}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {advertisement.adType === "featured" ? "Destacado" : "Promoción"}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                    Toca para más información →
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Navegación por pestañas */}

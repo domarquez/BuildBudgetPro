@@ -1316,6 +1316,42 @@ export class DatabaseStorage implements IStorage {
       supplier: randomAd.supplier_companies
     };
   }
+
+  async getDualRandomActiveAdvertisements(): Promise<AdvertisementWithSupplier[]> {
+    const activeAds = await db
+      .select()
+      .from(companyAdvertisements)
+      .leftJoin(supplierCompanies, eq(companyAdvertisements.supplierId, supplierCompanies.id))
+      .where(
+        and(
+          eq(companyAdvertisements.isActive, true),
+          sql`(${companyAdvertisements.endDate} IS NULL OR ${companyAdvertisements.endDate} > NOW())`,
+          sql`(${companyAdvertisements.startDate} IS NULL OR ${companyAdvertisements.startDate} <= NOW())`
+        )
+      )
+      .orderBy(sql`RANDOM()`)
+      .limit(2);
+
+    if (activeAds.length === 0) {
+      return [];
+    }
+
+    const result: AdvertisementWithSupplier[] = [];
+    
+    for (const ad of activeAds) {
+      if (ad.company_advertisements && ad.supplier_companies) {
+        // Increment view count
+        await this.incrementAdvertisementViews(ad.company_advertisements.id);
+        
+        result.push({
+          ...ad.company_advertisements,
+          supplier: ad.supplier_companies
+        });
+      }
+    }
+
+    return result;
+  }
 }
 
 export const storage = new DatabaseStorage();
