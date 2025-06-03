@@ -29,6 +29,7 @@ import {
   Users,
   Camera,
   Upload,
+  Globe,
 } from "lucide-react";
 
 const menuItems = [
@@ -70,6 +71,11 @@ const menuItems = [
 ];
 
 const marketplaceItems = [
+  {
+    title: "Vista Pública",
+    url: "/public",
+    icon: Globe,
+  },
   {
     title: "Marketplace",
     url: "/marketplace",
