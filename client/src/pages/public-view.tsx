@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ContactForm } from "@/components/contact-form";
 import { ConstructorGame } from "@/components/constructor-game";
+import { MicaaLogo } from "@/components/micaa-logo";
 import {
   Table,
   TableBody,

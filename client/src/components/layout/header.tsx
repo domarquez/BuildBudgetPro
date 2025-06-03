@@ -3,6 +3,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Bell, User, Construction, LogOut, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { ContactForm } from "@/components/contact-form";
+import { MicaaLogo } from "@/components/micaa-logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,16 +32,9 @@ export default function AppHeader() {
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center space-x-4">
           <SidebarTrigger className="lg:hidden" />
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Construction className="w-4 h-4 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-semibold text-on-surface">
-                MICAA
-              </h1>
-              <p className="text-xs text-gray-600">Cómputos y Presupuestos</p>
-            </div>
+          <MicaaLogo size="md" showText={true} />
+          <div className="hidden sm:block ml-2">
+            <p className="text-xs text-gray-600">Sistema de Cómputos y Presupuestos</p>
           </div>
         </div>
         

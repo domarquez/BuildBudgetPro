@@ -46,51 +46,52 @@ export function ConstructorGame() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Sprites del juego
+  // Sprites del juego - Constructor MICAA mejorado con piernas de caricatura
   const playerSprite = [
-    [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
-    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-    [0,1,1,0,1,1,0,0,0,0,1,1,0,1,1,0],
-    [0,1,1,0,1,1,0,0,0,0,1,1,0,1,1,0],
-    [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
-    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-    [0,0,1,1,0,0,1,1,1,1,0,0,1,1,0,0],
-    [0,0,1,1,0,0,1,1,1,1,0,0,1,1,0,0],
-    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-    [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],
-    [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],
-    [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],
-    [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],
-    [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
-    [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
-    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0]
+    [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0], // Casco MICAA superior
+    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0], // Casco completo
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0], // Casco con visera
+    [0,1,1,0,1,1,0,0,0,0,1,1,0,1,1,0], // Cara (ojos)
+    [0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0], // Cara (boca sonriente)
+    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0], // Cuello
+    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0], // Camisa MICAA
+    [0,0,1,1,0,0,1,1,1,1,0,0,1,1,0,0], // Camisa/brazos musculosos
+    [0,0,1,1,0,0,1,1,1,1,0,0,1,1,0,0], // Brazos fuertes
+    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0], // Cinturón de herramientas
+    [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0], // Pantalones de trabajo
+    [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0], // Pantalones
+    [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0], // Piernas cortas de caricatura
+    [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0], // Piernas cortas
+    [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0], // Botas de seguridad
+    [0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0]  // Suela antideslizante
   ];
 
+  // Martillo MICAA estilo Thor épico
   const hammerSprite = [
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2], // Cabeza del martillo épico
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,1,1,1,2,2], // Detalles metálicos
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,1,1,1,1,1,1,2], // Superficie del martillo
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,1,1,1,1,1,1,1,2], // Cabeza maciza
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,1,1,1,1,1,1,1,1,2], // Martillo poderoso
+    [0,0,0,0,0,0,0,0,0,0,0,0,2,2,1,1,1,1,1,1,1,1,1,2], // Diseño épico
+    [0,0,0,0,0,0,0,0,0,0,0,2,2,1,1,1,1,1,1,1,1,1,1,2], // Martillo MICAA
+    [0,0,0,0,0,0,0,0,0,0,2,2,1,1,1,1,1,1,1,1,1,1,1,2], // Poder de Thor
+    [0,0,0,0,0,0,0,0,0,2,2,1,1,1,1,1,1,1,1,1,1,1,1,2], // Fuerza divina
+    [0,0,0,0,0,0,0,0,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2], // Martillo legendario
+    [0,0,0,0,0,0,0,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2], // Constructor épico
+    [0,0,0,0,0,0,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2], // Destructor de cubos
+    [0,0,0,0,0,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2], // Herramienta divina
+    [0,0,0,0,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2], // Mjolnir MICAA
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,0], // Mango de madera noble
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,0], // Empuñadura perfecta
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,0], // Mango resistente
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,3,0], // Madera sagrada
+    [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,3,3,0,0,0,0], // Transición del mango
+    [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,3,3,0,0,0,0,0], // Extremo del mango
+    [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,3,3,0,0,0,0,0,0], // Punta del mango
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,3,3,0,0,0,0,0,0,0], // Final épico
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0], // Remate del martillo
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]  // Espacio final
   ];
 
   // Función para reproducir sonidos (simplificada)
@@ -177,13 +178,24 @@ export function ConstructorGame() {
     setIsPaused(false);
   };
 
-  // Dibujar sprite pixelado
-  const drawSprite = (ctx: CanvasRenderingContext2D, sprite: number[][], x: number, y: number, width: number, height: number, color = '#2C5530') => {
+  // Dibujar sprite pixelado con soporte para múltiples colores
+  const drawSprite = (ctx: CanvasRenderingContext2D, sprite: number[][], x: number, y: number, width: number, height: number, colors: string[] = ['#2C5530']) => {
     const pixelSize = width / sprite[0].length;
     for (let i = 0; i < sprite.length; i++) {
       for (let j = 0; j < sprite[0].length; j++) {
-        if (sprite[i][j] === 1) {
-          ctx.fillStyle = color;
+        const pixel = sprite[i][j];
+        if (pixel > 0) {
+          // Mapeo de colores para el martillo épico y constructor MICAA
+          if (colors.length === 1) {
+            ctx.fillStyle = colors[0];
+          } else {
+            switch (pixel) {
+              case 1: ctx.fillStyle = colors[0] || '#C0C0C0'; break; // Plateado metálico
+              case 2: ctx.fillStyle = colors[1] || '#4A4A4A'; break; // Acero oscuro
+              case 3: ctx.fillStyle = colors[2] || '#8B4513'; break; // Madera
+              default: ctx.fillStyle = colors[0] || '#2C5530'; break;
+            }
+          }
           ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize, pixelSize);
         }
       }
@@ -320,16 +332,24 @@ export function ConstructorGame() {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Dibujar jugador
+    // Dibujar jugador - Constructor MICAA con colores profesionales
     drawSprite(ctx, playerSprite, gameState.player.x, gameState.player.y, 
-               gameState.player.width, gameState.player.height, '#2C5530');
+               gameState.player.width, gameState.player.height, ['#2C5530']); // Verde constructor
 
-    // Dibujar martillo
+    // Dibujar martillo épico estilo Thor
     if (gameState.player.hammer) {
       ctx.save();
       ctx.translate(gameState.player.x + gameState.player.width + 24, gameState.player.y + 16);
       ctx.rotate(gameState.player.hammerAngle);
-      drawSprite(ctx, hammerSprite, -24, -24, 48, 48, '#8B4513');
+      
+      // Efecto de brillo divino del martillo
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 10;
+      
+      // Colores del martillo épico: [metal plateado, acero oscuro, madera noble]
+      drawSprite(ctx, hammerSprite, -24, -24, 48, 48, ['#E6E6E6', '#2F2F2F', '#8B4513']);
+      
+      ctx.shadowBlur = 0;
       ctx.restore();
     }
 
