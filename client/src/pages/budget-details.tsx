@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, MapPin, User, FileText, Calculator, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import ActivityBreakdown from "@/components/activity-breakdown";
 import type { BudgetWithProject, BudgetItemWithActivity } from "@shared/schema";
 
 export default function BudgetDetails() {
@@ -461,32 +462,26 @@ export default function BudgetDetails() {
           ) : budgetItems && budgetItems.length > 0 ? (
             <div className="space-y-4">
               {budgetItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                  <div>
-                    <p className="font-medium text-on-surface">
-                      {item.activity.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {item.activity.phase.name} • Cantidad: {item.quantity} {item.activity.unit}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-on-surface">
-                      {formatCurrency(Number(item.subtotal))}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {formatCurrency(Number(item.unitPrice))} por {item.activity.unit}
-                    </p>
-                  </div>
-                </div>
+                <ActivityBreakdown
+                  key={item.id}
+                  activityId={item.activity.id}
+                  activityName={item.activity.name}
+                  quantity={item.quantity}
+                  unitPrice={Number(item.unitPrice)}
+                  subtotal={Number(item.subtotal)}
+                />
               ))}
-              <div className="border-t pt-4">
+              <div className="border-t pt-4 bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center">
-                  <p className="text-lg font-semibold">Total:</p>
+                  <p className="text-lg font-semibold">Total del Presupuesto:</p>
                   <p className="text-xl font-bold text-primary">
                     {formatCurrency(totalItems)}
                   </p>
                 </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  Haz clic en cada actividad para ver el desglose de materiales, mano de obra y equipos.
+                  Puedes editar precios de materiales para crear tu lista personalizada.
+                </p>
               </div>
             </div>
           ) : (
