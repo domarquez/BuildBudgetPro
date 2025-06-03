@@ -299,7 +299,7 @@ export default function AdminActivities() {
                     </TableCell>
                     <TableCell>{activity.unit}</TableCell>
                     <TableCell className="text-right font-mono">
-                      Bs. {activity.unitPrice?.toFixed(2) || '0.00'}
+                      Bs. {typeof activity.unitPrice === 'number' ? activity.unitPrice.toFixed(2) : parseFloat(activity.unitPrice || '0').toFixed(2)}
                     </TableCell>
                     <TableCell className="text-center">
                       <Dialog>
