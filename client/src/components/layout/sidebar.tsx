@@ -30,6 +30,7 @@ import {
   Camera,
   Upload,
   Globe,
+  Mail,
 } from "lucide-react";
 
 const menuItems = [
@@ -169,7 +170,7 @@ export default function AppSidebar() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <Construction className="w-4 h-4 text-white" />
           </div>
-          <span className="text-lg font-semibold text-on-surface">MICA</span>
+          <span className="text-lg font-semibold text-on-surface">MICAA</span>
         </div>
       </SidebarHeader>
       
@@ -328,8 +329,19 @@ export default function AppSidebar() {
       </SidebarContent>
       
       <SidebarFooter className="p-4 border-t">
-        <div className="text-xs text-muted-foreground text-center">
-          MICA v1.0.0
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => window.open('mailto:contacto@micaa.store?subject=Consulta%20MICAA&body=Envianos%20un%20mensaje%20con%20tus%20consultas%20o%20sugerencias', '_blank')}
+              className="w-full justify-center"
+            >
+              <Mail className="w-4 h-4" />
+              <span className="text-xs">Envíanos un mensaje con tus consultas o sugerencias</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        <div className="text-xs text-muted-foreground text-center mt-2">
+          MICAA v1.0.0
         </div>
       </SidebarFooter>
     </Sidebar>

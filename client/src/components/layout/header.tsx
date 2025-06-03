@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Bell, User, Construction, LogOut } from "lucide-react";
+import { Bell, User, Construction, LogOut, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
@@ -36,7 +36,7 @@ export default function AppHeader() {
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl font-semibold text-on-surface">
-                MICA
+                MICAA
               </h1>
               <p className="text-xs text-gray-600">Cómputos y Presupuestos</p>
             </div>
@@ -44,6 +44,16 @@ export default function AppHeader() {
         </div>
         
         <div className="flex items-center space-x-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="hidden md:flex items-center space-x-2"
+            onClick={() => window.open('mailto:contacto@micaa.store?subject=Consulta%20MICAA&body=Envianos%20un%20mensaje%20con%20tus%20consultas%20o%20sugerencias', '_blank')}
+          >
+            <Mail className="w-4 h-4" />
+            <span>Contacto</span>
+          </Button>
+          
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="w-5 h-5" />
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
