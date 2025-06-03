@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego del Constructor</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #fff;
+        }
+        canvas {
+            border: 2px solid #000;
+            image-rendering: pixelated;
+        }
+        #gameOver {
+            position: absolute;
+            display: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 24px;
+            color: #000;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="200"></canvas>
+    <div id="gameOver">¡Game Over! Presiona R para reiniciar</div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameOverText = document.getElementById('gameOver');
+
+        // Configuración del juego
+        const player = {
+            x: 50,
+            y: canvas.height - 50,
+            width: 32,
+            height: 32,
+            speed: 5,
+            jumping: false,
+            jumpPower: 15,
+            velocityY: 0,
+            hammer: false,
+            hammerTimer: 0,
+            hammerAngle: 0
+        };
+
+        let cubes = []; // Lista plana de cubos
+        let score = 0;
+        let gameOver = false;
+        let destroyedThisFrame = 0; // Para depuración
+
+        // Sprite del constructor (16x16 píxeles)
+        const playerSprite = [
+            [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0], // Casco
+            [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0], // Casco
+            [0,1,1,0,1,1,0,0,0,0,1,1,0,1,1,0], // Cara (ojos)
+            [0,1,1,0,1,1,0,0,0,0,1,1,0,1,1,0], // Cara (boca)
+            [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0], // Hombros
+            [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0], // Camisa
+            [0,0,1,1,0,0,1,1,1,1,0,0,1,1,0,0], // Camisa/brazos
+            [0,0,1,1,0,0,1,1,1,1,0,0,1,1,0,0], // Camisa/brazos
+            [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0], // Cinturón
+            [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0], // Pantalones
+            [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0], // Pantalones
+            [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0], // Pantalones
+            [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0], // Pantalones
+            [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0], // Botas
+            [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0], // Botas
+            [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0]  // Suela botas
+        ];
+
+        // Sprite del martillo (24x24 píxeles)
+        const hammerSprite = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        ];
+
+        // Generar cubos para una columna
+        function createColumn(x) {
+            const cubeSize = 32;
+            const rows = Math.ceil(canvas.height / cubeSize); // 200 / 32 = 7 filas
+            const column = [];
+            const shades = ['#000', '#333', '#666', '#999'];
+            for (let row = 0; row < rows; row++) {
+                column.push({
+                    x: x,
+                    y: row * cubeSize,
+                    width: cubeSize,
+                    height: cubeSize,
+                    shade: shades[Math.floor(Math.random() * shades.length)]
+                });
+            }
+            return column;
+        }
+
+        // Generar muro inicial
+        function initCubes() {
+            cubes = [];
+            for (let x = canvas.width; x >= canvas.width - 32 * 5; x -= 32) {
+                const column = createColumn(x);
+                cubes.push(...column);
+            }
+        }
+
+        // Controles
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowRight') player.x += player.speed;
+            if (e.code === 'ArrowUp' && !player.jumping) {
+                player.velocityY = -player.jumpPower;
+                player.jumping = true;
+            }
+            if (e.code === 'Space' && !player.hammer) {
+                player.hammer = true;
+                player.hammerTimer = 30;
+                player.hammerAngle = 0;
+            }
+            if (e.code === 'KeyR' && gameOver) resetGame();
+        });
+
+        // Física y actualización
+        function update() {
+            if (gameOver) return;
+
+            // Gravedad
+            player.velocityY += 0.8;
+            player.y += player.velocityY;
+            if (player.y > canvas.height - player.height) {
+                player.y = canvas.height - player.height;
+                player.jumping = false;
+                player.velocityY = 0;
+            }
+
+            // Martillo
+            if (player.hammer) {
+                player.hammerTimer--;
+                player.hammerAngle += 0.2;
+                if (player.hammerTimer <= 0) player.hammer = false;
+            }
+
+            // Colisión con el martillo (antes de mover los cubos)
+            const hammerWidth = 48;
+            const hammerHeight = 48;
+            const hammerX = player.x + player.width;
+            const hammerY = player.y - 16;
+            const initialCubeCount = cubes.length; // Para depuración
+            destroyedThisFrame = 0;
+            cubes = cubes.filter(cube => {
+                if (player.hammer &&
+                    hammerX + hammerWidth > cube.x &&
+                    hammerX < cube.x + cube.width &&
+                    hammerY + hammerHeight > cube.y &&
+                    hammerY < cube.y + cube.height) {
+                    score += 10;
+                    destroyedThisFrame++;
+                    return false; // Eliminar este cubo
+                }
+                return true; // Mantener este cubo
+            });
+            const finalCubeCount = cubes.length; // Para depuración
+            if (initialCubeCount !== finalCubeCount) {
+                console.log(`Cubos eliminados: ${initialCubeCount - finalCubeCount}, Total restante: ${cubes.length}`);
+            }
+
+            // Mover cubos (después de procesar colisiones)
+            cubes.forEach(cube => {
+                cube.x -= 0.5; // Velocidad lenta
+            });
+
+            // Añadir nueva columna de cubos
+            const rightmostCube = cubes.length > 0 ? cubes.reduce((max, cube) => Math.max(max, cube.x), -Infinity) : -Infinity;
+            if (rightmostCube < canvas.width - 32) {
+                const newColumn = createColumn(canvas.width);
+                cubes.push(...newColumn);
+            }
+
+            // Eliminar cubos fuera del canvas
+            cubes = cubes.filter(cube => cube.x + cube.width > 0);
+
+            // Determinar la posición más a la izquierda de los cubos restantes
+            let leftmostCubeX = canvas.width;
+            let foundCube = false;
+            if (cubes.length > 0) {
+                leftmostCubeX = cubes.reduce((min, cube) => Math.min(min, cube.x), canvas.width);
+                foundCube = true;
+            }
+
+            // Game Over si un cubo real alcanza al jugador (con tolerancia)
+            const playerEdge = player.x + player.width;
+            if (foundCube && leftmostCubeX <= playerEdge + 5) { // Tolerancia de 5 píxeles
+                console.log(`Game Over activado: Leftmost X: ${leftmostCubeX}, Player Edge: ${playerEdge}`);
+                gameOver = true;
+                gameOverText.style.display = 'block';
+            }
+        }
+
+        // Dibujar sprite pixelado
+        function drawSprite(sprite, x, y, width, height) {
+            const pixelSize = width / sprite[0].length;
+            for (let i = 0; i < sprite.length; i++) {
+                for (let j = 0; j < sprite[0].length; j++) {
+                    if (sprite[i][j] === 1) {
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(x + j * pixelSize, y + i * pixelSize, pixelSize, pixelSize);
+                    }
+                }
+            }
+        }
+
+        // Dibujar
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar jugador
+            drawSprite(playerSprite, player.x, player.y, player.width, player.height);
+
+            // Dibujar martillo animado
+            if (player.hammer) {
+                ctx.save();
+                ctx.translate(player.x + player.width + 24, player.y + 16);
+                ctx.rotate(player.hammerAngle);
+                drawSprite(hammerSprite, -24, -24, 48, 48);
+                ctx.restore();
+
+                // Dibujar área de colisión del martillo (para depuración)
+                const hammerWidth = 48;
+                const hammerHeight = 48;
+                const hammerX = player.x + player.width;
+                const hammerY = player.y - 16;
+                ctx.strokeStyle = 'red';
+                ctx.strokeRect(hammerX, hammerY, hammerWidth, hammerHeight);
+            }
+
+            // Dibujar cubos
+            cubes.forEach(cube => {
+                ctx.fillStyle = cube.shade;
+                ctx.fillRect(cube.x, cube.y, cube.width, cube.height);
+            });
+
+            // Determinar el número de columnas (cubos agrupados por posición x)
+            const columns = [...new Set(cubes.map(cube => cube.x))].length;
+
+            // Puntuación y depuración
+            ctx.fillStyle = '#000';
+            ctx.font = '16px Courier New';
+            ctx.fillText(`Puntuación: ${score}`, 10, 20);
+            ctx.fillText(`Columnas: ${columns}`, 10, 40);
+            ctx.fillText(`Cubes: ${cubes.length}`, 10, 60);
+            let leftmostCubeX = canvas.width;
+            let foundCube = false;
+            if (cubes.length > 0) {
+                leftmostCubeX = cubes.reduce((min, cube) => Math.min(min, cube.x), canvas.width);
+                foundCube = true;
+            }
+            ctx.fillText(`Leftmost X: ${leftmostCubeX.toFixed(2)}`, 10, 80);
+            ctx.fillText(`Player Edge: ${(player.x + player.width).toFixed(2)}`, 10, 100);
+            ctx.fillText(`Destroyed: ${destroyedThisFrame}`, 10, 120);
+        }
+
+        // Reiniciar juego
+        function resetGame() {
+            player.x = 50;
+            player.y = canvas.height - 50;
+            player.jumping = false;
+            player.velocityY = 0;
+            player.hammer = false;
+            player.hammerAngle = 0;
+            initCubes();
+            score = 0;
+            gameOver = false;
+            gameOverText.style.display = 'none';
+        }
+
+        // Inicializar cubos
+        initCubes();
+
+        // Bucle del juego
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
