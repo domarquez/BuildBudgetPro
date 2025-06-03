@@ -130,13 +130,13 @@ export default function PublicView() {
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                MICAA - Cómputos y Presupuestos
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Explora materiales y proveedores de construcción en Bolivia
-              </p>
+            <div className="flex items-center space-x-4">
+              <MicaaLogo size="lg" showText={true} />
+              <div>
+                <p className="text-gray-600 dark:text-gray-400 text-lg">
+                  Explora materiales y proveedores de construcción en Bolivia
+                </p>
+              </div>
             </div>
             <div className="flex space-x-3">
               <ContactForm 
