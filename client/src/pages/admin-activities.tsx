@@ -57,7 +57,7 @@ export default function AdminActivities() {
   // Update activity phase mutation
   const updateActivityMutation = useMutation({
     mutationFn: async ({ activityId, phaseId }: { activityId: number; phaseId: number }) => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/admin/activities/${activityId}/phase`, {
         method: 'PUT',
         headers: { 
@@ -92,7 +92,7 @@ export default function AdminActivities() {
   // Bulk move activities mutation
   const bulkMoveMutation = useMutation({
     mutationFn: async ({ fromPhaseId, toPhaseId, keyword }: { fromPhaseId: number; toPhaseId: number; keyword: string }) => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/admin/activities/bulk-move', {
         method: 'POST',
         headers: { 
