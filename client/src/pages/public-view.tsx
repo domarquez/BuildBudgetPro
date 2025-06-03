@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ContactForm } from "@/components/contact-form";
+import { ConstructorGame } from "@/components/constructor-game";
 import {
   Table,
   TableBody,
@@ -666,6 +667,11 @@ export default function PublicView() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Juego Interactivo */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        <ConstructorGame />
       </div>
 
       {/* Footer de Contacto */}
