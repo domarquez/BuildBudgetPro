@@ -843,9 +843,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSupplierCompany(id: number, company: Partial<InsertSupplierCompany>): Promise<SupplierCompany> {
+    // Remove any existing updatedAt and createdAt from the input to avoid conflicts
+    const { updatedAt, createdAt, ...updateData } = company;
+    
     const [updated] = await db
       .update(supplierCompanies)
-      .set({ ...company, updatedAt: new Date() })
+      .set({ ...updateData, updatedAt: new Date() })
       .where(eq(supplierCompanies.id, id))
       .returning();
     return updated;
